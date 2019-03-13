@@ -6,8 +6,8 @@ Authors@R:
            family = "Bush",
            role = c("aut", "cre"),
            email = "example@domain.com")
-    person(given = "German Beldorati",
-           family = "Beldorati",
+    person(given = "German",
+           family = "Beldorati Stark",
            role = c("aut", "cre"),
            email = "gerbeldo@gmail.com")
 Description: Analyse cellID data in the tidyverse framework
