@@ -2,7 +2,11 @@ Package: tidycell
 Title: CellID Data Analysis Inside the Tidyverse (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "German",
+    person(given = "Alan",
+           family = "Bush",
+           role = c("aut", "cre"),
+           email = "example@domain.com")
+    person(given = "German Beldorati",
            family = "Beldorati",
            role = c("aut", "cre"),
            email = "gerbeldo@gmail.com")
