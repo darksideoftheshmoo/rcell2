@@ -40,6 +40,58 @@
 #*************************************************************************#
 
 
+#' Load cellID data
+#'
+#' \code{load_cell_data} searches a specified directory (the working directory by default)
+#' for folders that match a customizable pattern, usually PositionXXX where XXX is the
+#' position number. This folders should contain the Cell-ID output files output_all
+#' and the output_bf_fl_mapping for each position. The function
+#' loads this files and generates a data structure suitable for filtering and
+#' plotting. The function
+#' returns a cell.data object that contains all the required
+#' information for the analysis. All the functions included in the package
+#' operate over this object, and its components should not be modified directly,
+#' but through the provided functions. Remember to assign the returned value to a
+#' variable (e.g. X<-load.cellID.data() )
+#'
+#' @param path string, path to folder containing PositionXXX folders.
+#' @param pattern string, Regex specifying 'PositionXXX' name format.
+#' @param basename string, cellID output extension.
+#' @param select character vector, defines which variables to include in the cell.data object
+#' @param exclude character vector, defines which variables to exclude in the cell.data object.
+#' @param load.vars string, character specifying which variables or group of variables of the Cell-ID
+#'     out_all file should be loaded.
+#' @param split.image boolean, indicates if the images are split and upper cells should be matched
+#'     to lower cells. Set to TRUE if analyzing a FRET split image experiment.
+#'
+#' @details
+#' Reads Cell ID output files (basename)_all in folders that match pattern
+#' in path and loads them into a cell.data object.
+#'
+#' It searches for the output_all files in folders of the form specified by
+#' pattern (regular expression). If the folder has a numeric value in its name
+#' that number is taken as the position index (for example pos01 is given the index 1)
+#' If no numeric value is found in the folder name, then a ordinal index is assign.
+#'
+#' Possible values for load.vars are 'all', 'fl' or 'fluorescence',
+#' 'bg' or 'background', 'calc', 'morph' or 'morphological', 'vac' or 'vacuole',
+#' 'nucl' or 'nuclear', 'disc'. The group of variables can be specified in either a positive
+#' form (i.e. '+fl+bg+morph') or in a negative form (i.e. '-nucl-vac').
+#' Combination of positive and negative form is not allowed.
+#' A character vector containing the variables names of the out_all file is
+#' also allowed. The selection of variables is done before restructuring, so the
+#' variable names should correspond to those of the out_all files. Using this argument can be useful
+#' if memory issues arise.
+#'
+#' Alternatively \code{select} and \code{exclude} can be used to subset the dataset.
+#' This arguments are applied after the reshaping,
+#' so variables names as returned by \code{\link{summary.cell.data}} are used. Wildcard patterns (e.g. 'f.*.y')
+#' and keywords (e.g. 'all', 'id.vars', 'YFP', etc.) can be used as components of these arguments.
+#'
+#' @return a cell.data object
+#' @export
+#'
+#' @examples
 load_cell_data <-
     function(path = getwd(),
              pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
@@ -144,6 +196,7 @@ load_cell_data <-
             pos.data[[i]] <- readr::read_tsv(out_all)
 
             # ToDo: check if there's a difference between using Hmisc::import.cleanup or not.
+
 
             ######## ASSERT ########
             # asserting that previously loaded positions have the same number and column names
@@ -563,14 +616,20 @@ load_cell_data <-
 #*************************************************************************#
 # PRIVATE Functions
 #*************************************************************************#
-
 #private
-#generates a table mapping a channel name (3 first characters of the image file)
-# to a flag number for a given bf.fl.mapping data.frame
-#(read from an output_bf_fl_mapping file)
 
-# g: input: bf.fl.mapping corresponding to a single position! so it's a data.frame
-
+#' Make Flag Table
+#'
+#' Generates a table mapping a channel name (3 first characters of the image file)
+#' to a flag number for a given bf.fl.mapping data.frame (read from an
+#' output_bf_fl_mapping file)
+#'
+#' @param bf.fl.mapping data.frame of the bf.fl.mapping output file
+#' @param pos integer, corresponds to position
+#'
+#' @return a data.frame containing the bf.fl.mapping of a single position
+#'
+#' @examples
 .mk_flag_table <- function(bf.fl.mapping, pos = NULL){
 
     flag.name = vector(mode = "character", length = 0)
@@ -632,8 +691,21 @@ load_cell_data <-
 
 #*************************************************************************#
 #private
-#parses the input of load.vars and reurns a vector with the elements to be loaded
 #ToDo: improve this, compatibilize with select
+#' Parse Names of Variables to Load
+#'
+#' Parses the input of load.vars and reurns a vector with the elements to be loaded.
+#' Possible values for load.vars are 'all', 'fl' or 'fluorescence', 'bg' or 'background', 'calc',
+#' 'morph' or 'morphological', 'vac' or 'vacuole', 'nucl' or 'nuclear', 'disc'.
+#' The group of variables can be specified in either a positive form (i.e. '+fl+bg+morph')
+#' or in a negative form (i.e. '-nucl-vac'). Combination of positive and negative form is not allowed.
+#'
+#' @param load.vars, pattern of variable names in code
+#' @param vars.all
+#'
+#' @return character vector containing variable names
+#'
+#' @examples
 .parse_load_vars <- function(load.vars, vars.all = NULL){
 
     if(length(load.vars) != 1) stop(".parse_load_vars argument should be of length 1\n")
