@@ -10,7 +10,7 @@ Authors@R:
            family = "Beldorati Stark",
            role = c("aut", "cre"),
            email = "gerbeldo@gmail.com")
-Description: Analyse cellID data in the tidyverse framework
+Description: Analyse cellID data in the tidyverse framework.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
