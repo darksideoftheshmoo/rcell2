@@ -9,7 +9,7 @@
 \arguments{
 \item{load.vars, }{pattern of variable names in code}
 
-\item{vars.all}{}
+\item{vars.all, }{NULL}
 }
 \value{
 character vector containing variable names
