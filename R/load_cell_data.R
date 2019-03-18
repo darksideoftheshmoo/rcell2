@@ -15,12 +15,40 @@
 #.CELLID_ID_VARS_DERIV = c(.CELLID_ID_VARS, "ucid", "time")
 #.CELLID_DROP_VARS = c("flag", "num.pix", "con.vol.1")
 
+if(getRversion() >= "2.15.1") {
+    utils::globalVariables(c("a.tot",
+                             "bright",
+                             "cellID",
+                             "channel",
+                             "ellipse.perim",
+                             "f.bg.c",
+                             "f.bg.r",
+                             "f.bg.y",
+                             "f.c",
+                             "f.r",
+                             "f.tot.c",
+                             "f.tot.r",
+                             "f.tot.y",
+                             "f.y",
+                             "flag",
+                             "fluor",
+                             "maj.axis",
+                             "min.axis",
+                             "perim",
+                             "pos"))
+}
+
+
 
 #*************************************************************************#
 ## TODO
 #*************************************************************************#
 
-## #ToDo: documentation on cell.data object
+# ToDo: documentation on cell.data object
+
+# ToDo: add and check FRET analysis related functions:
+#       - .restructure.split.image
+#       - .append.identifier
 
 #*************************************************************************#
 ## DEPENDENCIES
@@ -144,16 +172,18 @@ load_cell_data <-
         # each element corresponds to a position
         bf.fl.mapping <- list()
 
-        # count and array to correct numbers if position folders don'y have them
+        # count and array to correct numbers if position folders don't have them
         # count = 0
         # posdir.index = array(-1, dim = c(length(posdir)))
 
-        #variable to assert all output_all have the same columns
+        # variable to assert all output_all have the same columns
         column.names = c()
 
         ######## ASSERT ########
         #checking if there are Pos folders to be loaded
-        if(length(posdir) == 0) stop("No Pos folder found in specified path or working directory.")
+        if(length(posdir) == 0) {
+            stop("No Pos folder found in specified path or working directory.")
+        }
         ########
 
         cat("reading positions...\n")
@@ -442,9 +472,10 @@ load_cell_data <-
         # If this number is small ( < ~0.7) it's probably not a cell.
 
         pos.data <- dplyr::mutate(pos.data,
-                                  ellipse.perim = pi * (3 * (maj.axis / 2 + min.axis / 2) -
-                                                            sqrt((3*maj.axis / 2 + min.axis / 2) *
-                                                                     (maj.axis / 2 + 3 * min.axis / 2))),
+                                  ellipse.perim = pi *
+                                      (3 * (maj.axis / 2 + min.axis / 2) -
+                                           sqrt((3 * maj.axis / 2 + min.axis / 2) *
+                                                    (maj.axis / 2 + 3 * min.axis / 2))),
 
                                   el.p = ellipse.perim / perim)
 
@@ -589,9 +620,13 @@ load_cell_data <-
             cell.data = subset(cell.data, select = select, exclude = exclude)
         }
 
-        if(isTRUE(split.image)){
-            cell.data <- .restructure.split.image(cell.data)
-        }
+
+        # ToDo: add and check FRET analysis related functions:
+        #       - .restructure.split.image
+        #       - .append.identifier
+        #if(isTRUE(split.image)){
+        #    cell.data <- .restructure.split.image(cell.data)
+        #}
 
         # print(summary(cell.data))
         return(cell.data)
@@ -701,7 +736,7 @@ load_cell_data <-
 #' or in a negative form (i.e. '-nucl-vac'). Combination of positive and negative form is not allowed.
 #'
 #' @param load.vars, pattern of variable names in code
-#' @param vars.all
+#' @param vars.all, NULL
 #'
 #' @return character vector containing variable names
 #'
