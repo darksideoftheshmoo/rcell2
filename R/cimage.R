@@ -357,7 +357,7 @@ cimage.cell.image <- function(X,
                              "facets_only")) {
         imgdf <- do.call("rbind",
                          plyr::dlply(imgdf,
-                                     .(facet_id),
+                                     plyr::.(facet_id),
                                      .append.panel.idxyz,
                                      pform = pformula,
                                      var.prefix = "img_",
@@ -376,7 +376,7 @@ cimage.cell.image <- function(X,
 
     imgb <- img.size + border
 
-    facets.df <- plyr::ddply(imgdf, .(facet_id), function(df) {
+    facets.df <- plyr::ddply(imgdf, plyr::.(facet_id), function(df) {
         df[1, base::intersect(names(df), c(paste("facet_",
                                                  c("id","id_x","id_y","x","y","z"),
                                                  sep = ""),
@@ -424,7 +424,7 @@ cimage.cell.image <- function(X,
 
     #agregar axis aca si scale free
     if (scales == "free") {
-        xaxis <- plyr::dlply(imgdf, .(facet_id), .axis,
+        xaxis <- plyr::dlply(imgdf, plyr::.(facet_id), .axis,
                              pform = pformula,
                              side = 1,
                              img.size = img.size,
@@ -432,7 +432,7 @@ cimage.cell.image <- function(X,
                              font.size = font.size,
                              bg.col = bg.col)#,font.col=font.col,line.col=0)
 
-        yaxis <- plyr::dlply(imgdf, .(facet_id), .axis,
+        yaxis <- plyr::dlply(imgdf, plyr::.(facet_id), .axis,
                              pform = pformula,
                              side = 2,
                              img.size = img.size,
@@ -1781,7 +1781,7 @@ if(getRversion() >= "2.15.1")
             # axis.img<-Image(bg.col,colormode="Grayscale", dim = axis.img.dim) #draw on EBImage
         } else { #plot axis
             if(!all(c(term,"img_coord") %in% names(imgdf))) stop("some variable in formula not in imgdf")
-            axisdf <- plyr::ddply(subset(imgdf, select = c("img_coord", term)), .(img_coord), unique)
+            axisdf <- plyr::ddply(subset(imgdf, select = c("img_coord", term)), plyr::.(img_coord), unique)
             n_term <- length(term)
             axis.img.dim <- c((img.size + border) * max_coord + border, round(n_term * font.size * mex))
             # axis.img <- Image(bg.col,colormode="Grayscale", dim = axis.img.dim) #draw on EBImage
