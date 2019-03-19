@@ -1735,7 +1735,7 @@ if(getRversion() >= "2.15.1")
                   img.size = 41,
                   border = 1,
                   font.size = 14,
-                  max.nchar = floor(img.size*2/font.size),
+                  max.nchar = floor(img.size * 2 / font.size),
                   mex = 1.2,
                   bg.col = "white"){ #,font.col="black",line.col=0
 
@@ -1822,7 +1822,7 @@ if(getRversion() >= "2.15.1")
                                        round(mex * font.size * (i - 1)))	#side==4
 
                     axis.img.line.y <- c(axis.img.line.y, #draw on device
-                                         do.call(c, plyr::dlply(axisdf, .(img_coord),
+                                         do.call(c, plyr::dlply(axisdf, plyr::.(img_coord),
                                                           function(df) {
                                                               c(ylinepos, ylinepos, NA)})))
 
