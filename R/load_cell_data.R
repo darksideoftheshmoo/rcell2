@@ -10,10 +10,10 @@
 # to its corresponding BF image.
 
 ##################### Package Constants #################################
-#.conflicts.OK = TRUE
-#.CELLID_ID_VARS = c("pos", "t.frame", "cellID")
-#.CELLID_ID_VARS_DERIV = c(.CELLID_ID_VARS, "ucid", "time")
-#.CELLID_DROP_VARS = c("flag", "num.pix", "con.vol.1")
+.conflicts.OK = TRUE
+.CELLID_ID_VARS = c("pos", "t.frame", "cellID")
+.CELLID_ID_VARS_DERIV = c(.CELLID_ID_VARS, "ucid", "time")
+.CELLID_DROP_VARS = c("flag", "num.pix", "con.vol.1")
 
 if(getRversion() >= "2.15.1") {
     utils::globalVariables(c("a.tot",
@@ -1050,6 +1050,23 @@ write.delim <- function(x,
         }
         return(fs)
     }
+}
+
+#*************************************************************************#
+#public
+#
+#' is cell data
+#'
+#' checks if an objects is a cell.data object
+#'
+#' @param X an object
+#'
+#' @return boolean indicating if X is a cell.data object
+#' @export
+#'
+#' @examples
+is.cell.data <- function(X) {
+    inherits(X, "cell.data")
 }
 
 #*************************************************************************#
