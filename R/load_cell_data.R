@@ -983,3 +983,42 @@ load_cell_data <-
         return(nchar(x, type, allowNA, keepNA = FALSE))
     }
 }
+
+#*************************************************************************#
+#public
+#
+#' write tab delimited file
+#'
+#' Writes a tab delimited file. Wrapper to write.table
+#'
+#' @param x data frame to write
+#' @param file file to output
+#' @param quote  a logical value (TRUE or FALSE) or a numeric vector. If TRUE, any character
+#'  or factor columns will be surrounded by double quotes. If a numeric vector, its elements
+#'  are taken as the indices of columns to quote. In both cases, row and column names are
+#'  quoted if they are written. If FALSE, nothing is quoted.
+#' @param sep the field separator string. Values within each row of x are separated by this string.
+#' @param row.names either a logical value indicating whether the row names of x are to be written
+#'  along with x, or a character vector of row names to be written.
+#' @param ... arguments to write.table: append, col.names, sep, dec and qmethod cannot be altered.
+#'
+#' @export
+#'
+#' @examples
+write.delim <- function(x,
+                        file = "",
+                        quote = FALSE,
+                        sep = "\t",
+                        row.names = FALSE,
+                        ...) {
+    write.table(x,
+                file = file,
+                quote = quote,
+                sep = sep,
+                row.names = row.names,
+                ...)
+    }
+
+
+#ToDo: function within.cell.data
+#*************************************************************************#
