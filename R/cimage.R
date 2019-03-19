@@ -1165,10 +1165,10 @@ summary.cell.image <- function(object, ...) {
 #public
 print.summary.cell.image <- function(x, ...) {
     cat("cell images from", toString(unique(x$path)), "\n")
-    cat("\npositions:", .format.sequence(unique(x$pos)))
-    cat("\ntime frames:", .format.sequence(unique(x$t.frame)))
+    cat("\npositions:", tidycell::.format.sequence(unique(x$pos)))
+    cat("\ntime frames:", tidycell::.format.sequence(unique(x$t.frame)))
     cat("\nchannels: ", toString(unique(x$channel)), sep = "")
-    cat("\nimage index: ", .format.sequence(unique(x$img.index)), sep = "")
+    cat("\nimage index: ", tidycell::.format.sequence(unique(x$img.index)), sep = "")
     cat("\nnumber of cells: ", length(unique(interaction(x$pos,x$cellID,drop = TRUE))), sep = "")
     cat("\n\n")
 
