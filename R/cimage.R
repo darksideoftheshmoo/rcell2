@@ -177,9 +177,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("img.index",
                                                        "facet_x",
                                                        "facet_y",
                                                        "t.frame",
-                                                       "img_xpos_start","facet_xpos_start","img_xpos_end",
-                                                       "img_ypos_start","facet_ypos_start","img_ypos_end",
-                                                       "channel"))
+                                                       "img_xpos_start",
+                                                       "facet_xpos_start",
+                                                       "img_xpos_end",
+                                                       "img_ypos_start",
+                                                       "facet_ypos_start",
+                                                       "img_ypos_end",
+                                                       "channel",
+                                                       "type"))
 
 cimage.cell.image <- function(X,
                               formula = NULL,
@@ -1807,7 +1812,7 @@ if(getRversion() >= "2.15.1")
                     axis.img.line.x <- c(axis.img.line.x, #draw on device
                                          do.call(c,
                                                  plyr::dlply(axisdf,
-                                                       .(img_coord),
+                                                       plyr::.(img_coord),
                                                        function(df) {
                                                            c((df[1, "min_coord"] - 1) * (img.size + border) + 3 * border,
                                                              df[1, "max_coord"] * (img.size + border) - 3 * border, NA)
@@ -1832,7 +1837,7 @@ if(getRversion() >= "2.15.1")
                 lab = as.character(axisdf[,term[n_term - i + 1]])
                 if(term[n_term-i+1]=="sample"){ #dealing with "sample" labels
                     if(all(c("pos","cellID","sample")%in%names(imgdf))){ #pos and cellID columns in imgdf
-                        pIDs<-plyr::ddply(subset(imgdf,select=c("pos","cellID","sample")),.(pos,cellID)
+                        pIDs<-plyr::ddply(subset(imgdf,select=c("pos","cellID","sample")), plyr::.(pos,cellID)
                                     ,function(df)data.frame(sample=ifelse(length(unique(df$sample))==1,unique(df$sample),NA)))
                         pIDs<-transform(pIDs,lab=as.character(interaction(pIDs$pos,pIDs$cellID)))
                         dtsl<-dim(table(pIDs$sample,pIDs$lab))
