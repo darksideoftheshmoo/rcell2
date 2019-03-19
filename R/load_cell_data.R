@@ -1022,3 +1022,34 @@ write.delim <- function(x,
 
 #ToDo: function within.cell.data
 #*************************************************************************#
+#private
+#' Format sequence of numbers
+#'
+#' formats sequence of numbers in an short expresion  eg: 1-10, 12-15
+#'
+#' @param pos last number in sequence to shorten
+#'
+#' @return string of shortened sequence
+#' @export
+#'
+#' @examples
+.format.sequence <- function(pos) {
+    if(length(pos) < 2) return(as.character(pos))
+    else{
+        fs = as.character(pos[1])
+        last.pos = pos[1]
+        for(i in 2:length(pos)){
+            if(last.pos + 1 != pos[i]){
+                fs = paste(fs, "-", last.pos, ",", pos[i], sep = "")
+                last.pos = pos[i]
+            } else if(i == length(pos)) {
+                fs = paste(fs, "-", pos[i], sep = "")
+            }else{
+                last.pos = last.pos + 1
+            }
+        }
+        return(fs)
+    }
+}
+
+#*************************************************************************#
