@@ -1,12 +1,50 @@
 #*************************************************************************#
-#generic
-#returns a cell.image object
-cimage <- function(X,...) UseMethod("cimage")
+#' cimage
+#'
+#' returns a cell.image object
+#'
+#' @param X cell.data object
+#' @param ... arguments for \code{\link{cimage.cell.image}} and \code{\link{cimage.cell.data}}
+#'
+#' @return
+#' @export
+#'
+#' @examples
+cimage <- function(X,...) {
+    UseMethod("cimage")
+    }
 
 #*************************************************************************#
 #public
 #ToDo: allow for transformation funcions on images
 #ToDo: allow for anotation funcions, copy code from old package
+#' cimage.cell.data
+#'
+#' calls cimage.cell.image
+#'
+#' @param X cell.data or cell.image object to plot
+#' @param formula formula of the form 'var1+var2~var3' specifying how the images
+#'  are to be ordered. See details.
+#' @param facets formula of the form 'var1+var2~var3' specifying how to facet the plot. See details.
+#' @param qc.filter a boolean value indicating if the quality control filter should be applied over the data
+#' @param time.var variables that indicate time and should be excluded from the grouping variables.
+#'  See \code{\link{get_cell_image}}
+#' @param time.course boolean indicating if the image layout represents a time
+#'  course and several images of the same cell at different times are expected
+#' @param select character vector defining further variables that are required for the plot
+#' @param exclude character vector defining variable names to be excluded
+#' @param normalize.group variable names that define groups of images that
+#'  should be normalized together
+#' @param invert.lut boolean indicating if Look Up Table should be inverted
+#' @param N Number of random cells to select from each group. If NA or 'all',
+#' all cells are selected.
+#' @param ... further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
+#'  so all the arguments of this function are available.
+#'
+#' @return
+#' @export
+#'
+#' @examples
 cimage.cell.data <- function(X,
                              formula = NULL,
                              facets = NULL,
@@ -142,7 +180,7 @@ plot.Image <- function(x,
                        vp = NULL,
                        ...){
 
-    if(is.null(width) | is.null(height)){
+    if (is.null(width) | is.null(height)){
         ds <- dev.size()
         width = ds[1]
         height = ds[2]
@@ -153,8 +191,8 @@ plot.Image <- function(x,
     w.npc = omi
     h.npc = omi
 
-    if(img.w / img.h > width / height) {
-        h.npc=w.npc*img.h/img.w*width/height
+    if (img.w / img.h > width / height) {
+        h.npc = w.npc*img.h/img.w*width/height
     } else {
         w.npc = h.npc * img.w / img.h * height / width
     }
@@ -171,7 +209,7 @@ plot.Image <- function(x,
 
 #*************************************************************************#
 #public
-if(getRversion() >= "2.15.1") utils::globalVariables(c("img.index",
+if (getRversion() >= "2.15.1") utils::globalVariables(c("img.index",
                                                        "img_id_x",
                                                        "img_id_y",
                                                        "facet_x",
@@ -186,6 +224,34 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("img.index",
                                                        "channel",
                                                        "type"))
 
+#' cimage.cell.image
+#'
+#' returns cropped cell images arranged in some way
+#'
+#' @param X cell.data or cell.image object to plot
+#' @param formula formula of the form 'var1+var2~var3' specifying how the images are to be ordered. See details.
+#' @param subset logical expression indicating elements or rows to keep. Don't specify channel here
+#' @param facets formula of the form 'var1+var2~var3' specifying how to facet the plot. See details.
+#' @param scales either 'none', 'fixed' or 'free' axis for each facet
+#' @param allow.expressions allow expressions in formulas, set to TRUE when called from cimage.cell.data
+#' @param nx number of columns of images within each facet. Used with \code{formula} '~var1' or 'var1~.'
+#' @param ny number of rows of images within each facet. Used with \code{formulas} '~var1' or 'var1~.'
+#' @param facets.nx number of columns of facets. Used with \code{facets} '~var1' or 'var1~.'
+#' @param facets.ny number of rows of facets. Used with \code{facets} '~var1' or 'var1~.'
+#' @param bg.col The background color of the plot
+#' @param border the width in pixels of the border between images
+#' @param facets.border the width in pixels of the border between facets
+#' @param rev.y boolean indicating if the y axis should be reversed
+#' @param font.size The size of the font to use, in pixels
+#' @param font.col The color of the font to use
+#' @param display boolean indicating if the created image should be displayed
+#' @param ... further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
+#'  so all the arguments of this function are available.
+#'
+#' @return
+#' @export
+#'
+#' @examples
 cimage.cell.image <- function(X,
                               formula = NULL,
                               subset = NULL,
@@ -207,21 +273,21 @@ cimage.cell.image <- function(X,
 
     subs.subset <- substitute(subset)
 
-    if(!is.null(subs.subset)) {
+    if (!is.null(subs.subset)) {
         X <- subset.cell.image(X, deparse(subs.subset))
     }
 
     # Rcell::img.desc
     imgdf <- droplevels(img.desc(X))
 
-    if(any(is.na(imgdf))) {
+    if (any(is.na(imgdf))) {
         warning("NAs in img.desc variables: ",
                 toString(names(which(sapply(imgdf, function(x) any(is.na(x)))))))
     }
 
     #cheking formula
-    if(is.null(formula)) { #no formula
-        if(is.null(facets)) { #no formula nor facets
+    if (is.null(formula)) { #no formula
+        if (is.null(facets)) { #no formula nor facets
             #just tiling images toghether
             nx = ceiling(sqrt(length(X)))
             imgdf <- transform(imgdf,
@@ -375,7 +441,7 @@ cimage.cell.image <- function(X,
     #cheking all images are the same size
     img.size <- unique(sapply(X, function(x) dim(x)[1]))
 
-    if (length(img.size) > 1){
+    if (length(img.size) > 1) {
         stop("images of different size")
     }
 
@@ -511,11 +577,11 @@ cimage.cell.image <- function(X,
                                      colormode = "Grayscale",
                                      dim = c(xdim, (font.size + facets.border)))
 
-            header <- EBImage::drawText(header,
-                                        labels = i,
-                                        x = xlabelpos,
-                                        y = font.size,
-                                        adj = c(0,0))
+            header <- drawText(header,
+                               labels = i,
+                               x = xlabelpos,
+                               y = font.size,
+                               adj = c(0,0))
 
             axis.list[[paste(pfacets$type, i, sep = "_")]] <- header
         }
@@ -660,16 +726,16 @@ cimage.cell.image <- function(X,
                            img_xpos_start = img_xpos_start + (dim(yaxis)[1]),
                            img_xpos_end = img_xpos_end + (dim(yaxis)[1]))
 
-        if (dim(axis.df)[1] > 0){
+        if (dim(axis.df)[1] > 0) {
             axis.df <- transform(axis.df,
                                  img_xpos_start = img_xpos_start + (dim(yaxis)[1]),
                                  img_xpos_end = img_xpos_end + (dim(yaxis)[1]))
         }
 
         # tmp<-list()
-        for (z in 1:max.z){
+        for (z in 1:max.z) {
 
-            for (i in 1:max.y){
+            for (i in 1:max.y) {
                 axis.df <- rbind(axis.df,
                                  data.frame(type = "fixed_yaxis",
                                             facet_id = "all",
@@ -682,7 +748,7 @@ cimage.cell.image <- function(X,
 
             }
 
-            for (i in 1:max.x){
+            for (i in 1:max.x) {
                 axis.df <- rbind(axis.df,
                                  data.frame(type = "fixed_xaxis",
                                             facet_id = "all",
@@ -756,11 +822,46 @@ cimage.default <- function(X, ...){
 #*************************************************************************#
 #generic
 #returns a cell.image object
-get_cell_image <- function(X,...) UseMethod("get_cell_image")
+#' Title
+#'
+#' @param X cell.data object or data.frame that specifies the images
+#' @param ... further arguments for methods
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_cell_image <- function(X,...) {
+    UseMethod("get_cell_image")
+    }
 
 #*************************************************************************#
 #public
 #returns a list of croped cells images, given a cell.data object
+#
+#' get_cell_image
+#'
+#'
+#' Retrieves the images from single cells in an cell.image object
+#'
+#' @param X cell.data object or data.frame that specifies the images
+#' @param subset logical expression indicating elements or rows to keep. Don't specify channel here.
+#' @param channel.subset logical expression to specify which image to retrieve with channel and t.frame variables.
+#' @param channel character vector of channels to retrieve. If specified, defines the order of the channels.
+#' @param time.course boolean indicating if the desired image montage is a time course (i.e. several images for the same cell)
+#' @param group character vector or quoted names of variables who's interaction define the groups from which select \code{N} random cells.
+#' @param na.rm boolean indicating if NAs should be removed.
+#' @param N Number of random cells to select from each group. If NULL all cells are selected
+#' @param select character vector defining variables names to be included in the returned cell.image object
+#' @param exclude character vector defining variables names to be excluded from the returned cell.image object
+#' @param qc.filter a boolean value indicating if the quality control filter should be applied over the data
+#' @param box.size size in pixels of the image containing the cells. This specifies the 'radius', i.e. the image will be a square of length 2*box.size+1
+#' @param ... further arguments for methods
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_cell_image.cell.data <- function(X,
                                      subset = NULL,
                                      channel.subset = NULL,
@@ -895,6 +996,18 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("qc",
                                                         "offset.x",
                                                         "offset.y"))
 
+#' get_cell_image.data.frame
+#'
+#' @param X cell.data object or data.frame that specifies the images
+#' @param box.size size in pixels of the image containing the cells. This specifies the 'radius', i.e. the image will be a square of length 2*box.size+1
+#' @param contained.box boolean indicating if the XY position of the box should be corrected to be contained in the original image. Relevant for cells close to the image border. If FALSE the part of the box outside the original image will be filled with \code{bg.col}
+#' @param bg.col color to be used for the background of the images
+#' @param ... further arguments for methods
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_cell_image.data.frame <- function(X,
                                       box.size = 20,
                                       contained.box = FALSE,
@@ -1098,33 +1211,33 @@ merge.cell.image <- function(x, y, ...) {
 
     box.size.y <- unique(as.vector(sapply(y, dim)))
 
-    if(length(box.size.y) > 1) {
+    if (length(box.size.y) > 1) {
         stop("box.size for y images is not homogeneous")
     }
 
-    if(box.size.x != box.size.y){
+    if (box.size.x != box.size.y) {
         stop("x and y should have the same box.size")
     }
 
     img.desc.x <- img.desc(x)
     img.desc.y <- img.desc(y)
 
-    if(".merge.index" %in% names(img.desc.x)) { #x has been merged before
+    if (".merge.index" %in% names(img.desc.x)) { #x has been merged before
         mi <- max(img.desc.x$.merge.index)
-    } else { #first time x is merged
+    } else {#first time x is merged
         img.desc.x$.merge.index <- mi <- 1
     }
 
-    if(".merge.index" %in% names(img.desc.y)) { #y has been merged before
+    if (".merge.index" %in% names(img.desc.y)) { #y has been merged before
         img.desc.y$.merge.index <- img.desc.y$.merge.index + mi
-    } else { #first time y is merged
+    } else {#first time y is merged
         img.desc.y$.merge.index <- mi + 1
     }
 
     idn <- base::intersect(names(img.desc.x), names(img.desc.y))
     excluded.vars <- base::setdiff(union(names(img.desc.x), names(img.desc.y)), idn)
 
-    if(length(excluded.vars) > 0) {
+    if (length(excluded.vars) > 0) {
         warning("variables ", toString(excluded.vars), " are only in one object and will be excluded")
     }
 
@@ -1198,7 +1311,7 @@ print.cell.image <- function(x, nx = ceiling(sqrt(length(x))), ...) {
 
 #*************************************************************************#
 #public
-if(getRversion() >= "2.15.1") utils::globalVariables(c("img.index"))
+if (getRversion() >= "2.15.1") utils::globalVariables(c("img.index"))
 subset.cell.image <- function(x,
                               .subset = TRUE,
                               select = NULL,
@@ -1211,10 +1324,10 @@ subset.cell.image <- function(x,
     img.desc.x <- plyr::arrange(img.desc.x, img.index)
     select.vars <- .select(list(all = names(img.desc.x)), select, exclude)
 
-    if(isTRUE(select.vars)){
+    if (isTRUE(select.vars)){
         select.vars = names(img.desc.x)}
 
-    if(subs.subset[[1]] == "deparse") { #called from other function
+    if (subs.subset[[1]] == "deparse") { #called from other function
         keep.rows <- eval(parse(text = .subset), img.desc(x))
     } else {
         keep.rows <- eval(subs.subset, img.desc.x)
@@ -1250,7 +1363,7 @@ show_img <- function(X,
     cross = substitute(cross)
     subset = substitute(subset)
 
-    if(any(!is.element(pos,X$images$pos))) {
+    if (any(!is.element(pos,X$images$pos))) {
         stop("Selected positions not in dataset")
     }
 
@@ -1265,48 +1378,48 @@ show_img <- function(X,
     #cheking that the image files exist
     img.fnames = with(img.df, paste(path, image, sep = "/"))
     img.fnames.exist = file.exists(img.fnames)
-    if(!all(img.fnames.exist)) {
+    if (!all(img.fnames.exist)) {
         stop("image file ", img.fnames[!img.fnames.exist][1], " not found")
     }
 
     #loading the images
     img.list <- list()
 
-    for(i in 1:length(img.fnames)) {
+    for (i in 1:length(img.fnames)) {
 
         #capture.output to avoid anoying text
         # g: utils::capture.output
         capture.output(img.list[[i]] <- EBImage::readImage(img.fnames[i]))
 
-        if(isTRUE(normalize)) {
+        if (isTRUE(normalize)) {
             img.list[[i]] <- EBImage::normalize(img.list[[i]])
         }
     }
 
     #subsetting the data
-    X$data <- X$data[X$data$pos%in%pos&X$data$t.frame%in%t.frame,]
+    X$data <- X$data[X$data$pos %in% pos & X$data$t.frame %in% t.frame,]
 
-    if(dim(X$data)[1] > 0) {
-        if(isTRUE(qc.filter) && class(X$data$qc) == "logical") {
+    if (dim(X$data)[1] > 0) {
+        if (isTRUE(qc.filter) && class(X$data$qc) == "logical") {
             X$data = subset(X$data, qc)
         }
 
-        if(!isTRUE(subset)) {
+        if (!isTRUE(subset)) {
             X$data <- subset(X$data, eval(subset, X$data))
         }
 
         #adding crosses to image
-        if(!is.null(cross)) {
+        if (!is.null(cross)) {
             cross.df = data.frame(subset(X$data, select = c(pos,t.frame,cellID,xpos,ypos)),
                                   cross = as.logical(eval(cross,X$data)))
 
-            for(i in img.df$index) {
+            for (i in img.df$index) {
                 cell.df = cross.df[cross.df$pos == img.df$pos[img.df$index == i] &
                                        cross.df$t.frame == img.df$t.frame[img.df$index == i] &
                                        cross.df$cross,
                                    c("xpos", "ypos")]
 
-                for(j in 1:length(cross.col)) {
+                for (j in 1:length(cross.col)) {
 
                     # RCell::drawCross
                     img.list[[i]] <- drawCross(img.list[[i]],
@@ -1318,19 +1431,19 @@ show_img <- function(X,
             }
         }
 
-        if(!is.null(annotate)) {
+        if (!is.null(annotate)) {
             stop("annotate not implemented yet, sorry")
         }
 
     } else {
-        if(!is.null(cross)) {
+        if (!is.null(cross)) {
             message("no cells for this image")
         }
     }
 
     SHOW_IMAGE <- EBImage::combine(img.list)
 
-    if(display) {
+    if (display) {
         EBImage::display(SHOW_IMAGE, title = "show_image")
     }
 
@@ -1346,22 +1459,22 @@ update_img_path <- function(X,
                             img.path = getwd(),
                             subset = NULL) {
 
-    if(!isTRUE(is.cell.data(X))) {
-        stop ("First argument should be of class cell.data")
+    if (!isTRUE(is.cell.data(X))) {
+        stop("First argument should be of class cell.data")
     }
 
     #cheking that the image files exist in the new path
     img.fnames = with(X$images, paste(img.path, image, sep = "/"))
     img.fnames.exist = file.exists(img.fnames)
 
-    if(sum(img.fnames.exist) < length(img.fnames.exist)){
+    if (sum(img.fnames.exist) < length(img.fnames.exist)){
         warning("some images could not be found in new path, e.g. ",
                 X$images$image[!img.fnames.exist][1])
     }
 
     subset = substitute(subset)
 
-    if(is.null(subset)) {
+    if (is.null(subset)) {
         X$images$path <- as.factor(img.path)
     } else {
         X$images$path[eval(subset, X$images, parent.frame(n = 1))] <- as.factor(img.path)
@@ -1375,14 +1488,14 @@ update_img_path <- function(X,
 write.cell.image <- function(x, file, ...) {
     db <- img.desc(x)
 
-    if(class(x)[1] == "cell.image") {
+    if (class(x)[1] == "cell.image") {
         class(x) <- "list"
         x <- EBImage::combine(x)
     }
 
     EBImage::writeImage(x, file, ...)
 
-    if(!is.null(db)) {
+    if (!is.null(db)) {
         file <- paste0(sub("[.][^.]*$", "", file, perl = TRUE), "-imgdesc.txt")
 
         tidycell::write.delim(db, file)
@@ -1395,9 +1508,9 @@ write.cell.image <- function(x, file, ...) {
 #public
 read.cell.image <- function(file, ...) {
 
-    file.db <- paste0(sub("[.][^.]*$", "", file, perl=TRUE),"-imgdesc.txt")
+    file.db <- paste0(sub("[.][^.]*$", "", file, perl = TRUE),"-imgdesc.txt")
 
-    if(!file.exists(file)) stop("file not found")
+    if (!file.exists(file)) stop("file not found")
 
     x <- EBImage::readImage(file,...)
 
@@ -1405,8 +1518,8 @@ read.cell.image <- function(file, ...) {
 
     db <- read.delim(file.db)
 
-    if ("img.index" %in% names(db)){ #dealing with a cell.image
-        x <- lapply(seq_len(EBImage::getNumberOfFrames(x)),
+    if ("img.index" %in% names(db)) { #dealing with a cell.image
+        x <- lapply(seq_len(EBImage::numberOfFrames(x)),
                     FUN = function(i) EBImage::getFrame(x, i))
 
         class(x) <- c("cell.image", "list")
@@ -1498,7 +1611,7 @@ ciciply <- function(X = NULL,
     Y <- list()
     Y.index <- data.frame(img.index = seq_len(length(img.list)), img.name = names(img.list))
 
-    for (i in names(img.list)){
+    for (i in names(img.list)) {
         img <- EBImage::combine(X[img.list[[i]]])
         img <- EBImage::as.Image(apply(img, MARGIN, FUN))
         Y[[Y.index[Y.index$img.name == i, "img.index"]]] <- img
@@ -1508,14 +1621,14 @@ ciciply <- function(X = NULL,
 
     rm.vars <- names(Y.img.desc)[sapply(Y.img.desc, FUN = function(x) any(is.na(x)))]
 
-    if(warn) {
+    if (warn) {
         message("removing variables from img.desc: ", toString(rm.vars))
     }
 
     Y.img.desc <- subset(Y.img.desc, select = base::setdiff(names(Y.img.desc), rm.vars))
     Y.img.desc$img.name <- interaction(Y.img.desc[,group], drop = TRUE, lex.order = FALSE)
 
-    if("img.index" %in% names(Y.img.desc)) {
+    if ("img.index" %in% names(Y.img.desc)) {
         Y.img.desc$img.index <- NULL
     }
 
@@ -1534,7 +1647,7 @@ add.nucleus.boundary <- function(X = NULL,
                                  col = 0.75,
                                  ...) {
 
-    if(is.null(X)) {
+    if (is.null(X)) {
         return(c("xpos","ypos","xpos.nucl.?","xpos.nucl.?"))
     }
 
@@ -1542,12 +1655,12 @@ add.nucleus.boundary <- function(X = NULL,
     xpos.nucl.var = paste("xpos.nucl.", tolower(substr(pos.nucl.channel, 1, 1)), sep = "")
     ypos.nucl.var = paste("ypos.nucl.", tolower(substr(pos.nucl.channel, 1, 1)), sep = "")
 
-    for(i in 1:length(X)){
+    for (i in 1:length(X)){
         img <- X[[i]]
         xcenter = ceiling(dim(X[[i]])[2] / 2) + db[i, xpos.nucl.var] - db[i, "xpos"]
         ycenter = ceiling(dim(X[[i]])[1] / 2) + db[i, ypos.nucl.var] - db[i, "ypos"]
 
-        for(r in radii){
+        for (r in radii){
             img <- EBImage::drawCircle(img, xcenter, ycenter, r, col = col)
         }
         X[[i]] <- img
@@ -1561,7 +1674,7 @@ add.maj.min.axis <- function(X = NULL,
                              angle.var = NA,
                              ...) {
 
-    if(is.null(X)) {
+    if (is.null(X)) {
         return(c("xpos","ypos","maj.axis","min.axis"))
     }
 
@@ -1608,7 +1721,7 @@ drawCross<-function(img, x, y, size=2, col=0.75, z=1){
         stop("'img' shouldn't contain any NAs")
     if (missing(x)) stop("'x' is missing")
     if (missing(y)) stop("'y' is missing")
-    if (z < 1 | z > EBImage::getNumberOfFrames(img, "render"))
+    if (z < 1 | z > EBImage::numberOfFrames(img, "render"))
         stop("'z' must be a positive integer lower than the number of image frames")
     if (EBImage::colorMode(img) == EBImage::Color) {
         rgb = as.numeric(col2rgb(col)/255)
@@ -1649,7 +1762,7 @@ drawLine<-function (img, x1, y1, x2, y2, col=0.75, z = 1){
     if (missing(y1)) stop("'y1' is missing")
     if (missing(x2)) stop("'x2' is missing")
     if (missing(y2)) stop("'y2' is missing")
-    if (z < 1 | z > EBImage::getNumberOfFrames(img, "render"))
+    if (z < 1 | z > EBImage::numberOfFrames(img, "render"))
         stop("'z' must be a positive integer lower than the number of image frames")
     xy2z = as.integer(c(x1, y1, x2, y2, z - 1))
     if (length(xy2z) != 5 || any(is.na(xy2z)))
@@ -1679,48 +1792,72 @@ drawLine<-function (img, x1, y1, x2, y2, col=0.75, z = 1){
 }
 
 #work arround to replace EBImage deprcated function drawtext
-drawText<-function(img,labels,x=NULL,y=NULL,adj=c(0,0),reuseLabels=TRUE,col=NULL){
+drawText <- function(img,
+                     labels,
+                     x = NULL,
+                     y = NULL,
+                     adj = c(0,0),
+                     reuseLabels = TRUE,
+                     col = NULL) {
 
-    img.width<-dim(img)[1]
-    img.height<-dim(img)[2]
+    img.width <- dim(img)[1]
+    img.height <- dim(img)[2]
 
-    if(is.null(x)) x<-img.width/2
-    if(is.null(y)) y<-img.width/2
+    if(is.null(x)) x <- img.width / 2
+    if(is.null(y)) y <- img.width / 2
 
     #create name to uniquely identify label temporary tif file
-    img.fname<-paste(tempdir(),"/Rcell_drawText_"
-                     ,paste(digest::digest(img),digest::digest(labels),sum(x),sum(y),adj[1],adj[2],sep="_")
-                     ,".tif",sep="")
+    img.fname <- paste(tempdir(),
+                       "/Rcell_drawText_",
+                       paste(digest::digest(img),
+                             digest::digest(labels),
+                             sum(x),
+                             sum(y),
+                             adj[1],
+                             adj[2],
+                             sep = "_"),
+                       ".tif",sep="")
 
     #create file if it doesn't exist
-    if(!file.exists(img.fname)|!reuseLabels){
+    if (!file.exists(img.fname) | !reuseLabels){
 
-        open.dev<-dev.list()
+        open.dev <- dev.list()
 
         #create device
         tiff(filename = img.fname,
-             width = img.width, height = img.height, units = "px", pointsize = 12,
-             bg = "white", family = "")
+             width = img.width,
+             height = img.height,
+             units = "px",
+             pointsize = 12,
+             bg = "white",
+             family = "")
 
-        #change graphical parameters
-        op<-par(mar=c(0,0,0,0),oma=c(0,0,0,0))
+        # change graphical parameters
+        op <- par(mar = c(0,0,0,0), oma = c(0,0,0,0))
         if(!is.null(open.dev)) on.exit(par(op))
 
         #plot current img in device
         EBImage::display(img,method = "raster")
 
         #add text to img
-        text(x/img.width,1-y/img.height,labels,adj=adj,col=col)
+        text(x / img.width,
+             1 - y / img.height,
+             labels,
+             adj = adj,
+             col = col)
 
         #close device
-        dev.off(base::setdiff(dev.list(),open.dev))
+        dev.off(base::setdiff(dev.list(), open.dev))
     }
 
     #open image and change colorMode
-    capture.output(img<-EBImage::getFrame(EBImage::readImage(img.fname),1))#capture.output to avoid anoying text
-    EBImage::colorMode(img)<-EBImage::Grayscale
+    ##capture.output to avoid anoying text
+    capture.output(img <- EBImage::getFrame(EBImage::readImage(img.fname), 1))
+    EBImage::colorMode(img) <- EBImage::Grayscale
 
-    if(img.width!=dim(img)[1]|img.height!=dim(img)[2]) stop("drawText changed img size")
+    if (img.width != dim(img)[1] | img.height != dim(img)[2]) {
+        stop("drawText changed img size")
+        }
 
     return(img)
 }
