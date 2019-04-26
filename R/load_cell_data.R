@@ -484,13 +484,28 @@ load_cell_data <-
         # f.x = total fluorescence - background for channel x
         # cf.x = concentration of f.x (divided by cell area)
 
-        pos.data <- dplyr::mutate(pos.data,
-                                  f.y = f.tot.y - (a.tot * f.bg.y),
-                                  f.r = f.tot.r - (a.tot * f.bg.r),
-                                  f.c = f.tot.c - (a.tot * f.bg.c),
-                                  cf.y = f.y / a.tot,
-                                  cf.r = f.r / a.tot,
-                                  cf.c = f.c / a.tot)
+        # check if pictures were taken in each channel
+
+        va <- names(pos.data)
+
+        if ("f.tot.y" %in% va) {
+            dplyr::mutate(pos.data,
+                          f.y = f.tot.y - (a.tot * f.bg.y),
+                          cf.y = f.y / a.tot)
+        }
+
+        if ("f.tot.c" %in% va) {
+            dplyr::mutate(pos.data,
+                          f.c = f.tot.c - (a.tot * f.bg.c),
+                          cf.c = f.c / a.tot)
+        }
+
+        if ("f.tot.r" %in% va) {
+            dplyr::mutate(pos.data,
+                          f.r = f.tot.r - (a.tot * f.bg.r),
+                          cf.r = f.r / a.tot)
+        }
+
 
 
 
