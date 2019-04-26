@@ -223,7 +223,7 @@ load_cell_data <-
             cat(gsub("[a-zA-Z_]", "", posdir[i])," ")
             if(i %% 10 == 0) cat("\n")
 
-            pos.data[[i]] <- readr::read_tsv(out_all)
+            pos.data[[i]] <- readr::read_tsv(out_all, col_types = readr::cols())
 
             # ToDo: check if there's a difference between using Hmisc::import.cleanup or not.
 
@@ -615,6 +615,7 @@ load_cell_data <-
                                                                     sep = "")),
                                                       names(pos.data),
                                                       value = TRUE)
+
 
         cell.data=
             list(data = pos.data,
