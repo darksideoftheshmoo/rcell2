@@ -1283,10 +1283,10 @@ summary.cell.image <- function(object, ...) {
 #public
 print.summary.cell.image <- function(x, ...) {
     cat("cell images from", toString(unique(x$path)), "\n")
-    cat("\npositions:", tidycell::.format.sequence(unique(x$pos)))
-    cat("\ntime frames:", tidycell::.format.sequence(unique(x$t.frame)))
+    cat("\npositions:", rcell2::.format.sequence(unique(x$pos)))
+    cat("\ntime frames:", rcell2::.format.sequence(unique(x$t.frame)))
     cat("\nchannels: ", toString(unique(x$channel)), sep = "")
-    cat("\nimage index: ", tidycell::.format.sequence(unique(x$img.index)), sep = "")
+    cat("\nimage index: ", rcell2::.format.sequence(unique(x$img.index)), sep = "")
     cat("\nnumber of cells: ", length(unique(interaction(x$pos,x$cellID,drop = TRUE))), sep = "")
     cat("\n\n")
 
@@ -1498,7 +1498,7 @@ write.cell.image <- function(x, file, ...) {
     if (!is.null(db)) {
         file <- paste0(sub("[.][^.]*$", "", file, perl = TRUE), "-imgdesc.txt")
 
-        tidycell::write.delim(db, file)
+        rcell2::write.delim(db, file)
     }
 
     return(invisible(NULL))
