@@ -68,6 +68,6 @@ if memory issues arise.
 
 Alternatively \code{select} and \code{exclude} can be used to subset the dataset.
 This arguments are applied after the reshaping,
-so variables names as returned by \code{\link{summary.cell.data}} are used. Wildcard patterns (e.g. 'f.*.y')
+so variables names as returned by \code{summary.cell.data} are used. Wildcard patterns (e.g. 'f.*.y')
 and keywords (e.g. 'all', 'id.vars', 'YFP', etc.) can be used as components of these arguments.
 }
