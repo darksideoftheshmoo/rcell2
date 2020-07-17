@@ -12,3 +12,20 @@
 #     dplyr::filter(.data$data, !!! l)
 # }
 #
+
+
+#' d
+#'
+#' convenience function to use when piping.
+#'
+#' d(X) is equivalent to X$data
+#'
+#' @param cell.data cell.data object
+#'
+#' @return a tibble
+#' @export
+#'
+#' @examples
+d <- function(cell.data) {
+    cell.data[['data']]
+}
