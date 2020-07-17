@@ -54,7 +54,7 @@ if(getRversion() >= "2.15.1") {
 ## DEPENDENCIES
 #*************************************************************************#
 
-# do not load plyr after dplyr! namespace conflics; we prefer dplyr.
+# do not load plyr after dplyr! namespace conflicts; we prefer dplyr.
 #library(plyr)
 #library(tibble)
 #library(dplyr)
@@ -351,7 +351,6 @@ load_cell_data <-
         main.header <- c()
 
         ch.header <- list()
-
 
         for (i in ch.levels) {
             ch.header[[i]] = character()
@@ -730,10 +729,10 @@ load_cell_data <-
     output = data.frame(flag = flag,
                         channel = flag.name,
                         frame.n = flag.frame.n,
-                        is.bf = flag.is.bf)
+                        is.bf = flag.is.bf, stringsAsFactors = T)
 
     if(!is.null(pos)){
-        output = data.frame(pos = rep(pos, flag.count), output)
+        output = data.frame(pos = rep(pos, flag.count), output, stringsAsFactors = T)
     }
 
     return(output)
