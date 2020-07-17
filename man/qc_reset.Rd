@@ -7,7 +7,7 @@
 qc_reset(X)
 }
 \arguments{
-\item{X}{}
+\item{X}{cell.data object}
 }
 \value{
 cell.data object

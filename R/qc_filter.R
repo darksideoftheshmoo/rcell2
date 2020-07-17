@@ -132,7 +132,7 @@ qc_undo <- function(X){
 #'
 #' resets the \code{QC} variable to \code{TRUE}, removing all applied \code{qc_filters}.
 #'
-#' @param X
+#' @param X cell.data object
 #'
 #' @return cell.data object
 #' @export
