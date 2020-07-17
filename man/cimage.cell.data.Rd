@@ -4,10 +4,20 @@
 \alias{cimage.cell.data}
 \title{cimage.cell.data}
 \usage{
-\method{cimage}{cell.data}(X, formula = NULL, facets = NULL,
-  qc.filter = TRUE, time.var = c("*time*", "t.frame", "z.scan",
-  "z.slice"), time.course = NULL, select = NULL, exclude = NULL,
-  normalize.group = "channel", invert.lut = FALSE, N = NULL, ...)
+\method{cimage}{cell.data}(
+  X,
+  formula = NULL,
+  facets = NULL,
+  qc.filter = TRUE,
+  time.var = c("*time*", "t.frame", "z.scan", "z.slice"),
+  time.course = NULL,
+  select = NULL,
+  exclude = NULL,
+  normalize.group = "channel",
+  invert.lut = FALSE,
+  N = NULL,
+  ...
+)
 }
 \arguments{
 \item{X}{cell.data or cell.image object to plot}
@@ -39,6 +49,9 @@ all cells are selected.}
 
 \item{...}{further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
 so all the arguments of this function are available.}
+}
+\value{
+
 }
 \description{
 calls cimage.cell.image

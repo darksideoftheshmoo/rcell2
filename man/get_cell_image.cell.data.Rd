@@ -4,10 +4,21 @@
 \alias{get_cell_image.cell.data}
 \title{get_cell_image}
 \usage{
-\method{get_cell_image}{cell.data}(X, subset = NULL,
-  channel.subset = NULL, channel = NULL, time.course = TRUE,
-  group = NULL, na.rm = TRUE, N = 7, select = NULL,
-  exclude = NULL, qc.filter = TRUE, box.size = 20, ...)
+\method{get_cell_image}{cell.data}(
+  X,
+  subset = NULL,
+  channel.subset = NULL,
+  channel = NULL,
+  time.course = TRUE,
+  group = NULL,
+  na.rm = TRUE,
+  N = 7,
+  select = NULL,
+  exclude = NULL,
+  qc.filter = TRUE,
+  box.size = 20,
+  ...
+)
 }
 \arguments{
 \item{X}{cell.data object or data.frame that specifies the images}
@@ -35,6 +46,9 @@
 \item{box.size}{size in pixels of the image containing the cells. This specifies the 'radius', i.e. the image will be a square of length 2*box.size+1}
 
 \item{...}{further arguments for methods}
+}
+\value{
+
 }
 \description{
 Retrieves the images from single cells in an cell.image object

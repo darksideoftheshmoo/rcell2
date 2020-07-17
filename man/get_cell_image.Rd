@@ -11,6 +11,9 @@ get_cell_image(X, ...)
 
 \item{...}{further arguments for methods}
 }
+\value{
+
+}
 \description{
 Title
 }

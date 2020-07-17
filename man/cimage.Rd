@@ -11,6 +11,9 @@ cimage(X, ...)
 
 \item{...}{arguments for \code{\link{cimage.cell.image}} and \code{\link{cimage.cell.data}}}
 }
+\value{
+
+}
 \description{
 returns a cell.image object
 }

@@ -4,8 +4,7 @@
 \alias{write.delim}
 \title{write tab delimited file}
 \usage{
-write.delim(x, file = "", quote = FALSE, sep = "\\t",
-  row.names = FALSE, ...)
+write.delim(x, file = "", quote = FALSE, sep = "\\t", row.names = FALSE, ...)
 }
 \arguments{
 \item{x}{data frame to write}

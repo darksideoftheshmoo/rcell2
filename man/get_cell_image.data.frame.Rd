@@ -4,8 +4,7 @@
 \alias{get_cell_image.data.frame}
 \title{get_cell_image.data.frame}
 \usage{
-\method{get_cell_image}{data.frame}(X, box.size = 20,
-  contained.box = FALSE, bg.col = 0, ...)
+\method{get_cell_image}{data.frame}(X, box.size = 20, contained.box = FALSE, bg.col = 0, ...)
 }
 \arguments{
 \item{X}{cell.data object or data.frame that specifies the images}
@@ -17,6 +16,9 @@
 \item{bg.col}{color to be used for the background of the images}
 
 \item{...}{further arguments for methods}
+}
+\value{
+
 }
 \description{
 get_cell_image.data.frame

@@ -4,11 +4,26 @@
 \alias{cimage.cell.image}
 \title{cimage.cell.image}
 \usage{
-\method{cimage}{cell.image}(X, formula = NULL, subset = NULL,
-  facets = NULL, scales = "fixed", allow.expressions = FALSE,
-  nx = NULL, ny = NULL, facets.nx = NULL, facets.ny = NULL,
-  bg.col = "white", border = 1, facets.border = 1, rev.y = TRUE,
-  font.size = 14, font.col = "black", display = interactive(), ...)
+\method{cimage}{cell.image}(
+  X,
+  formula = NULL,
+  subset = NULL,
+  facets = NULL,
+  scales = "fixed",
+  allow.expressions = FALSE,
+  nx = NULL,
+  ny = NULL,
+  facets.nx = NULL,
+  facets.ny = NULL,
+  bg.col = "white",
+  border = 1,
+  facets.border = 1,
+  rev.y = TRUE,
+  font.size = 14,
+  font.col = "black",
+  display = interactive(),
+  ...
+)
 }
 \arguments{
 \item{X}{cell.data or cell.image object to plot}
@@ -47,6 +62,9 @@
 
 \item{...}{further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
 so all the arguments of this function are available.}
+}
+\value{
+
 }
 \description{
 returns cropped cell images arranged in some way

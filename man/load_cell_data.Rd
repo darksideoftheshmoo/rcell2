@@ -4,10 +4,15 @@
 \alias{load_cell_data}
 \title{Load cellID data}
 \usage{
-load_cell_data(path = getwd(),
-  pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*", basename = "out",
-  select = NULL, exclude = NULL, load.vars = "all",
-  split.image = FALSE)
+load_cell_data(
+  path = getwd(),
+  pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
+  basename = "out",
+  select = NULL,
+  exclude = NULL,
+  load.vars = "all",
+  split.image = FALSE
+)
 }
 \arguments{
 \item{path}{string, path to folder containing PositionXXX folders.}
