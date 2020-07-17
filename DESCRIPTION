@@ -2,19 +2,19 @@ Package: rcell2
 Title: CellID Data Analysis Inside the Tidyverse (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "German",
+    c(person(given = "German",
            family = "Beldorati Stark",
            role = c("aut", "cre"),
-           email = "gerbeldo@gmail.com")
-    person(given = "Alan",
+           email = "gerbeldo@gmail.com"),
+      person(given = "Alan",
            family = "Bush",
            role = c("aut"),
-           email = "example@domain.com")
+           email = "email@example.com"))
 Description: Analyse cellID data in the tidyverse framework.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Imports:
     reshape,
     digest,
@@ -23,3 +23,6 @@ Imports:
     tibble,
     dplyr,
     EBImage
+Suggests: 
+    tidyverse,
+    skimr
