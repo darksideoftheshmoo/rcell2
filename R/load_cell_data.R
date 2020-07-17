@@ -282,7 +282,7 @@ load_cell_data <-
             pos.data[[ipos]] <- dplyr::mutate(pos.data[[ipos]],
                                               pos = ipos,
                                               ucid = ipos * 1e6 + cellID,
-                                              qc = T)
+                                              QC = T)
         }
 
 
@@ -601,10 +601,10 @@ load_cell_data <-
 
         variables = list(id.vars = .CELLID_ID_VARS,
                          id.vars.deriv = .CELLID_ID_VARS_DERIV,
-                         morpho = unique(c(setdiff(main.header, c(.CELLID_ID_VARS_DERIV,"qc")),
+                         morpho = unique(c(setdiff(main.header, c(.CELLID_ID_VARS_DERIV,"QC")),
                                            grep(glob2rx("a.*"), names(pos.data), value = TRUE))),
                          fluor = grep(glob2rx("f.*"), names(pos.data), value = TRUE),
-                         qc = "qc",
+                         QC = "QC",
                          as.factor = c("pos", "cellID", "ucid"),
                          all = names(pos.data))
 
@@ -618,7 +618,7 @@ load_cell_data <-
 
         cell.data=
             list(data = pos.data,
-                 qc.history = list(),
+                 QC.history = list(),
                  subset.history = list(),
                  transform = list(),
                  channels = channels,
