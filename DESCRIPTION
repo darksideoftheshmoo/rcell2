@@ -1,15 +1,15 @@
-Package: tidycell
+Package: rcell2
 Title: CellID Data Analysis Inside the Tidyverse (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "Alan",
-           family = "Bush",
-           role = c("aut", "cre"),
-           email = "example@domain.com")
     person(given = "German",
            family = "Beldorati Stark",
            role = c("aut", "cre"),
            email = "gerbeldo@gmail.com")
+    person(given = "Alan",
+           family = "Bush",
+           role = c("aut"),
+           email = "example@domain.com")
 Description: Analyse cellID data in the tidyverse framework.
 License: MIT + file LICENSE
 Encoding: UTF-8
