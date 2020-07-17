@@ -469,6 +469,7 @@ load_cell_data <-
 
         # el.p = ratio of ellipse perim over the perimeter measured by cellID.
         # If this number is small ( < ~0.7) it's probably not a cell.
+        cat('Creating additional variables:\nellipse.perim\nel.p\nf.x\ncf.x\n')
 
         pos.data <- dplyr::mutate(pos.data,
                                   ellipse.perim = pi *
@@ -505,8 +506,14 @@ load_cell_data <-
                           cf.r = f.r / a.tot)
         }
 
+        #################################################################
+        # Removing duplicates
+        #################################################################
 
-
+        if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
+            cat("removing duplicate con.vol\n")
+            pos.data <- dplyr::select(pos.data, -con.vol_1)
+        }
 
         #################################################################
         # g: hasta aca tengo el DF con los datos crudos: pos.data
