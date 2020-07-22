@@ -1,0 +1,313 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# devtools::document()
+devtools::load_all(recompile = T)
+# devtools::check()
+# devtools::build()
+
+library(tidyverse)
+path <- "../data/image_samples/"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <-  paste0(path, "parameters.txt")
+
+
+difference <- function(lista) abs(lista[1] - lista[2])
+
+magickPaths <- function(cell.data){
+  cdata.map <- cell.data$d.map
+  paths <- cdata.map %>%
+  mutate(channel = paste0(toupper(channel), "FP"))
+
+  paths <- bind_rows( # Bind it with itself, to get entries for BF as well.
+    paths %>%
+      select(pos, t.frame, channel, fluor) %>%
+      rename(file = fluor),
+    paths %>%
+      filter(flag == 0) %>% #  Since there can be duplicates in the "bright" column, keep just one channel
+      select(pos, t.frame, channel, bright) %>%
+      rename(file = bright) %>%
+      mutate(channel = "BF")
+  ) %>%
+    mutate(path = dirname(file),
+           is.out = FALSE)
+  
+  paths <- bind_rows(paths,
+                     paths %>%  # bind it with itself, out files are named exactly the same, but with an extra ".out.tif"
+                       mutate(file = paste0(file, ".out.tif"),
+                              channel = paste0(channel, ".out"),
+                              is.out = TRUE)) %>%
+    mutate(image = basename(file))
+  
+  return(paths)
+}
+
+magickForKnitr <- function(imgs, .resize = "200x200"){
+  temp <- tempfile()
+  imgs$img %>% 
+    magick::image_resize(.resize) %>% 
+    magick::image_write(path = temp)
+  return(temp)
+}
+```
+
+
+https://web.archive.org/web/20190831012258/http://www.libtiff.org/index.html
+
+http://gnuwin32.sourceforge.net/packages/tiff.htm
+
+https://stackoverflow.com/a/57677953
+
+https://stackoverflow.com/a/1618618
+
+http://mingw-w64.org/doku.php/download
+
+https://cygwin.com/install.html elegir todo lo que diga tiff con fuente e instalar cygwin
+
+
+https://medium.com/@meghamohan/all-about-static-libraries-in-c-cea57990c495
+
+https://www.geeksforgeeks.org/static-vs-dynamic-libraries/
+
+
+
+https://stackoverflow.com/questions/58156585/build-rocksdb-static-library-inside-r-package
+
+https://stackoverflow.com/questions/53631025/rcpp-install-package-with-static-libraries-for-platform-independent-usage
+
+https://github.com/rwinlib/libtiff
+
+https://stackoverflow.com/questions/53631025/rcpp-install-package-with-static-libraries-for-platform-independent-usage
+
+https://stackoverflow.com/questions/58808393/how-do-i-create-an-r-package-that-depends-on-a-shared-library-with-rcpp
+
+"As will the simpler approach of maybe just putting the source files of libbcd into the package src/ directory -- and R will take care of the rest."
+
+Makevars.win
+
+```
+CC=ccache clang -Qunused-arguments
+CXX=ccache clang++ -Qunused-arguments
+CCACHE_CPP2=yes
+
+PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
+PKG_LIBS = -L"C:\Program Files (x86)\GnuWin32\lib" -ltiff
+```
+
+```
+CC=gcc-4.4
+CXX=g++-4.4
+
+PKG_CXXFLAGS = -fno-keep-inline-dllexport
+PKG_CFLAGS = -I"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\include" 
+PKG_CPPFLAGS = -I"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\include"
+PKG_LIBS = -L"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\lib" -ltiff
+```
+
+```
+CC=ccache clang -Qunused-arguments
+CXX=ccache clang++ -Qunused-arguments
+CCACHE_CPP2=yes
+
+PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
+PKG_LIBS = -L"C:\Users\naikymen\Documents\R\win-library\4.0\tiff\libs\x64" -ltiff
+```
+
+# USAGE 1 - RUN CELL ID
+
+```{r}
+# Generate CellID input paths
+cell.args <- cellArgs(path = path,
+                      parameters = parameters)
+cellArgs.print(cell.args)  # Para revisar inputs
+```
+
+
+```{r}
+# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
+# debugonce(cell)
+cell(cell.args = cell.args,
+     path = path,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "cellBUILTIN",
+     no_cores = 3)
+```
+
+
+```{r}
+cell.data <- cell.load(path = path,
+                       pdata = path.pdata)
+
+glimpse(cell.data)
+
+# git checkout b8a1d7c3a760a4b373422d4ff1905cc193489901 .
+# saveRDS(cell.data, "wapper_test.vcell.RDS")     # vcellid tests
+
+# git checkout a6312b2ba1a4c53ea01ab4818d46099deb766073 .
+# saveRDS(cell.data, "wapper_test.internal.RDS")  # internal cellid wrapper
+
+# git checkout 0f44e6f7fa61c0158c9cd86b2dd738c0f39f60ce .
+# saveRDS(cell.data, "wapper_test.external.RDS")  # external cellid wrapper
+```
+
+## Testing differences
+
+All have used the same parameters.
+
+```{r}
+test <- cell.data$d
+
+vcellstd <- readRDS("wapper_test.vcell.RDS")$d     # vcellid tests
+internal <- readRDS("wapper_test.internal.RDS")$d  # internal cellid wrapper
+external <- readRDS("wapper_test.external.RDS")$d  # external cellid wrapper
+```
+
+
+```{r}
+nrow(test)
+nrow(vcellstd)
+nrow(internal)
+nrow(external)
+```
+
+
+```{r}
+dplyr::all_equal(test, vcellstd)
+
+dplyr::all_equal(internal, external)
+dplyr::all_equal(vcellstd, external)
+dplyr::all_equal(internal, vcellstd)
+```
+
+```{r}
+res <- compare::compareIgnoreOrder(vcellstd[,c("pos","xpos","ypos")], external[,c("pos","xpos","ypos")])
+
+setdiff(vcellstd[,c("pos","xpos","ypos")], external[,c("pos","xpos","ypos")])
+
+
+bind_rows(vcellstd, external, .id = "origin") %>% arrange(pos, xpos, ypos) %>% View()
+
+d <- bind_rows(vcellstd, test, .id = "origin")
+
+d$.duplicated <- bind_rows(vcellstd, test) %>% duplicated()
+
+# d %>% filter(!.duplicated) %>% View()
+
+difference <- function(a) abs(a[1] - a[2])
+
+d %>% group_by(pos, xpos, ypos) %>% summarise(count = n(), 
+                                              origin = paste(origin, collapse = ","),
+                                              ucids =  paste(ucid, collapse = ","),
+                                              ucids_diff = difference(as.numeric(ucid))) %>% View()
+
+d %>% group_by(pos, xpos, ypos) %>% summarise(count = n(), 
+                                              origin = paste(origin, collapse = ","),
+                                              ucids =  paste(ucid, collapse = ","),
+                                              ucids_diff = difference(as.numeric(ucid))) %>%
+  filter(count != 2)
+```
+
+
+# USAGE 2
+
+```{r}
+#### SETUP PATHS DATAFRAME ####
+paths <- magickPaths(cell.data)
+
+paths
+```
+
+## USAGE 2.1 - Plot something
+
+```{r}
+cell.data$d %>%
+  ggplot() +
+  geom_point(aes(x = a.tot, y = fft.stat, color = pos)) +
+  facet_wrap(~pos) +
+  theme(legend.position = "none")
+
+cell.data$d %>%
+  ggplot() +
+  geom_density(aes(x = f.tot.t, color = pos)) +
+  theme_minimal()
+```
+
+## USAGE 2.2 - Pictures and filters
+
+```{r}
+cdata <- cell.data$d %>% 
+  filter(ucid %in% c(
+    2000000029
+  ))
+pdata <- read_csv(path.pdata)
+
+magickCell(cdata, paths) %>% 
+  magickForKnitr() %>% 
+  knitr::include_graphics()
+```
+
+Slightly more useful:
+
+```{r}
+saved_data <- shinyCell(cell.data$d, pdata, paths,
+                        plotType = "Dots",
+                        # initial_facet = "pos ~ .",
+                        #filters = saved_data$filters,
+                        facet_grid_option = TRUE,
+                        n_max = 7^2, max_size = 720)
+
+# More plots would be useful
+ggplot(data = subset(saved_data$cdata, filter == T)) +
+  geom_boxplot(aes(y = cf.y, x = factor(pos)), width=0.1) +
+  geom_violin(aes(y = cf.y, x = factor(pos), color = factor(pos)), alpha = 0) +
+  theme_minimal()
+```
+
+
+```{r}
+saved_data <- shinyCell(cell.data$d, pdata, paths,
+                        plotType = "Dots",
+                        # initial_facet = "pos ~ .",
+                        filters = saved_data$filters,
+                        facet_grid_option = TRUE,
+                        n_max = 7^2, max_size = 720)
+
+ggplot(data = subset(saved_data$cdata, filter == T)) +
+  geom_point(aes(x=a.tot, y=el.p, color=factor(pos))) +
+  theme_minimal()
+```
+
+## USAGE 2.3 - Pictures and filters reprise
+
+```{r}
+# Otra prueba
+saved_data2 <- shinyCell(subset(saved_data$cdata, filter == TRUE), pdata, paths,
+                         plotType = "Dots",
+                         #initial_facet = "pH ~ treatment",
+                         filters = saved_data$filters,
+                         facet_grid_option = T,
+                         n = 49, max_size = 720)
+
+ggplot(data = subset(saved_data2$cdata, filter == T)) +
+  geom_density(aes(x = a.tot, y=..scaled.., group = target), width=0.1) +
+  # geom_violin(aes(y = f.tot.r, x = factor(target)), alpha = 0) +
+  theme_minimal() + facet_wrap(~target)
+
+ggplot(data = subset(saved_data2$cdata, filter == T)) +
+  geom_boxplot(aes(y = f.tot.r, x = factor(target)), width=0.1) +
+  # geom_violin(aes(y = f.tot.r, x = factor(target)), alpha = 0) +
+  theme_minimal()
+
+ggplot(data = subset(saved_data2$cdata, filter == T)) +
+  geom_boxplot(aes(y = f.tot.y, x = factor(target)), width=0.1) +
+  # geom_violin(aes(y = f.tot.r, x = factor(target)), alpha = 0) +
+  theme_minimal()
+```
+

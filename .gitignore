@@ -2,3 +2,4 @@
 .RData
 .Rproj.user
 rcell2.Rproj
+/src/*.o

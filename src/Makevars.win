@@ -1,0 +1,6 @@
+CC=ccache clang -Qunused-arguments
+CXX=ccache clang++ -Qunused-arguments
+CCACHE_CPP2=yes
+
+PKG_CPPFLAGS = -I./inst/libtiff/include
+PKG_LIBS = ../inst/libtiff/lib/x64/libtiff.a ../inst/libtiff/lib/x64/libjpeg.a ../inst/libtiff/lib/x64/libz.a ../inst/libtiff/lib/x64/liblzma.a
