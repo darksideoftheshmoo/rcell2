@@ -172,7 +172,7 @@ void maximum_pixels_within_fixed_radius(float *array,
       label_cur=1;
     }else{
       printf("Too many cell labels (%i), but no work array!!!\n",label_cur);
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 
@@ -377,7 +377,7 @@ void maximum_contiguous_pixels(float *array,
       label_cur=1;
     }else{
       printf("Too many cell labels (%i), but no work array!!!\n",label_cur);
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 
@@ -737,7 +737,7 @@ void find_vacuole(struct point *p_in,
       label_cur=1;
     }else{
       printf("Too many cell labels (%i), but no work array!!!\n",label_cur);
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
   //Label work array with the current points

@@ -1,11 +1,12 @@
 ## https://github.com/ropensci/ijtiff/blob/master/src/Makevars.win
 ## https://github.com/ropensci/ijtiff/blob/master/tools/winlibs.R
-ifeq "$(WIN)" "64"
+##ifeq "$(WIN)" "64"
 PKG_CPPFLAGS= -I../windows/libtiff-4.0.9/include
 PKG_LIBS= -L../windows/libtiff-4.0.9/lib${R_ARCH} -ltiff -ljpeg -llzma -lz
-else
-PKG_LIBS= -ltiff -ljpeg -llzma -lz
-endif
+##else
+##PKG_LIBS= -ltiff
+##PKG_LIBS= -ltiff -ljpeg -llzma -lz
+##endif
 
 
 all: clean winlibs
