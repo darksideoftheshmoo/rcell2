@@ -1,6 +1,17 @@
-CC=ccache clang -Qunused-arguments
-CXX=ccache clang++ -Qunused-arguments
-CCACHE_CPP2=yes
+## https://github.com/ropensci/ijtiff/blob/master/src/Makevars.win
+## https://github.com/ropensci/ijtiff/blob/master/tools/winlibs.R
+ifeq "$(WIN)" "64"
+PKG_CPPFLAGS= -I../windows/libtiff-4.0.9/include
+PKG_LIBS= -L../windows/libtiff-4.0.9/lib${R_ARCH} -ltiff -ljpeg -llzma -lz
+else
+PKG_LIBS= -ltiff -ljpeg -llzma -lz
+endif
 
-PKG_CPPFLAGS = -I./inst/libtiff/include
-PKG_LIBS = ../inst/libtiff/lib/x64/libtiff.a ../inst/libtiff/lib/x64/libjpeg.a ../inst/libtiff/lib/x64/libz.a ../inst/libtiff/lib/x64/liblzma.a
+
+all: clean winlibs
+
+winlibs:
+	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
+
+clean:
+	rm -f $(SHLIB) $(OBJECTS)

@@ -1,10 +1,23 @@
-# Including copies 
-
-  cp /usr/include/glib-2.0/glib.h .
-  cp -r /usr/include/glib-2.0/glib glib
-  cp /usr/lib/glib-2.0/include/glibconfig.h ./
-
 # Makevars
+
+## Makevars
+
+    CC=ccache clang -Qunused-arguments
+    CXX=ccache clang++ -Qunused-arguments
+    CCACHE_CPP2=yes
+    PKG_LIBS= -ltiff
+
+## Makevars.win
+
+No funciona, probé de todo pero Windows es realmente un bardo.
+
+    CC=ccache clang -Qunused-arguments
+    CXX=ccache clang++ -Qunused-arguments
+    CCACHE_CPP2=yes
+    PKG_CPPFLAGS = -I./inst/libtiff/include
+    PKG_LIBS = ../inst/libtiff/lib/x64/libtiff.a ../inst/libtiff/lib/x64/libjpeg.a ../inst/libtiff/lib/x64/libz.a ../inst/libtiff/lib/x64/liblzma.a
+
+## Makevars (old)
 
     CC=ccache clang -Qunused-arguments
     CXX=ccache clang++ -Qunused-arguments
@@ -12,25 +25,23 @@
     PKG_CFLAGS = -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
     PKG_LIBS=-lglib-2.0 -ltiff
 
-## After glib2.0 include
+# libtiff
 
-    CC=ccache clang -Qunused-arguments
-    CXX=ccache clang++ -Qunused-arguments
-    CCACHE_CPP2=yes
-    PKG_CFLAGS = -Iglib_includes
-    PKG_LIBS= -ltiff -lcellMagick
+Para ver si la puedo incluir dentro del paquete:
 
-Error al cargar paquete con devtools::check():
+  * http://www.libtiff.org/build.html
+  * http://mazamascience.com/WorkingWithData/?p=1151
+  * http://r-pkgs.had.co.nz/src.html#clang
+  * https://stackoverflow.com/a/43599233
+  * http://kbroman.org/minimal_make/
+  * https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html
+  * https://github.com/r-lib/roxygen2/issues/1063
 
-    Error in dyn.load(dllfile) : 
-      unable to load shared object '/home/nicomic/Projects/Rdevel/cellMagick/src/cellMagick.so':
-      /home/nicomic/Projects/Rdevel/cellMagick/src/cellMagick.so: undefined symbol: g_option_context_add_main_entries
+## para incluirla en windows
 
-Clean rebuild:
+https://github.com/ropensci/ijtiff/blob/master/tools/winlibs.R
 
-    /opt/R/3.6.3/bin/R CMD INSTALL --preclean --no-multiarch --with-keep.source cellMagick
 
-No ayuda.
 
 # CellID original parameters
 ```
