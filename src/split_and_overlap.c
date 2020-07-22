@@ -184,7 +184,7 @@ int *find_split_regions(float *fl, int xmax, int ymax){
     sum/=((float)n_contiguous);
     if (sum==0.0){ //Couldn't find region even though was a region
       printf("Middle region was found and then lost.\n");
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 

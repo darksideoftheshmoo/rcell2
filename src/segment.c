@@ -564,7 +564,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       printf("Haven't calculated upper and lower regions from");
       printf("fluorescence image (while removing edge points).\n");
       fflush(stdout);
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
     //Calculate offset from bottom to top of image
     fret_mx=0.0; //Starting values passed in
@@ -3938,7 +3938,7 @@ void background_level(int i_time){
     if (fret_labels==NULL){
       printf("No split-labels for split image in background");
       printf(" calculation.\n");
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
     fret_region=1; //The upper part of the image (lower y) is labelled 2
   }
@@ -4145,7 +4145,7 @@ void calculate_cut(){
     printf("Haven't calculated upper and lower regions from");
     printf("fluorescence image.\n");
     fflush(stdout);
-    error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+    perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
 
   //Get max and min pixel value for histogramming
@@ -4408,7 +4408,7 @@ struct point *point_malloc(void){
       printf("Need to introduce an offset into point_free() to since\n");
       printf("the structure and the memory-unit holding the structure\n");
       printf("have different addresses (%i != %i) in point_malloc().\n",i,j);
-      error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 
@@ -4665,7 +4665,7 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	printf("The %ith cell in the current image isn't marked",i);
 	printf("whether it's an original or a copy.\n");
 	fflush(stdout);
-	error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+	perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
       }
     }
     bnew->interior=interior[i];
@@ -7883,7 +7883,7 @@ struct point *copy_cell_for_split_regions(
     (ptmp->prev)->next=NULL;
   }else{
     printf("Pointer screw-up in copy_cell_for_split_regions().\n");
-    error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+    perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
   point_free(ptmp); //One too many points
 
@@ -7923,6 +7923,6 @@ void load_global_arrays(int type, float *v1, int *v2,int xmax_in, int ymax_in){
   }else{
     printf("Unknown global array type in load_global_arrays()\n");
     fflush(stdout);
-    error(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
+    perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
 }
