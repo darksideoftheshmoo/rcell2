@@ -9,11 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 # devtools::document()
-devtools::load_all(recompile = T)
+# devtools::load_all(recompile = T)
+# devtools::install()
 # devtools::check()
 # devtools::build()
 
 library(tidyverse)
+library(rcell2)
+
 path <- "../data/image_samples/"
 path.pdata <- paste0(path, "pdata.csv")
 parameters <-  paste0(path, "parameters.txt")

@@ -10,7 +10,6 @@
 #'
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
 #' @useDynLib rcell2 main_
-#' @useDynLib rcell2 main_
 #' @export
 #' @return Nada, el output está en los directorios.
 cellid <- function(args) {
@@ -64,15 +63,17 @@ cell.images.FP <- function(path, pattern="FP_Position\\d*\\.tif$"){
 # @examples
 # cell.images.out(path, pattern="BF_Position\\d*\\.tif$", out.dir = "out")
 cell.images.out <- function(path, pattern="BF_Position\\d*\\.tif$", out.dir = "out"){
-  f <- sub(x=dir(path = path, pattern = pattern, full.names = T),
+  .path <- normalizePath(path)
+  
+  f <- sub(x=dir(path = .path, pattern = pattern, full.names = T),
            pattern = ".*(Position\\d+)\\.tif",
            replacement = "\\1")
   d <- sub(
-    x = paste(path.expand(path), f, out.dir, sep = "/"),
+    x = paste(.path, f, out.dir, sep = "/"),
     pattern = "//", replacement = "/"
   )
-
-  return(normalizePath(d))
+  
+  return(d)
 }
 
 
