@@ -4,7 +4,7 @@
 \alias{cell.images.FP}
 \title{Buscar ?FPs}
 \usage{
-cell.images.FP(path, pattern = "FP_Position\\\\d*\\\\.tif$")
+cell.images.FP(path, FP.pattern = "FP_Position\\\\d*\\\\.tif$")
 }
 \arguments{
 \item{path}{directory where images are stored, full path.}

@@ -4,14 +4,18 @@
 \alias{cell.images.out}
 \title{Filtrar cdata usando gráficos y dibujando regiones}
 \usage{
-cell.images.out(path, pattern = "BF_Position\\\\d*\\\\.tif$", out.dir = "out")
+cell.images.out(
+  path,
+  O.pattern = "BF_Position\\\\d*\\\\.tif$",
+  out.dir = "out"
+)
 }
 \arguments{
 \item{path}{directory where images are stored, full path.}
 
-\item{pattern}{BF pattern "BF_Position\\d*\\.tif$"}
-
 \item{out.dir}{name for output directories paths "out"}
+
+\item{pattern}{BF pattern "BF_Position\\d*\\.tif$"}
 }
 \value{
 A vector of directories.

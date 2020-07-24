@@ -127,28 +127,33 @@ PKG_LIBS = -L"C:\Users\naikymen\Documents\R\win-library\4.0\tiff\libs\x64" -ltif
 
 ```{r}
 # Generate CellID input paths
-cell.args <- cellArgs(path = path,
+cell.args <- cellArgs(#path = path,
+                      path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split",
                       parameters = parameters)
 cellArgs.print(cell.args)  # Para revisar inputs
 ```
 
 ## Time series arguments
 
+En cada archivo tiene que haber una lista con todos los tiempos para una sola posición.
+
 ```
 cell -b /home/nicomic/split/Position01/bf_vcellid.txt -f /home/nicomic/split/Position01/fl_vcellid.txt -o /home/nicomic/split/Position01/out -p /home/nicomic/split/Position01/parameters_vcellid_out.txt
 ```
 
-`bf_vcellid.txt`
+En `bf_vcellid.txt` solo van los BF:
 
     /home/nicomic/split/BF_Position01_time01.tif
     /home/nicomic/split/BF_Position01_time02.tif
     /home/nicomic/split/BF_Position01_time03.tif
 
-`fl_vcellid.txt`
+En `fl_vcellid.txt` se meten todos los canalas de fluorescencia:
 
     /home/nicomic/split/YFP_Position01_time01.tif
     /home/nicomic/split/YFP_Position01_time02.tif
     /home/nicomic/split/YFP_Position01_time03.tif
+
+El argumento de "out" y de los parámetos no cambia:
 
 `parameters_vcellid_out.txt`
 

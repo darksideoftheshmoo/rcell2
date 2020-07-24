@@ -57,16 +57,22 @@ cell.images.FP <- function(path, FP.pattern="FP_Position\\d*\\.tif$"){
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
 #' @param path directory where images are stored, full path.
-#' @param pattern BF pattern "BF_Position\\d*\\.tif$"
+#' @param BF.pattern regex pattern to ?FP images
+#' @param O.pattern regex pattern to output directories
 #' @param out.dir name for output directories paths "out"
 #' @return A vector of directories.
 # @examples
 # cell.images.out(path, pattern="BF_Position\\d*\\.tif$", out.dir = "out")
-cell.images.out <- function(path, O.pattern="BF_Position\\d*\\.tif$", out.dir = "out"){
+cell.images.out <- function(path, 
+                            BF.pattern="BF_Position\\d+\\.tif$", 
+                            O.pattern=".*(Position\\d+).*\\.tif", 
+                            out.dir = "out"){
   .path <- normalizePath(path)
   
-  f <- sub(x=dir(path = .path, pattern = O.pattern, full.names = T),
-           pattern = ".*(Position\\d+)\\.tif",
+  .pics <- dir(path = .path, pattern = BF.pattern, full.names = T)
+  
+  f <- sub(x=.pics,
+           pattern = O.pattern,
            replacement = "\\1")
   d <- sub(
     x = paste(.path, f, out.dir, sep = "/"),
@@ -81,23 +87,26 @@ cell.images.out <- function(path, O.pattern="BF_Position\\d*\\.tif$", out.dir = 
 #'
 #' @param path directory where images are stored, full path.
 #' @param parameters absolute path to the parameters file.
-#' @param b list of arguments: paths to BF images
-#' @param f list of arguments: paths to ?FP images
-#' @param o list of arguments: paths to output directories
-#' @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.
+#' @param BF.pattern regex pattern to BF images
+#' @param FP.pattern regex pattern to ?FP images
+#' @param O.pattern regex pattern to output directories
+# @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.
 #' @return Nothing.
 # @examples
 # cell.args <- cellArgs(path = path)
 #' @export
 cellArgs <- function(path,
                      parameters,
-                     ...) {
+                     BF.pattern="BF_Position\\d+\\.tif$",
+                     FP.pattern="FP_Position\\d*\\.tif$",
+                     O.pattern=".*(Position\\d+)\\.tif"
+                     ) {
 
   parameters <- normalizePath(parameters)
 
-  b <- cell.images.BF(path, ...)
-  f <- cell.images.FP(path, ...)
-  o <- cell.images.out(path, ...)
+  b <- cell.images.BF(path, BF.pattern)
+  f <- cell.images.FP(path, FP.pattern)
+  o <- cell.images.out(path, BF.pattern, O.pattern)
 
   list(p=parameters, b=b, f=f, o=o)
 }
@@ -128,7 +137,7 @@ cellArgs.print <- function(cell.args, which.args = c("p", "b", "f", "o")) for(i 
 # cell.data <- cell.load(path = path, pdata = pdata)
 #' @import dplyr stringr tidyr readr
 #' @importFrom purrr map
-#' @export
+# #' @export
 cell.load <- function(path = "data/images2/",
                       pdata = NULL,
                       position.pattern = "Position\\d+",

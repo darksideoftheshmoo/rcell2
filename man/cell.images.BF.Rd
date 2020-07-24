@@ -4,7 +4,7 @@
 \alias{cell.images.BF}
 \title{Buscar BFs}
 \usage{
-cell.images.BF(path, pattern = "BF_Position\\\\d+\\\\.tif$")
+cell.images.BF(path, BF.pattern = "BF_Position\\\\d+\\\\.tif$")
 }
 \arguments{
 \item{path}{directory where images are stored, full path.}

@@ -4,20 +4,24 @@
 \alias{cellArgs}
 \title{Filtrar cdata usando gráficos y dibujando regiones}
 \usage{
-cellArgs(path, parameters)
+cellArgs(
+  path,
+  parameters,
+  BF.pattern = "BF_Position\\\\d+\\\\.tif$",
+  FP.pattern = "FP_Position\\\\d*\\\\.tif$",
+  O.pattern = "BF_Position\\\\d*\\\\.tif$"
+)
 }
 \arguments{
 \item{path}{directory where images are stored, full path.}
 
 \item{parameters}{absolute path to the parameters file.}
 
-\item{b}{list of arguments: paths to BF images}
+\item{BF.pattern}{regex pattern to BF images}
 
-\item{f}{list of arguments: paths to ?FP images}
+\item{FP.pattern}{regex pattern to ?FP images}
 
-\item{o}{list of arguments: paths to output directories}
-
-\item{channels}{Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.}
+\item{O.pattern}{regex pattern to output directories}
 }
 \value{
 Nothing.
