@@ -8,9 +8,14 @@ cell(
   cell.args,
   path = "data/images/",
   position.pattern = "Position\\\\d+",
-  cell.command = "~/Software/cellID-linux/cell",
+  position.time.pattern = NULL,
+  fluorescence.pattern = "^(.FP)",
+  position.time.pattern.sep = "_?",
+  cell.command = "cellBUILTIN",
   channels = c("b", "f"),
-  no_cores = NULL
+  remove_old_pos_dirs = F,
+  no_cores = NULL,
+  dry = F
 )
 }
 \arguments{
@@ -20,9 +25,19 @@ cell(
 
 \item{position.pattern}{a regular expression that recognizes the position in the image name}
 
+\item{position.time.pattern}{a regular expression that recognizes the time in the image name}
+
+\item{fluorescence.pattern}{a regular expression that recognizes the fluorescence tag in the image name}
+
+\item{position.time.pattern.sep}{a regular expression that matches the pos-time separator characters}
+
 \item{cell.command}{the CellID command, either "cellBUILTIN" for the builtin binary, a path to it.}
 
-\item{channels}{Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.}
+\item{channels}{Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP and pass cell id arguments.}
+
+\item{no_cores}{Pos-wise parallelization}
+
+\item{dry}{Do everything except running CellID}
 }
 \value{
 Nothing.

@@ -9,7 +9,7 @@ cellArgs(
   parameters,
   BF.pattern = "BF_Position\\\\d+\\\\.tif$",
   FP.pattern = "FP_Position\\\\d*\\\\.tif$",
-  O.pattern = "BF_Position\\\\d*\\\\.tif$"
+  O.pattern = ".*(Position\\\\d+)\\\\.tif"
 )
 }
 \arguments{

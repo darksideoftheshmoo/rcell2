@@ -376,8 +376,13 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' @param cell.args An argument list, as built by cellArgs().
 #' @param path directory where images are stored, full path.
 #' @param position.pattern a regular expression that recognizes the position in the image name
+#' @param position.time.pattern a regular expression that recognizes the time in the image name
+#' @param fluorescence.pattern a regular expression that recognizes the fluorescence tag in the image name
+#' @param position.time.pattern.sep a regular expression that matches the pos-time separator characters
 #' @param cell.command the CellID command, either "cellBUILTIN" for the builtin binary, a path to it.
-#' @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.
+#' @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP and pass cell id arguments.
+#' @param no_cores Pos-wise parallelization
+#' @param dry Do everything except running CellID
 #' @return Nothing.
 # @examples
 # cell(cell.args, path = path)
@@ -386,53 +391,76 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' @export
 cell <- function(cell.args,
                  path = "data/images/",
-                 position.pattern =  "Position\\d+",
-                 # cell.command = "cellBUILTIN",
-                 cell.command = "~/Software/cellID-linux/cell",
-                 channels = c("b", "f"),
-                 no_cores = NULL){
+                 position.pattern =  "Position\\d+", position.time.pattern = NULL, #position.time.pattern = "time\\d+",
+                 fluorescence.pattern = "^(.FP)", position.time.pattern.sep = "_?",
+                 cell.command = "cellBUILTIN",
+                 # cell.command = "~/Software/cellID-linux/cell",
+                 channels = c("b", "f"), remove_old_pos_dirs = F,
+                 no_cores = NULL, dry = F){
 
-  # Remove PositionNNN directories
-  dir(path = path, pattern = "^Position\\d\\d\\d$", full.names = T) %>% unlink(recursive = T)
-
-
-  if(F){ # TESTS
-    i=1
-    path <- paste0("/home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/", i ,"/")
-    path.pdata <- paste0("~/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/", i, "/pdata.csv")
-
-    position.pattern =  "Position\\d+"
-    cell.command = "~/Software/cellID-linux/cell"
-    channels = c("b", "f")
-    i = 1
-
-    # Delete outputs
-    dir(path = path, pattern = "out\\.tif$", full.names = T) %>% unlink()
-  }
+  # if(F){ # TESTS
+  #   i=1
+  #   path <- paste0("/home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/", i ,"/")
+  #   path.pdata <- paste0("~/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/", i, "/pdata.csv")
+  # 
+  #   position.pattern =  "Position\\d+"
+  #   cell.command = "~/Software/cellID-linux/cell"
+  #   channels = c("b", "f")
+  #   i = 1
+  # 
+  #   # Delete outputs
+  #   dir(path = path, pattern = "out\\.tif$", full.names = T) %>% unlink()
+  # }
+  
+  # # Remove PositionNNN directories
+  if(remove_old_pos_dirs) dir(path = path, pattern = "^Position\\d\\d\\d$", full.names = T, include.dirs = T) %>% unlink(recursive = T)
 
   # Setup
   {
+    # BF.images <- cell.args$b %>% {.[order(str_extract(., position.pattern))]} # Order FPs by position
+    BF.positions <- str_extract(cell.args$b, position.pattern)  # Grab their position identifier
+    
+    if(!is.null(position.time.pattern)) n_times <- str_extract(basename(cell.args$b), 
+                                                               position.time.pattern) %>% 
+      unique() %>% length() # Count number of times
+    u_positions <- unique(BF.positions)
+    n_positions <- length(u_positions) # Count number of positions
+    
+    f_channels <- basename(cell.args$f) %>% str_extract(fluorescence.pattern) %>% unique()
+    n_channels <- length(f_channels)
+    
+    # cell.args$f <- cell.args$f %>% {.[order(str_extract(., position.pattern))]}  # Order FPs by position
+    # FP.images <- cell.args$f
+    # FP.positions <- str_extract(FP.images, position.pattern)  # Grab their position identifier
+    # names(cell.args$f) <- FP.positions %>% str_replace(fluorescence.pattern, "\\1")  # name them by pos/time
+    if(is.null(position.time.pattern)){
+      names(cell.args$f) <- str_extract(cell.args$f, position.pattern)
+      names(cell.args$b) <- str_extract(cell.args$b, position.pattern)  # Name the BF vector with their positions
+    } else {
+      names(cell.args$f) <- str_extract(cell.args$f, 
+                                        paste0(position.pattern, position.time.pattern.sep, position.time.pattern))
+      names(cell.args$b) <- str_extract(cell.args$b, 
+                                        paste0(position.pattern, position.time.pattern.sep, position.time.pattern))
+    }
+    
+    # CellID parameters
     parameters <- cell.args$p[1]
-
-    BF.images <- cell.args$b %>% {.[order(str_extract(., position.pattern))]} # Order FPs by position
-    BF.positions <- BF.images %>% str_extract(position.pattern)  # Grab their position identifier
-    n_positions <- length(BF.images)
-
-    cell.args$f <- cell.args$f %>% {.[order(str_extract(., position.pattern))]}  # Order FPs by position
-    FP.images <- cell.args$f
-    FP.positions <- FP.images %>% str_extract(position.pattern)  # Grab their position identifier
-    names(cell.args$f) <- FP.positions
-
-    cell.args$p <- rep(cell.args$p[1], length(FP.images)) # Repeat parameters as many times as needed for FP.images
-
+    # Lo siguiente no es necesario ahora. Todas las fotos van a compartir el mismo parameters.txt
+    # cell.args$p <- rep(cell.args$p[1], length(FP.images)) # Repeat parameters as many times as needed for FP.images
+    
     # Create output directories
     for(k in 1:length(cell.args$b)) dir.create(cell.args$o[k], recursive = T, showWarnings = F)
-
+    
+    # Name output prefix with position
     names(cell.args$o) <- cell.args$o %>% str_extract(position.pattern)  # Name the output vector with their positions
     # cell.args$o <- cell.args$o[FP.positions]  # Repeat output as many times as needed for FP.images
-
-    names(cell.args$b) <- cell.args$b %>% str_extract(position.pattern)  # Name the BF vector with their positions
-    cell.args$b <- cell.args$b[FP.positions]  # Repeat BFs as many times as needed for FP.images
+    
+    # Repeat BFs as many times as needed for FP.images
+    # cell.args$b <- cell.args$b[names(cell.args$f)]
+    # cell.args$b <- rep(cell.args$b, each = n_channels)
+    cell.args$b <- rep(cell.args$b, times = n_channels)
+    
+    if(!all(names(cell.args$b) == names(cell.args$f))) stop("BF list and ?FP list have a problem...")
   }
 
   # Run CellID
@@ -444,37 +472,38 @@ cell <- function(cell.args,
   registerDoParallel(cl)
 
   # registerDoParallel(no_cores)
-  foreach(i=1:n_positions) %dopar% {
+  commands <- foreach(pos=1:n_positions) %dopar% {
   # for(i in 1:n_positions){
-
-    cell.args.tmp <- c(p = parameters)
-
-    for(j in channels) {
-      tmp <- tempfile()
-      paths <- cell.args[[j]][names(cell.args[[j]]) %in% BF.positions[i]]
+    
+    cell.args.tmp <- c("p" = unname(parameters),  # there is a "feature" here worthy of the R Inferno
+                       "o" = unname(cell.args$o[pos]))  # unnaming is necesary or the elements name is joined to the assigned name
+    
+    for(channel in channels) {
+      tmp <- tempfile(tmpdir = path, fileext = ".txt", pattern = paste("pos", pos, "ch", channel, "param_", sep = "_"))
+      # paths <- cell.args[[j]][names(cell.args[[j]]) %in% BF.positions[i]]
+      # paths <- cell.args[[channel]][str_detect(names(cell.args[[channel]]), u_positions[pos])]
+      paths <- cell.args[[channel]][ grepl(pattern = u_positions[pos], x = names(cell.args[[channel]])) ]
       write(x = paths, file = tmp)  # readLines(tmp)
-      cell.args.tmp[j] <- tmp
+      cell.args.tmp[channel] <- unname(tmp)
     }
-
-    cell.args.tmp["o"] <- cell.args$o[i]
-
+    
     command <- paste(cell.command,
                      paste0("-",names(cell.args.tmp), " ", cell.args.tmp,
                             collapse = " ")
     )
-
-    print(command)
-
+    
     if(cell.command == "cellBUILTIN") {
-      cellid(command)
+      if(!dry) cellid(command)
     } else {
-      system(command = command, wait = T)
+      if(!dry) system(command = command, wait = T)
     }
+    
+    return(command)
   }
 
   stopCluster(cl)
 
-  return("Done, please examine logs above if anything seems strange :)")
+  return(c("Done, please examine logs above if anything seems strange :)", commands))
 }
 
 #' Pipe

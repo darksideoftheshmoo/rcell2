@@ -6,16 +6,19 @@
 \usage{
 cell.images.out(
   path,
-  O.pattern = "BF_Position\\\\d*\\\\.tif$",
+  BF.pattern = "BF_Position\\\\d+\\\\.tif$",
+  O.pattern = ".*(Position\\\\d+).*\\\\.tif",
   out.dir = "out"
 )
 }
 \arguments{
 \item{path}{directory where images are stored, full path.}
 
-\item{out.dir}{name for output directories paths "out"}
+\item{BF.pattern}{regex pattern to ?FP images}
 
-\item{pattern}{BF pattern "BF_Position\\d*\\.tif$"}
+\item{O.pattern}{regex pattern to output directories}
+
+\item{out.dir}{name for output directories paths "out"}
 }
 \value{
 A vector of directories.
