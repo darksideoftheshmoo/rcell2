@@ -123,7 +123,7 @@ PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
 PKG_LIBS = -L"C:\Users\naikymen\Documents\R\win-library\4.0\tiff\libs\x64" -ltiff
 ```
 
-# USAGE 1 - RUN CELL ID
+# USAGE 0 - Exectuion arguments
 
 ```{r}
 # Generate CellID input paths
@@ -131,6 +131,44 @@ cell.args <- cellArgs(path = path,
                       parameters = parameters)
 cellArgs.print(cell.args)  # Para revisar inputs
 ```
+
+## Time series arguments
+
+```
+cell -b /home/nicomic/split/Position01/bf_vcellid.txt -f /home/nicomic/split/Position01/fl_vcellid.txt -o /home/nicomic/split/Position01/out -p /home/nicomic/split/Position01/parameters_vcellid_out.txt
+```
+
+`bf_vcellid.txt`
+
+    /home/nicomic/split/BF_Position01_time01.tif
+    /home/nicomic/split/BF_Position01_time02.tif
+    /home/nicomic/split/BF_Position01_time03.tif
+
+`fl_vcellid.txt`
+
+    /home/nicomic/split/YFP_Position01_time01.tif
+    /home/nicomic/split/YFP_Position01_time02.tif
+    /home/nicomic/split/YFP_Position01_time03.tif
+
+`parameters_vcellid_out.txt`
+
+     max_split_over_minor 0.66
+     max_dist_over_waist 8.00
+     max_pixels_per_cell 1500
+     min_pixels_per_cell 75
+     background_reject_factor 1.00
+     tracking_comparison 0.20
+     image_type brightfield
+     bf_fl_mapping list
+    
+
+
+```{r}
+#
+```
+
+
+# USAGE 1 - RUN CELL ID
 
 
 ```{r}

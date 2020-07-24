@@ -32,8 +32,8 @@ cellid <- function(args) {
 #' @return A vector of directories.
 # @examples
 # cell.images.BF(path, pattern="BF_Position\\d+\\.tif$", out.dir = "out")
-cell.images.BF <- function(path, pattern="BF_Position\\d+\\.tif$"){
-  f <- sub(x = dir(path = path, pattern = pattern, full.names = T),
+cell.images.BF <- function(path, BF.pattern="BF_Position\\d+\\.tif$"){
+  f <- sub(x = dir(path = path, pattern = BF.pattern, full.names = T),
            pattern = "//", replacement = "/")
   return(normalizePath(f))
 }
@@ -46,9 +46,9 @@ cell.images.BF <- function(path, pattern="BF_Position\\d+\\.tif$"){
 #' @return A vector of directories.
 # @examples
 # cell.images.FP(path, pattern="FP_Position\\d*\\.tif$")
-cell.images.FP <- function(path, pattern="FP_Position\\d*\\.tif$"){
+cell.images.FP <- function(path, FP.pattern="FP_Position\\d*\\.tif$"){
   # f <- sub(x = paste0(dir(path = path, pattern = pattern, full.names = T)),
-  f <- sub(x = dir(path = path, pattern = pattern, full.names = T),
+  f <- sub(x = dir(path = path, pattern = FP.pattern, full.names = T),
            pattern = "//", replacement = "/")
   return(normalizePath(f))
 }
@@ -62,10 +62,10 @@ cell.images.FP <- function(path, pattern="FP_Position\\d*\\.tif$"){
 #' @return A vector of directories.
 # @examples
 # cell.images.out(path, pattern="BF_Position\\d*\\.tif$", out.dir = "out")
-cell.images.out <- function(path, pattern="BF_Position\\d*\\.tif$", out.dir = "out"){
+cell.images.out <- function(path, O.pattern="BF_Position\\d*\\.tif$", out.dir = "out"){
   .path <- normalizePath(path)
   
-  f <- sub(x=dir(path = .path, pattern = pattern, full.names = T),
+  f <- sub(x=dir(path = .path, pattern = O.pattern, full.names = T),
            pattern = ".*(Position\\d+)\\.tif",
            replacement = "\\1")
   d <- sub(
@@ -90,13 +90,14 @@ cell.images.out <- function(path, pattern="BF_Position\\d*\\.tif$", out.dir = "o
 # cell.args <- cellArgs(path = path)
 #' @export
 cellArgs <- function(path,
-                     parameters) {
+                     parameters,
+                     ...) {
 
   parameters <- normalizePath(parameters)
 
-  b <- cell.images.BF(path)
-  f <- cell.images.FP(path)
-  o <- cell.images.out(path)
+  b <- cell.images.BF(path, ...)
+  f <- cell.images.FP(path, ...)
+  o <- cell.images.out(path, ...)
 
   list(p=parameters, b=b, f=f, o=o)
 }
