@@ -9,7 +9,8 @@ cellArgs(
   parameters,
   BF.pattern = "BF_Position\\\\d+\\\\.tif$",
   FP.pattern = "FP_Position\\\\d*\\\\.tif$",
-  O.pattern = ".*(Position\\\\d+)\\\\.tif"
+  O.pattern = ".*(Position\\\\d+)\\\\.tif",
+  out.dir = "out"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ cellArgs(
 \item{FP.pattern}{regex pattern to ?FP images}
 
 \item{O.pattern}{regex pattern to output directories}
+
+\item{out.dir}{name for output directories paths "out"}
 }
 \value{
 Nothing.

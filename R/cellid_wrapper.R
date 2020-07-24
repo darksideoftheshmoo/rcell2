@@ -79,6 +79,8 @@ cell.images.out <- function(path,
     pattern = "//", replacement = "/"
   )
   
+  names(d) <- f
+  
   return(d)
 }
 
@@ -90,6 +92,7 @@ cell.images.out <- function(path,
 #' @param BF.pattern regex pattern to BF images
 #' @param FP.pattern regex pattern to ?FP images
 #' @param O.pattern regex pattern to output directories
+#' @param out.dir name for output directories paths "out"
 # @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.
 #' @return Nothing.
 # @examples
@@ -99,14 +102,15 @@ cellArgs <- function(path,
                      parameters,
                      BF.pattern="BF_Position\\d+\\.tif$",
                      FP.pattern="FP_Position\\d*\\.tif$",
-                     O.pattern=".*(Position\\d+)\\.tif"
+                     O.pattern=".*(Position\\d+)\\.tif",
+                     out.dir = "out"
                      ) {
 
   parameters <- normalizePath(parameters)
 
   b <- cell.images.BF(path, BF.pattern)
   f <- cell.images.FP(path, FP.pattern)
-  o <- cell.images.out(path, BF.pattern, O.pattern)
+  o <- cell.images.out(path, BF.pattern, O.pattern, out.dir)
 
   list(p=parameters, b=b, f=f, o=o)
 }
@@ -137,11 +141,11 @@ cellArgs.print <- function(cell.args, which.args = c("p", "b", "f", "o")) for(i 
 # cell.data <- cell.load(path = path, pdata = pdata)
 #' @import dplyr stringr tidyr readr
 #' @importFrom purrr map
-# #' @export
-cell.load <- function(path = "data/images2/",
-                      pdata = NULL,
-                      position.pattern = "Position\\d+",
-                      ...){
+#' @export
+cell.load.alt <- function(path = "data/images2/",
+                          pdata = NULL,
+                          position.pattern = "Position\\d+",
+                          ...){
 
   if(F){  # TEST
     path <- "/home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/"
@@ -420,6 +424,7 @@ cell <- function(cell.args,
     # BF.images <- cell.args$b %>% {.[order(str_extract(., position.pattern))]} # Order FPs by position
     BF.positions <- str_extract(cell.args$b, position.pattern)  # Grab their position identifier
     
+    n_times <- 1
     if(!is.null(position.time.pattern)) n_times <- str_extract(basename(cell.args$b), 
                                                                position.time.pattern) %>% 
       unique() %>% length() # Count number of times
@@ -476,15 +481,20 @@ cell <- function(cell.args,
   # for(i in 1:n_positions){
     
     cell.args.tmp <- c("p" = unname(parameters),  # there is a "feature" here worthy of the R Inferno
-                       "o" = unname(cell.args$o[pos]))  # unnaming is necesary or the elements name is joined to the assigned name
+                       "o" = unname(cell.args$o[pos*n_times])) # unnaming is necesary or the elements name is joined to the assigned name
     
     for(channel in channels) {
-      tmp <- tempfile(tmpdir = path, fileext = ".txt", pattern = paste("pos", pos, "ch", channel, "param_", sep = "_"))
+      tmp <- tempfile(tmpdir = cell.args.tmp["o"], 
+                      fileext = ".txt", 
+                      pattern = paste("pos", pos, 
+                                      "ch", channel,
+                                      "param_", sep = "_"))
       # paths <- cell.args[[j]][names(cell.args[[j]]) %in% BF.positions[i]]
       # paths <- cell.args[[channel]][str_detect(names(cell.args[[channel]]), u_positions[pos])]
-      paths <- cell.args[[channel]][ grepl(pattern = u_positions[pos], x = names(cell.args[[channel]])) ]
+      paths <- cell.args[[channel]][ grepl(pattern = u_positions[pos],
+                                           x = names(cell.args[[channel]])) ]
       write(x = paths, file = tmp)  # readLines(tmp)
-      cell.args.tmp[channel] <- unname(tmp)
+      cell.args.tmp[channel] <- normalizePath(tmp)
     }
     
     command <- paste(cell.command,
@@ -502,8 +512,8 @@ cell <- function(cell.args,
   }
 
   stopCluster(cl)
-
-  return(c("Done, please examine logs above if anything seems strange :)", commands))
+  print("Done, please examine logs above if anything seems strange :)")
+  return(commands)
 }
 
 #' Pipe
