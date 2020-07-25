@@ -55,12 +55,14 @@ getPositions <- function(input, numPos){
 }
 
 #' Apply string filters to cdata
-polyFilterApply <- function(polygon_df_list, cdata, truthMode = "all"){
+polyFilterApply <- function(polygon_df_list, cdata, truthMode = "all",
+                            cell_unique_id_field = "ucid"){
     print("F3")
-    # Initialize empty cfilter
-    cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
+    # Initialize empty cfilter, only with a primary key
+    cfilter <- data.frame(ucid = cdata[,cell_unique_id_field], filter = T)
 
-    # Populate cfilter columns
+    # Populate cfilter columns, append one column per filtering polygon
+    print("F4.0")
     for (i in seq_along(polygon_df_list)) cfilter = do.call(what = polyFilterCell,
                                                             args = list(cdataDF = cdata,
                                                                         filterDF = cfilter,  # Iterates over the output
@@ -68,10 +70,13 @@ polyFilterApply <- function(polygon_df_list, cdata, truthMode = "all"){
                                                                         polygonName = paste0("polygon", i)))
 
     # Recalcular la verdad
-    cfilter <- calculateTruth(cfilter, mode = truthMode)
+    print("F6.0")
+    cfilter <- calculateTruth(cfilter, mode = truthMode, cell_unique_id_field = cell_unique_id_field)
 
     # Add TRUTH column to cdata
-    cdata <- applyFilter(cdata, cfilter)
+    print("F7.0")
+    cdata <- applyFilter(cdata, cfilter, 
+                         cell_unique_id_field = cell_unique_id_field)
 
     # Return cdata and cfilter in a list.
     return(list(cdata = cdata,
@@ -122,7 +127,7 @@ pip <- function(points, pgn, points_x_column = 1, points_y_column = 2, pgn_x_col
 
 # REVISAR - tomar en cuenta todos los filtros para decidir si una célula es filtrada por alguno o no.
 calculateTruth <- function(filterDF, cell_unique_id_field = "ucid", truth_column = "filter", mode = "all"){
-    print("F6")
+    print("F6.1")
     # browser()
     # Descartar columnas que no me interesan para calcular la verdad
     drops <- c(cell_unique_id_field, truth_column)
@@ -134,15 +139,16 @@ calculateTruth <- function(filterDF, cell_unique_id_field = "ucid", truth_column
     additive_types <- which(types == 1)     # identify yes-type columns
     subtractive_types <- which(types == 2)  # identify not-type columns
 
-    # Tomar las columnas de filterDF que contienen los valores de verdad para cada filtro y hacerles un all() por fila.
+    # Tomar las columnas de filterDF que contienen los valores de verdad para cada filtro
+    # y hacerles un all() por fila.
     filterDF$filter <- apply(X = fDF,
-                             MARGIN = 1,  # by rows
-                             FUN = function(r){
+                             MARGIN = 1,        # iterate over rows
+                             FUN = function(r){ # grab the row and convert it to an array
                                  r <- array(r)  # r <- array(c(T, F))
-                                 r[is.na(r)] <- F
+                                 r[is.na(r)] <- F  # NAs will be converted to FALSE
 
                                  r_at <- if (length(additive_types) == 0) T else r[additive_types]
-                                 r_st <- if (length(subtractive_types) == 0) T else {r[subtractive_types]}
+                                 r_st <- if (length(subtractive_types) == 0) T else r[subtractive_types]
 
                                  if(mode == "all"){  # Subtractive overcomes Additive
                                      # all(r)        # Keep only if ALL conditions are true:
@@ -159,13 +165,13 @@ calculateTruth <- function(filterDF, cell_unique_id_field = "ucid", truth_column
                                      all(r)
                                  }
                              })
-
+    print("F6.2")
     return(filterDF)
 }
 
 #' Add TRUTH column to cdata
 applyFilter <- function(cdataDF, filterDF, cell_unique_id_field = "ucid", truth_column = "filter"){
-    print("F7")
+    print("F7.1")
     # Agregar a "cdata" una columna de TRUE/FALSE que refleje si cada célula pasó o no los filtros
 
     # Es básicamente un merge de ciertas columnas de cdataDF y cfilterDF, por "ucid"
@@ -173,10 +179,11 @@ applyFilter <- function(cdataDF, filterDF, cell_unique_id_field = "ucid", truth_
     # Columnas que tiene el filtro en "filterDF" pero que tengo que sacar de "cdataDF" antes del merge.
     drops <- c(truth_column)
 
-    cdataDF <- merge(cdataDF[, !(names(cdataDF) %in% drops)],
+    .cdataDF <- merge(cdataDF[, !(names(cdataDF) %in% drops)],
                      filterDF[,c(cell_unique_id_field, truth_column)],
                      by = cell_unique_id_field)
-    return(cdataDF)
+    print("F7.2")
+    return(.cdataDF)
 }
 
 

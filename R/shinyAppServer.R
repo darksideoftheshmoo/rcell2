@@ -16,7 +16,11 @@ shinyAppServer <-
       # Initialize cdata
       cdata$filter <- T
       values$cdata <- cdata
-
+      if(!{cell.data$d$t.frame %>% unique() %>% length()} == 1){
+        cdata <- mutate(cdata, ucid_time = paste0(ucid, "_", t.frame))
+        cdata.cell_unique_id_field <- "ucid_time"
+      }
+      
       # Initialize cfilter
       if(length(filters) > 0) { values$stringFilters <- filters} else {values$stringFilters <- c()}  # Load initial filters if any
       values$stringFiltersSelected <- c()
@@ -66,7 +70,8 @@ shinyAppServer <-
 
           result <- polyFilterApply(polygon_df_list = selectedPolygons,
                                     cdata = cdata,
-                                    truthMode = input$truth_mode)
+                                    truthMode = input$truth_mode, 
+                                    cell_unique_id_field = cdata.cell_unique_id_field)  # important for time series
 
           # Update reactive cdata and cfilter
           # print(identical(values$cdata, result$cdata))  # Why??
@@ -363,8 +368,14 @@ shinyAppServer <-
           # Output an image if filtering returns a non-empty selection
           if(nrow(d) > 0) {
             print("-- Selection not empty: magick!")
-            magick.cell <-  magickCell(d, p, ch=input$ch, sortVar = input$x, seed = values$seed, n = n_max)
+            magick.cell <-  magickCell(d, p, ch=input$ch, 
+                                       sortVar = input$x, 
+                                       seed = values$seed, 
+                                       n = n_max, 
+                                       .equalize = input$equalize_pics,
+                                       .normalize = input$normalize_pics)
             tmpimage <- magick.cell$img
+            print(magick.cell$ucids)
           } else {
             # Output white if selection is empty
             print("-- Selection is empty")
@@ -381,7 +392,7 @@ shinyAppServer <-
         # Ver si se puede pasar a TIFF
         tmpfile <- magick::image_write(tmpimage, tempfile(fileext='jpg'), format = 'jpg')
         list(src = tmpfile, contentType = "image/jpeg")
-      })
+      }, deleteFile=TRUE)
 
 
 
@@ -434,8 +445,12 @@ shinyAppServer <-
           # Get points
           pips <- pip(pts, pgnpts)
           d <- d[as.logical(pips),]
-
-          magick.cell <- magickCell(d, p, ch=input$ch, sortVar = input$x, seed = values$seed, n = n_max)
+          magick.cell <- magickCell(d, p, ch=input$ch, 
+                                    sortVar = input$x, 
+                                    seed = values$seed, 
+                                    n = n_max, 
+                                    .equalize = input$equalize_pics,
+                                    .normalize = input$normalize_pics)
           tmpimage <- magick.cell$img
         } else {
           # Si no hay algo seleccionado output white
@@ -448,7 +463,7 @@ shinyAppServer <-
 
         # TO-DO ####
         # use "magick.cell$ucids" to plot points for each sampled cells, overlaid in the main plot
-      })
+      }, deleteFile=TRUE)
 
 
 
@@ -512,11 +527,15 @@ shinyAppServer <-
       # CLICK OBSERVER 1  ----------------
       observeEvent(
         # Observe clicks and add them to the polygon dataframe
-        eventExpr = input$vertex1,
+        eventExpr = input$vertex1,  ## Double clicks
         handlerExpr = {
-          writeLines("\nClick event: Polygon point added")
+          writeLines("\nDoublelick event: Polygon point added")
           # Isolation may be futile in "observeEvent" contexts.
-
+          
+          # https://stackoverflow.com/questions/30588472/is-it-possible-to-clear-the-brushed-area-of-a-plot-in-shiny
+          session$resetBrush("scatterplot_brush")  # https://shiny.rstudio.com/reference/shiny/0.14/session.html
+          rv$brush_limits <- c(NULL, NULL, NULL, NULL)  # Trigger brush image update, so that it clears up.
+          
           # Load all polygons
           pgnpts <- isolate(rv$pgnpts)  # will fire on click, isolation is prudent
 
@@ -547,7 +566,7 @@ shinyAppServer <-
         eventExpr = input$vertex2,
         handlerExpr = {
           writeLines("\nClick event: Polygon cleared / Brush drawn")
-
+          
           rv$pgnpts <- pgnpts_empty
 
         }, label = "Click observer 2")
@@ -560,7 +579,7 @@ shinyAppServer <-
           writeLines("\nAdd filter fired")
           # Isolation may be futile in "observeEvent" contexts.
 
-          # Density 1D shloud be treated differently
+          # Density 1D should be treated differently
           plot.type <- isolate(input$ptype)
 
           # Brush

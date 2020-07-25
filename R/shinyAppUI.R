@@ -12,7 +12,7 @@ shinyAppUI <- function(){
                      numbers_to_intervals(pdata$pos),
                      " (leave blank for all)."
              )),
-             selectInput('ch','Channel:', sort(unique(paths$channel)), "BF.out"),
+             # selectInput('ch','Channel:', sort(unique(paths$channel)), "BF.out"),
              selectInput('x','X variable', names(cdata)[!names(cdata) %in% names(pdata)],"a.tot"),  # Exclude pdata variables for plotting. Note: pos may be useful!
              selectInput('y','Y variable', names(cdata)[!names(cdata) %in% names(pdata)],"el.p"),
              hr(),
@@ -34,7 +34,7 @@ shinyAppUI <- function(){
       ),
       column(width = 8, offset = 0,
              plotOutput(outputId = "scatterplot",
-                        brush = brushOpts(id = "scatterplot_brush", fill = "#ccc"),
+                        brush = brushOpts(id = "scatterplot_brush", fill = "#ccc", resetOnNew = TRUE),
                         click = "vertex2",
                         dblclick = "vertex1",
                         hover = "hover",
@@ -49,14 +49,32 @@ shinyAppUI <- function(){
 
     column(width = 12,
            tabsetPanel(
-             tabPanel("Brush pics",
-                      p("Cells in brushed points:"),
-                      plotOutput("pics", height = "100%", width = "100%")  # Jugando un poco con los tamanos, todavia no sale lindo
+             # tabPanel("Brush pics",
+             tabPanel("Brush and Polygon pics",
+                      column(width = 2,
+                             p("Image options:"),
+                             selectInput('ch','Channel:', sort(unique(paths$channel)), "BF.out"),
+                             checkboxInput(inputId = "normalize_pics", label = "Normalize", value = FALSE),
+                             checkboxInput(inputId = "equalize_pics", label = "Equalize", value = FALSE)
+                      ),
+                      column(width = 10,
+                             p("Cells in brushed points:"),
+                             plotOutput("pics", height = "100%", width = "100%"),  # Jugando un poco con los tamanos, todavia no sale lindo
+                             plotOutput("pics2", height = "100%", width = "100%")  # Jugando un poco con los tamanos, todavia no sale lindo
+                      )
              ),
-             tabPanel("Poly pics",
-                      p("Cells in polygon:"),
-                      plotOutput("pics2", height = "100%", width = "100%")  # Jugando un poco con los tamanos, todavia no sale lindo
-             ),
+             # tabPanel("Poly pics",
+             #          p("Cells in polygon:"),
+             #          plotOutput("pics2", height = "100%", width = "100%")  # Jugando un poco con los tamanos, todavia no sale lindo
+             # ),
+             
+             # tabPanel("Image settings",
+             #          column(width = 4,
+             #                 checkboxInput(inputId = "normalize_pics", label = "Normalize images", value = FALSE),
+             #                 checkboxInput(inputId = "equalize_pics", label = "Equalize images", value = FALSE)
+             #                 # shiny::numericInput("n_images_max", "Max. number of cells per tile", 10)
+             #          )
+             # ),
 
              tabPanel("Filter Settings",
                       column(width = 4,
@@ -65,6 +83,7 @@ shinyAppUI <- function(){
                       checkboxInput(inputId = "suspend_filters", label = "Suspend filters?", value = FALSE),
 
                       selectInput("truth_mode", "Filter mode", c("Discard > Keep" = "all", "Keep > Discard" = "any"), selected = "all"),
+                      # selectInput("cell_unique_id_field", "Filter primary key", c("ucid" = "ucid", "ucid_time" = "ucid_time"), selected = "all"),
 
 
                       #uiOutput("filters")
