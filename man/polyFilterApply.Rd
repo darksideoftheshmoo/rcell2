@@ -4,7 +4,12 @@
 \alias{polyFilterApply}
 \title{Apply string filters to cdata}
 \usage{
-polyFilterApply(polygon_df_list, cdata, truthMode = "all")
+polyFilterApply(
+  polygon_df_list,
+  cdata,
+  truthMode = "all",
+  cell_unique_id_field = "ucid"
+)
 }
 \description{
 Apply string filters to cdata

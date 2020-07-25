@@ -1,5 +1,16 @@
 ### DEFINITIONS ###
 
+#' Find cell closest to hover point in shiny
+#' @param ui_input the "input" object from whiny server
+#' @param cdata the dataframe to filter
+hover_closest <- function(ui_input, cdata){
+    d.closest <- sqrt(  
+        (ui_input$hover$x - cdata[[ui_input$x]])^2 +
+            (ui_input$hover$y - cdata[[ui_input$y]])^2
+    ) %>% {cdata[which.min(.),]}
+    return(d.closest)
+}
+
 # Import operators
 # `%do%` <- foreach::`%do%`
 # `%>%` <- dplyr::`%>%`
@@ -15,7 +26,15 @@ numbers_to_intervals <- function(numbers = c(1:10, 20:30)){
     paste(x, collapse = ", ")
 }
 
-#' range expand https://www.rosettacode.org/wiki/Range_expansion#R
+#' rangeExpand
+#' 
+#' Function for parsing "position" input strings.
+#' 
+#' A format for expressing an ordered list of integers is to use a comma separated list of either 
+#' 
+#' See https://www.rosettacode.org/wiki/Range_expansion#R
+#' @param text the input string to parse 
+#' @param maxPos total amount of positions (an int)
 rangeExpand <- function(text = "1:2, 7-9", maxPos) {
     print("F0.2")
     text <- gsub("[^0-9,\\:\\-]", replacement = "", text)

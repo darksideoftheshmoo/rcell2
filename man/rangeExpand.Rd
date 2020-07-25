@@ -2,10 +2,20 @@
 % Please edit documentation in R/definitions.R
 \name{rangeExpand}
 \alias{rangeExpand}
-\title{range expand https://www.rosettacode.org/wiki/Range_expansion#R}
+\title{rangeExpand}
 \usage{
 rangeExpand(text = "1:2, 7-9", maxPos)
 }
+\arguments{
+\item{text}{the input string to parse}
+
+\item{maxPos}{total amount of positions (an int)}
+}
 \description{
-range expand https://www.rosettacode.org/wiki/Range_expansion#R
+Function for parsing "position" input strings.
+}
+\details{
+A format for expressing an ordered list of integers is to use a comma separated list of either 
+
+See https://www.rosettacode.org/wiki/Range_expansion#R
 }

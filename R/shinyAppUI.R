@@ -29,6 +29,7 @@ shinyAppUI <- function(){
              ),
 
              verbatimTextOutput("info"),
+             plotOutput("pics_nearby", height = "100%", width = "100%"),
              verbatimTextOutput("logs"),
              p()
       ),

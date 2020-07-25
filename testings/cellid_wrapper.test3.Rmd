@@ -263,6 +263,22 @@ magickCell(cdata, paths) %>%
   knitr::include_graphics()
 ```
 
+```{r}
+.img.path <- cell.data$d.paths %>% 
+  filter(pos == 1, channel == "BF", t.frame == 0) %>% 
+  with(file)
+
+cell.data$d %>% 
+  filter(pos == 1, t.frame == 0) %>% 
+  ggplot(aes(x,y)) + 
+  # annotation_raster(as.raster(.img), xmin = 0, ymin = 0, xmax = .img.info$width, ymax = .img.info$height) +
+  rcell2::annotation_magick(.img.path) +
+  geom_point(aes(x = xpos, y = ypos, text = ucid), color = "white", size = .6) +
+  theme_minimal()
+```
+
+### USAGE 2.3 Shiny
+
 Slightly more useful:
 
 ```{r}

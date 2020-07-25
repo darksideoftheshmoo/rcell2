@@ -28,6 +28,9 @@ shinyAppServer <-
 
       # Initialize sample seed
       values$seed <- seed
+      
+      # Initialuze hover for nearby cells
+      # values$points_nearby <- c()
 
       # Setup polygon
       pgnpts_empty <- data.frame(x = numeric(),
@@ -323,16 +326,16 @@ shinyAppServer <-
         # Si hay algo seleccionado
         if(!is.null(brush_limits[1])){
           # Me quedo con las posiciones que me interesan
-          positions <- rangeExpand(input$position, max(paths$pos))
+          positions <- rcell2::rangeExpand(input$position, max(paths$pos))
 
           p <- subset(paths, pos %in% positions)
           d <- subset(values$cdata, pos %in% positions & filter == TRUE)
 
           # Y solamente con las filas que están en el brush
           d <- d[d[,input$x] >= brush_limits[1] &
-                   d[,input$x] <= brush_limits[2] &
-                   d[,input$y] >= brush_limits[3] &
-                   d[,input$y] <= brush_limits[4] ,]
+                 d[,input$x] <= brush_limits[2] &
+                 d[,input$y] >= brush_limits[3] &
+                 d[,input$y] <= brush_limits[4] ,]
 
           # Si hay algo escrito en el facet formula field, filtrar el dataframe para mostrar solo las imagenes del facet seleccionado.
           if(input$facet != "" && input$facet_brush){
@@ -467,16 +470,104 @@ shinyAppServer <-
 
 
 
-      # Reactive text 1 ----------------
+      # Reactive text 1 : hover ----------------
       # Reads input: input$hover$x, input$hover$y
       # Reads reactive:
       # Writes reactive:
       output$info <- renderText({
         tryCatch(
-          expr = paste0("x=", signif(input$hover$x, 3), "\t y=", signif(input$hover$y, 3)),
+          expr = {
+            paste0("x=", signif(input$hover$x, 3), "\t y=", signif(input$hover$y, 3))
+            },
           error = function(cond) return("Waiting for mouse hover...")
         )
       })
+      
+      
+      # Reactive image 3: pics_nearby ----------------
+      # Reads input: values$points_nearby, input$position, input$x, input$y
+      # Reads reactive: rv$pgnpts, values$cdata, values$seed
+      # Writes reactive:
+      output$pics_nearby <- renderImage({
+        
+        # points_nearby <- values$points_nearby
+        
+        # Si hay hover no NULL
+        if(!is.null(input$hover[1])){
+          # Me quedo con las posiciones que me interesan
+          positions <- rcell2::rangeExpand(input$position, max(paths$pos))
+          
+          p <- subset(paths, pos %in% positions)
+          d <- subset(values$cdata, pos %in% positions & filter == TRUE)
+          
+          # El nearest hay que hacerlo despues de filtrar por facet
+          print("-- Hover names:")
+          print(names(input$hover))
+          
+          # Si hay algo escrito en el facet formula field, filtrar el dataframe para mostrar solo las imagenes del facet seleccionado.
+          if(input$facet != "" && input$facet_brush){
+            print("-- Brush by facet mode ON")
+            
+            # Cada "eje" del facet tiene los posibles valores de una variable de pdata.
+            
+            # Primero conseguir las variables en la fórmula (debería estar primera la variable en el "eje y del facet")
+            facetVars <- all.vars(eval(parse(text=input$facet)))
+            facetVars <- facetVars[facetVars != "."]  # Sacar el puntito de las variables
+            facetVars <- rev(facetVars)  # Dar vuelta, porque necesito primero los X y después los Y.
+            
+            # Conseguir los valores de las variables del facet usando información del brush.
+            # brush_names <- c("panelvar1", "panelvar2", "nico", "panelvar3")
+            hover_names <- names(input$hover)     # Get names
+            panelvars_index <- grep("panelvar", hover_names)  # Get indexes of the panelvars
+            panelvars <- hover_names[panelvars_index]         # Get the panelvars
+            panelvals <- input$hover[panelvars]   # Get the values of the panelvars
+            
+            
+            # Build the subset condition
+            panelvals <- paste("'", panelvals, "'", sep = "") # Quote them, for later use in subset() with eval(parse())
+            subset_condition = paste(paste(facetVars, "==", panelvals), collapse = " & ")
+            
+            # Subset the dataframe
+            print(paste("-- Subsetting by facet condition:", subset_condition))
+            d <- subset(d, eval(parse(text=subset_condition)))
+            
+          } else {
+            print("-- Brush by facet mode OFF")
+          }
+          
+          
+          # Find the closest point
+          d <- hover_closest(ui_input = input, cdata = d)
+          
+          # Output an image if filtering returns a non-empty selection
+          if(nrow(d) > 0) {
+            print("-- Selection not empty: magick!")
+            magick.cell <-  magickCell(d, p, ch=input$ch, 
+                                       sortVar = input$x, 
+                                       seed = values$seed, 
+                                       n = 1, 
+                                       .equalize = input$equalize_pics,
+                                       .normalize = input$normalize_pics)
+            tmpimage <- magick.cell$img
+            print(magick.cell$ucids)
+          } else {
+            # Output white if selection is empty
+            print("-- Selection is empty")
+            tmpimage <- magick::image_blank(100,10,color = "white") %>% image_annotate(text = "Empty set")
+          }
+          
+        } else {
+          # Si no hay algo seleccionado
+          print("-- Selection is empty")
+          tmpimage <- magick::image_blank(100,10,color = "white") %>% image_annotate(text = "Empty set")
+        }
+        
+        # Esto es para que shiny pueda mostrar output de imagen
+        # Ver si se puede pasar a TIFF
+        tmpfile <- magick::image_write(tmpimage, tempfile(fileext='jpg'), format = 'jpg')
+        list(src = tmpfile, contentType = "image/jpeg")
+        
+      }, deleteFile=TRUE)
 
 
 

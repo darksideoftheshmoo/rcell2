@@ -119,3 +119,41 @@ magickCell <- function(cdata, paths,
               "ucids" = cdataSample$ucid))
 }
 
+#' Funcion copada para mostrar fotos basada en magick
+#'
+#' @param picPath Image path for the correct position, only one.
+#' @param interpolate Passed on to layer params.
+#' @return A custom annotation_raster for ggplot.
+# @examples
+# annotation_magick(.img.path)
+#' @import magick grDevices ggplot2
+#' @export
+annotation_magick <- function(picPath, interpolate = FALSE) {
+  
+  # Por ahi era mas facil armarla con NSE: https://wiki.frubox.org/proyectos/atr/rdevel#filter
+  
+  stopifnot(length(picPath) == 1 & is.character(picPath)) # Checks
+  
+  .img <- picPath %>% 
+    magick::image_read() %>% 
+    magick::image_normalize() %>% 
+    # magick::image_rotate(180) %>%
+    magick::image_flip() %>%
+    magick::image_fill("none")
+  
+  raster <- as.raster(.img)
+  
+  .img.info <- magick::image_info(.img)
+  
+  raster <- grDevices::as.raster(raster)
+  ggplot2::layer(#data = dummy_data(),
+    data = data.frame(x = NA),
+    mapping = NULL, stat = ggplot2::StatIdentity, 
+    position = ggplot2::PositionIdentity, geom = ggplot2::GeomRasterAnn, inherit.aes = FALSE, 
+    params = list(raster = raster, 
+                  xmin = 0, 
+                  xmax = .img.info$width, 
+                  ymin = 0, 
+                  ymax = .img.info$height, 
+                  interpolate = interpolate))
+}

@@ -11,6 +11,8 @@ magickCell(
   cell_resize = 100,
   boxSize = 50,
   n = 100,
+  .equalize = F,
+  .normalize = T,
   ch = "BF.out",
   sortVar = "xpos",
   seed = 1,

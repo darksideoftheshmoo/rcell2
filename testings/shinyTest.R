@@ -34,6 +34,7 @@ if(F){
   # debugonce(calculateTruth)
   # debugonce(applyFilter)
   # debugonce(magickCell)
+  # debug(hover_closest)
   # profvis({
     cdata <- cell.data$d #%>% filter(ucid == 2000000281)
     saved_data3 <- cdata %>%
