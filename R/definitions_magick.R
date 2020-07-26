@@ -12,13 +12,14 @@
 #' @return Lots of stuff.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
-#' @import magick foreach dplyr
+#' @import magick dplyr
+#' @rawNamespace import(foreach, except = c("when", "accumulate"))
 #' @export
-magickCell <- function(cdata, paths, 
+magickCell <- function(cdata, paths,
                        max_size = 500, cell_resize = 100,
-                       boxSize = 50, n = 100, 
+                       boxSize = 50, n = 100,
                        .equalize = F, .normalize = T,
-                       ch = "BF.out", sortVar = "xpos", 
+                       ch = "BF.out", sortVar = "xpos",
                        seed = 1, .debug=FALSE){
   if(.debug) print("F8")
 
@@ -29,9 +30,9 @@ magickCell <- function(cdata, paths,
   # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
 
   getCellGeom <- function(xpos, ypos, boxSize = 50){
-    geometry <- magick::geometry_area(width = boxSize, 
-                                      height = boxSize, 
-                                      x_off = xpos - boxSize/2, 
+    geometry <- magick::geometry_area(width = boxSize,
+                                      height = boxSize,
+                                      x_off = xpos - boxSize/2,
                                       y_off = ypos - boxSize/2)
     return(geometry)
   }
@@ -56,25 +57,25 @@ magickCell <- function(cdata, paths,
   cdataSample <- .cdataSample[order(.cdataSample[[sortVar]]),  # sort the sample
                        unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
 
-  imga <- 
+  imga <-
     foreach::foreach(i=1:nrow(cdataSample), .combine=c) %do% {
 
     position <- cdataSample$pos[i]
     ucid <- cdataSample$ucid[i]
     t_frame <- cdataSample$t.frame[i]
     picPath <- subset(paths, pos == position & channel == ch & t.frame == t_frame)$file
-    
+
     stopifnot(length(position) == 1 &length(ucid) == 1 &length(t_frame) == 1) # Checks
     stopifnot(length(picPath) == 1 & is.character(picPath)) # Checks
-    
+
     magick::image_read(picPath) %>%
-      {if (.normalize) magick::image_normalize(.) else .} %>% 
-      {if (.equalize) magick::image_equalize(.) else .} %>% 
+      {if (.normalize) magick::image_normalize(.) else .} %>%
+      {if (.equalize) magick::image_equalize(.) else .} %>%
       magick::image_crop(getCellGeom(xpos = cdataSample$xpos[i],
                                      ypos = cdataSample$ypos[i],
                                      boxSize)) %>%
       magick::image_resize(cell_resize_string) %>%
-      magick::image_annotate(text = paste(paste0("Pos", as.character(position)), 
+      magick::image_annotate(text = paste(paste0("Pos", as.character(position)),
                                           paste0("t", t_frame),
                                           ch),
                              size = as.numeric(stringr::str_split(cell_resize_string, "x")[[1]])[1]/7,
@@ -91,7 +92,7 @@ magickCell <- function(cdata, paths,
                              gravity = "NorthWest") %>%
       magick::image_border("black","1x1")
     }
-  
+
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
 
   nRow <- ceiling(sqrt(n))
@@ -129,31 +130,31 @@ magickCell <- function(cdata, paths,
 #' @import magick grDevices ggplot2
 #' @export
 annotation_magick <- function(picPath, interpolate = FALSE) {
-  
+
   # Por ahi era mas facil armarla con NSE: https://wiki.frubox.org/proyectos/atr/rdevel#filter
-  
+
   stopifnot(length(picPath) == 1 & is.character(picPath)) # Checks
-  
-  .img <- picPath %>% 
-    magick::image_read() %>% 
-    magick::image_normalize() %>% 
+
+  .img <- picPath %>%
+    magick::image_read() %>%
+    magick::image_normalize() %>%
     # magick::image_rotate(180) %>%
     magick::image_flip() %>%
     magick::image_fill("none")
-  
+
   raster <- as.raster(.img)
-  
+
   .img.info <- magick::image_info(.img)
-  
+
   raster <- grDevices::as.raster(raster)
   ggplot2::layer(#data = dummy_data(),
     data = data.frame(x = NA),
-    mapping = NULL, stat = ggplot2::StatIdentity, 
-    position = ggplot2::PositionIdentity, geom = ggplot2::GeomRasterAnn, inherit.aes = FALSE, 
-    params = list(raster = raster, 
-                  xmin = 0, 
-                  xmax = .img.info$width, 
-                  ymin = 0, 
-                  ymax = .img.info$height, 
+    mapping = NULL, stat = ggplot2::StatIdentity,
+    position = ggplot2::PositionIdentity, geom = ggplot2::GeomRasterAnn, inherit.aes = FALSE,
+    params = list(raster = raster,
+                  xmin = 0,
+                  xmax = .img.info$width,
+                  ymin = 0,
+                  ymax = .img.info$height,
                   interpolate = interpolate))
 }
