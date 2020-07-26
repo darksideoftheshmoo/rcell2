@@ -11,7 +11,7 @@ Install the [```tidyverse```][1] meta-package (and use it, you'll not regret it)
 
 
 ```
-install.packages("tidyverse", "devtools")
+install.packages(c("tidyverse", "devtools"))
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
