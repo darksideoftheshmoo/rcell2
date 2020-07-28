@@ -2,7 +2,7 @@
 % Please edit documentation in R/cellid_wrapper.R
 \name{cellArgs.print}
 \alias{cellArgs.print}
-\title{Print cell.args}
+\title{Print cell.args in a more understandable way.}
 \usage{
 cellArgs.print(cell.args, which.args = c("p", "b", "f", "o"))
 }
@@ -15,5 +15,5 @@ cellArgs.print(cell.args, which.args = c("p", "b", "f", "o"))
 Nothing.
 }
 \description{
-Print cell.args
+Note that the output basename ("o" parameter) actually has as many different directories as positions.
 }

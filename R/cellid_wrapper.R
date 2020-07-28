@@ -116,7 +116,9 @@ cellArgs <- function(path,
 }
 
 
-#' Print cell.args
+#' Print cell.args in a more understandable way.
+#' 
+#' Note that the output basename ("o" parameter) actually has as many different directories as positions.
 #'
 #' @param cell.args cell.args list.
 #' @param which.args which arguments should be printed
@@ -126,7 +128,10 @@ cellArgs <- function(path,
 #' @export
 cellArgs.print <- function(cell.args, which.args = c("p", "b", "f", "o")) for(i in which.args) {
   print(i, quote = F)
-  print(cell.args[[i]])
+  print("  Dirs:", quote = F)
+  print(cell.args[[i]] %>% dirname() %>% unique(), quote = F)
+  print("  Files:", quote = F)
+  for(arg in cell.args[[i]]) print(basename(arg), quote = F)
   print("----", quote = F)
 }
 
@@ -378,15 +383,14 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
 #' @param cell.args An argument list, as built by cellArgs().
-#' @param path directory where images are stored, full path.
-#' @param position.pattern a regular expression that recognizes the position in the image name
-#' @param position.time.pattern a regular expression that recognizes the time in the image name
-#' @param fluorescence.pattern a regular expression that recognizes the fluorescence tag in the image name
-#' @param position.time.pattern.sep a regular expression that matches the pos-time separator characters
-#' @param cell.command the CellID command, either "cellBUILTIN" for the builtin binary, a path to it.
+#' @param position.pattern a regular expression that recognizes the position in the image name, such as: "Position\\d+" for Position01, Position100, etc.
+#' @param position.time.pattern a regular expression that recognizes the time in the image name, such as: "time\\d+" for time01, time007, etc.
+#' @param position.time.pattern.sep a regular expression that matches the pos-time separator characters (default is an optional underscore), such as: "_" for Position01_time02
+#' @param fluorescence.pattern a regular expression that recognizes the fluorescence tag in the image name, such as "^(.FP)" for TFP, YFP, etc.
+#' @param cell.command the CellID command, either "cellBUILTIN" for the builtin binary, a path to the binary executable (get if from https://github.com/naikymen/cellID-linux).
 #' @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP and pass cell id arguments.
-#' @param no_cores Pos-wise parallelization
-#' @param dry Do everything except running CellID
+#' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
+#' @param dry Do everything without actually running CellID.
 #' @return Nothing.
 # @examples
 # cell(cell.args, path = path)
@@ -395,30 +399,24 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' @importFrom purrr map
 #' @export
 cell <- function(cell.args,
-                 path = "data/images/",
-                 position.pattern =  "Position\\d+", position.time.pattern = NULL, #position.time.pattern = "time\\d+",
-                 fluorescence.pattern = "^(.FP)", position.time.pattern.sep = "_?",
+                 position.pattern =  "Position\\d+", 
+                 position.time.pattern = NULL, #position.time.pattern = "time\\d+",
+                 position.time.pattern.sep = "_?",
+                 fluorescence.pattern = "^(.FP)", 
                  cell.command = "cellBUILTIN",
                  # cell.command = "~/Software/cellID-linux/cell",
-                 channels = c("b", "f"), remove_old_pos_dirs = F,
+                 channels = c("b", "f"),
+                 old_dirs_path = NULL, old_dirs_pattern = "^Position\\d\\d\\d$",
                  no_cores = NULL, dry = F){
-
-  # if(F){ # TESTS
-  #   i=1
-  #   path <- paste0("/home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/", i ,"/")
-  #   path.pdata <- paste0("~/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/", i, "/pdata.csv")
-  #
-  #   position.pattern =  "Position\\d+"
-  #   cell.command = "~/Software/cellID-linux/cell"
-  #   channels = c("b", "f")
-  #   i = 1
-  #
-  #   # Delete outputs
-  #   dir(path = path, pattern = "out\\.tif$", full.names = T) %>% unlink()
-  # }
-
-  # # Remove PositionNNN directories
-  if(remove_old_pos_dirs) dir(path = path, pattern = "^Position\\d\\d\\d$", full.names = T, include.dirs = T) %>% unlink(recursive = T)
+  
+  # Optional: remove old dirs
+  if(!is.null(old_dirs_path)){
+    dir(path = path, 
+        pattern = old_dirs_pattern, 
+        full.names = T, 
+        include.dirs = T) %>% 
+      unlink(recursive = T)
+  }
 
   # Setup
   {
@@ -472,7 +470,10 @@ cell <- function(cell.args,
   # Run CellID
   if(is.null(no_cores)) no_cores <- min(round(detectCores()/2), 1)  # Problema rarísimo: se repiten rows cada "no_cores" posiciones
   # cl <- makeCluster(no_cores, outfile="tests/foreach.log")
-  cl <- makeCluster(no_cores)
+  cl <- makeCluster(
+                    min(n_positions,
+                        no_cores)
+                   )
   # cl <- makeForkCluster()
   # cl <- makeCluster(no_cores, type = "FORK")
   registerDoParallel(cl)
