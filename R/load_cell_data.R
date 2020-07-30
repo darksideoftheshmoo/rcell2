@@ -147,7 +147,6 @@ load_cell_data <-
         posdir = dir(pattern = pattern, path = path)
         print(posdir)
 
-        #ToDo: #autoload and associate pdata file
 
         #######################
         ## initialize variables
@@ -440,7 +439,7 @@ load_cell_data <-
             pos.data[[ipos]] <- curr.pos.data
         }
 
-        cat("\n")
+        cat("\n\n")
 
         ######### ASSERT #########
         #checking the number of columns after reshaping
@@ -489,38 +488,58 @@ load_cell_data <-
         va <- names(pos.data)
 
         if ("f.tot.y" %in% va) {
-            cat("f.y\ncf.y")
+            cat("f.y\ncf.y\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.y = f.tot.y - (a.tot * f.bg.y),
                           cf.y = f.y / a.tot)
         }
 
         if ("f.tot.c" %in% va) {
-            cat("f.c\ncf.c")
+            cat("f.c\ncf.c\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.c = f.tot.c - (a.tot * f.bg.c),
                           cf.c = f.c / a.tot)
         }
 
         if ("f.tot.r" %in% va) {
-            cat("f.r\ncf.r")
+            cat("f.r\ncf.r\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.r = f.tot.r - (a.tot * f.bg.r),
                           cf.r = f.r / a.tot)
         }
+
+
 
         #################################################################
         # Removing duplicates
         #################################################################
 
         if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
-            cat("removing duplicate con.vol\n")
+            cat("\nremoving duplicate con.vol\n")
             pos.data <- dplyr::select(pos.data, -con.vol_1)
         }
+
+
+        #################################################################
+        # g: read pdata if it exists
+        #################################################################
+
+        pdata_file <- list.files(path = path, pattern = ".*pdata.csv$")
+
+        if (length(pdata_file == 1)) {
+            cat("\nJoining pdata!\n\n")
+            pdata <- file.path(path, pdata_file)
+            pdata <- readr::read_csv(pdata)
+            pos.data <- dplyr::left_join(pos.data, pdata, by ="pos")
+        } else if (length(pdata_path > 1)) {
+            cat("\n MULTIPLE PDATA FILES IN EXPERIMENT FOLDER! \n\n\n")
+        }
+
 
         #################################################################
         # g: hasta aca tengo el DF con los datos crudos: pos.data
         #################################################################
+
 
         # g: agrego data de imagenes. paths  y eso.
 
