@@ -18,8 +18,9 @@ library(tidyverse)
 library(rcell2)
 
 path <- "../data/image_samples/"
+path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
 path.pdata <- paste0(path, "pdata.csv")
-parameters <-  paste0(path, "parameters.txt")
+parameters <-  paste0(path, "parameters_vcellid_out.txt")
 
 
 difference <- function(lista) abs(lista[1] - lista[2])
@@ -91,10 +92,19 @@ PKG_LIBS = -L"C:\Users\naikymen\Documents\R\win-library\4.0\tiff\libs\x64" -ltif
 
 ```{r}
 # Generate CellID input paths
+# path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
+path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
+parameters <-  paste0(path, "parameters_vcellid_out.txt")
+
 cell.args <- cellArgs(#path = path,
-                      path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split",
-                      parameters = parameters)
+                      path = path,
+                      parameters = parameters,
+                      BF.pattern = "BF_Position\\d+_time\\d+\\.tif$",
+                      FP.pattern = "FP_Position\\d*_time\\d+\\.tif$",
+                      O.pattern = ".*(Position\\d+)_time\\d+\\.tif")
 cellArgs.print(cell.args)  # Para revisar inputs
+
+cell.args$o
 ```
 
 ## Time series arguments
@@ -148,6 +158,73 @@ cell(cell.args = cell.args,
      # cell.command = "~/Software/cellID-linux/cell",
      cell.command = "cellBUILTIN",
      no_cores = 3)
+```
+
+## Load cell data
+
+```{r}
+cell.data.old <- rcell2::cell.load.alt(path =  path)
+cell_data.new <- rcell2::load_cell_data(path = path)
+
+path_vcellid = "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_vcellid/"
+cell.data.old.vcell <- rcell2::cell.load.alt(path =  path_vcellid)
+cell_data.new.vcell <- rcell2::load_cell_data(path = path_vcellid)
+```
+
+
+```{r}
+names(cell.data.old)
+```
+
+```{r}
+names(cell_data.new)
+```
+
+Mismas columnas en `data`:
+
+```{r}
+setdiff((cell_data.old$data %>% names), (cell_data.new$data %>% names))
+```
+
+Inspeccionar filas:
+
+```{r}
+cell_data.new.vcell$data %>% View()
+```
+
+
+Y en `d.map`:
+
+```{r}
+cell.data.old$d.map %>% names
+View(cell.data.old$d.map)
+cell.data.old$d.map %>% select(-fluor, -bright)
+cell.data.old$d.map %>% select(fluor, bright) %>% View()
+```
+
+```{r}
+cell_data.new$images %>% names
+cell_data.new$images %>% View()
+
+cell_data.new$channels %>% names
+cell_data.new$channels %>% View()
+
+cell_data.new$data %>% View()
+
+cell_data.new$images %>% 
+  filter(!is.out) %>% 
+  unite("image", path, image) %>% 
+  dplyr::rename(channel_long = channel) %>% 
+  left_join(
+    cell_data.new$channels %>% 
+      dplyr::rename(channel_long = name, channel = posfix)
+  ) %>% {
+      left_join(
+        filter(., channel_long != "BF") %>% rename(fluor = image),
+        filter(., channel_long == "BF") %>% select(image, pos, t.frame) %>% rename(bright = image)
+      )
+  } %>% 
+  View()
 ```
 
 

@@ -6,14 +6,14 @@
 \usage{
 cell(
   cell.args,
-  path = "data/images/",
   position.pattern = "Position\\\\d+",
   position.time.pattern = NULL,
-  fluorescence.pattern = "^(.FP)",
   position.time.pattern.sep = "_?",
+  fluorescence.pattern = "^(.FP)",
   cell.command = "cellBUILTIN",
   channels = c("b", "f"),
-  remove_old_pos_dirs = F,
+  old_dirs_path = NULL,
+  old_dirs_pattern = "^Position\\\\d\\\\d\\\\d$",
   no_cores = NULL,
   dry = F
 )
@@ -21,23 +21,21 @@ cell(
 \arguments{
 \item{cell.args}{An argument list, as built by cellArgs().}
 
-\item{path}{directory where images are stored, full path.}
+\item{position.pattern}{a regular expression that recognizes the position in the image name, such as: "Position\\d+" for Position01, Position100, etc.}
 
-\item{position.pattern}{a regular expression that recognizes the position in the image name}
+\item{position.time.pattern}{a regular expression that recognizes the time in the image name, such as: "time\\d+" for time01, time007, etc.}
 
-\item{position.time.pattern}{a regular expression that recognizes the time in the image name}
+\item{position.time.pattern.sep}{a regular expression that matches the pos-time separator characters (default is an optional underscore), such as: "_" for Position01_time02}
 
-\item{fluorescence.pattern}{a regular expression that recognizes the fluorescence tag in the image name}
+\item{fluorescence.pattern}{a regular expression that recognizes the fluorescence tag in the image name, such as "^(.FP)" for TFP, YFP, etc.}
 
-\item{position.time.pattern.sep}{a regular expression that matches the pos-time separator characters}
-
-\item{cell.command}{the CellID command, either "cellBUILTIN" for the builtin binary, a path to it.}
+\item{cell.command}{the CellID command, either "cellBUILTIN" for the builtin binary, a path to the binary executable (get if from https://github.com/naikymen/cellID-linux).}
 
 \item{channels}{Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP and pass cell id arguments.}
 
-\item{no_cores}{Pos-wise parallelization}
+\item{no_cores}{Position-wise parallelization,internally capped to number of positions in cell.args.}
 
-\item{dry}{Do everything except running CellID}
+\item{dry}{Do everything without actually running CellID.}
 }
 \value{
 Nothing.

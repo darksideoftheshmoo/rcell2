@@ -28,15 +28,19 @@ devtools::install_github("gerbeldo/rcell2")
 
 ```
 
-# cellMagick
+# rcellid & cellMagick
 
-This package has utility functions to generate, filter and preview data from fluorescence microscopy experiments (and maybe general cell cytometry).
+This package bundles the CellID image segmentation program, and has utility functions to generate single-cell data from microscopy images.
 
-It is meant as a successor to the older RCell package.
+After importing data with Rcell2, an R-Shiny app will help users filter data graphically, with live image previews.
 
-Also included are the tools to process CellID output an import it into R. 
+While the image part may be tailored for data from fluorescence microscopy experiments, the graphical filter in this app is general purpose (i.e. useful in standard cell cytometry).
 
-A R-Shiny app will help users filter data graphically, with live image previews.
+## Todo
+
+* Plot of a 2D grid of "representative" single cell images in a scatterplot.
+* Generic shiny function for filtering points in a custom ggplot.
+* 1D / histogram filtering support.
 
 ## Installation
 
