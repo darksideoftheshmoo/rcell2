@@ -469,7 +469,7 @@ load_cell_data <-
 
         # el.p = ratio of ellipse perim over the perimeter measured by cellID.
         # If this number is small ( < ~0.7) it's probably not a cell.
-        cat('Creating additional variables:\nellipse.perim\nel.p\nf.x\ncf.x\n')
+        cat('Creating additional variables:\nellipse.perim\nel.p\n')
 
         pos.data <- dplyr::mutate(pos.data,
                                   ellipse.perim = pi *
@@ -489,19 +489,22 @@ load_cell_data <-
         va <- names(pos.data)
 
         if ("f.tot.y" %in% va) {
-            dplyr::mutate(pos.data,
+            cat("f.y\ncf.y")
+            pos.data <- dplyr::mutate(pos.data,
                           f.y = f.tot.y - (a.tot * f.bg.y),
                           cf.y = f.y / a.tot)
         }
 
         if ("f.tot.c" %in% va) {
-            dplyr::mutate(pos.data,
+            cat("f.c\ncf.c")
+            pos.data <- dplyr::mutate(pos.data,
                           f.c = f.tot.c - (a.tot * f.bg.c),
                           cf.c = f.c / a.tot)
         }
 
         if ("f.tot.r" %in% va) {
-            dplyr::mutate(pos.data,
+            cat("f.r\ncf.r")
+            pos.data <- dplyr::mutate(pos.data,
                           f.r = f.tot.r - (a.tot * f.bg.r),
                           cf.r = f.r / a.tot)
         }
