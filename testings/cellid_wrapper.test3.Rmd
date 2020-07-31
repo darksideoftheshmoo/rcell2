@@ -18,90 +18,51 @@ library(tidyverse)
 library(rcell2)
 
 path <- "../data/image_samples/"
-path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
 path.pdata <- paste0(path, "pdata.csv")
-parameters <-  paste0(path, "parameters_vcellid_out.txt")
+parameters <- "../inst/parameters.txt"
+
+# path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
+# parameters <-  paste0(path, "parameters_vcellid_out.txt")
 
 
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
 
-
-https://web.archive.org/web/20190831012258/http://www.libtiff.org/index.html
-
-http://gnuwin32.sourceforge.net/packages/tiff.htm
-
-https://stackoverflow.com/a/57677953
-
-https://stackoverflow.com/a/1618618
-
-http://mingw-w64.org/doku.php/download
-
-https://cygwin.com/install.html elegir todo lo que diga tiff con fuente e instalar cygwin
-
-
-https://medium.com/@meghamohan/all-about-static-libraries-in-c-cea57990c495
-
-https://www.geeksforgeeks.org/static-vs-dynamic-libraries/
-
-
-
-https://stackoverflow.com/questions/58156585/build-rocksdb-static-library-inside-r-package
-
-https://stackoverflow.com/questions/53631025/rcpp-install-package-with-static-libraries-for-platform-independent-usage
-
-https://github.com/rwinlib/libtiff
-
-https://stackoverflow.com/questions/53631025/rcpp-install-package-with-static-libraries-for-platform-independent-usage
-
-https://stackoverflow.com/questions/58808393/how-do-i-create-an-r-package-that-depends-on-a-shared-library-with-rcpp
-
-"As will the simpler approach of maybe just putting the source files of libbcd into the package src/ directory -- and R will take care of the rest."
-
-Makevars.win
-
-```
-CC=ccache clang -Qunused-arguments
-CXX=ccache clang++ -Qunused-arguments
-CCACHE_CPP2=yes
-
-PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
-PKG_LIBS = -L"C:\Program Files (x86)\GnuWin32\lib" -ltiff
-```
-
-```
-CC=gcc-4.4
-CXX=g++-4.4
-
-PKG_CXXFLAGS = -fno-keep-inline-dllexport
-PKG_CFLAGS = -I"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\include" 
-PKG_CPPFLAGS = -I"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\include"
-PKG_LIBS = -L"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\lib" -ltiff
-```
-
-```
-CC=ccache clang -Qunused-arguments
-CXX=ccache clang++ -Qunused-arguments
-CCACHE_CPP2=yes
-
-PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
-PKG_LIBS = -L"C:\Users\naikymen\Documents\R\win-library\4.0\tiff\libs\x64" -ltiff
-```
-
 # USAGE 0 - Exectuion arguments
+
+Sin tiempo:
 
 ```{r}
 # Generate CellID input paths
 # path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
-path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
-parameters <-  paste0(path, "parameters_vcellid_out.txt")
+# path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
+# parameters <-  paste0(path, "parameters_vcellid_out.txt")
+
+cell.args <- cellArgs(#path = path,
+                      path = path,
+                      parameters = parameters,
+                      BF.pattern = "BF_Position\\d+\\.tif$",
+                      FP.pattern = "FP_Position\\d*\\.tif$",
+                      O.pattern = ".*(Position\\d+)\\.tif"
+                      )
+cellArgs.print(cell.args)  # Para revisar inputs
+
+cell.args$o
+```
+
+```{r}
+# Generate CellID input paths
+# path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
+# path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
+# parameters <-  paste0(path, "parameters_vcellid_out.txt")
 
 cell.args <- cellArgs(#path = path,
                       path = path,
                       parameters = parameters,
                       BF.pattern = "BF_Position\\d+_time\\d+\\.tif$",
                       FP.pattern = "FP_Position\\d*_time\\d+\\.tif$",
-                      O.pattern = ".*(Position\\d+)_time\\d+\\.tif")
+                      O.pattern = ".*(Position\\d+)_time\\d+\\.tif"
+                      )
 cellArgs.print(cell.args)  # Para revisar inputs
 
 cell.args$o
@@ -154,10 +115,9 @@ El argumento de "out" y de los parámetos no cambia:
 # cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
 # debugonce(cell)
 cell(cell.args = cell.args,
-     path = path,
      # cell.command = "~/Software/cellID-linux/cell",
      cell.command = "cellBUILTIN",
-     no_cores = 3)
+     no_cores = 3, dry = F)
 ```
 
 ## Load cell data
@@ -430,4 +390,69 @@ cell.data$d %>% filter(pos == 1, t.frame == 0) %>%
   annotation_custom(.rg) + geom_point(aes(x = xpos, y = ypos, text = ucid)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_y_continuous(expand=c(0,0))
+```
+
+
+
+# Referencias y recursos
+
+https://web.archive.org/web/20190831012258/http://www.libtiff.org/index.html
+
+http://gnuwin32.sourceforge.net/packages/tiff.htm
+
+https://stackoverflow.com/a/57677953
+
+https://stackoverflow.com/a/1618618
+
+http://mingw-w64.org/doku.php/download
+
+https://cygwin.com/install.html elegir todo lo que diga tiff con fuente e instalar cygwin
+
+
+https://medium.com/@meghamohan/all-about-static-libraries-in-c-cea57990c495
+
+https://www.geeksforgeeks.org/static-vs-dynamic-libraries/
+
+
+
+https://stackoverflow.com/questions/58156585/build-rocksdb-static-library-inside-r-package
+
+https://stackoverflow.com/questions/53631025/rcpp-install-package-with-static-libraries-for-platform-independent-usage
+
+https://github.com/rwinlib/libtiff
+
+https://stackoverflow.com/questions/53631025/rcpp-install-package-with-static-libraries-for-platform-independent-usage
+
+https://stackoverflow.com/questions/58808393/how-do-i-create-an-r-package-that-depends-on-a-shared-library-with-rcpp
+
+"As will the simpler approach of maybe just putting the source files of libbcd into the package src/ directory -- and R will take care of the rest."
+
+Makevars.win
+
+```
+CC=ccache clang -Qunused-arguments
+CXX=ccache clang++ -Qunused-arguments
+CCACHE_CPP2=yes
+
+PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
+PKG_LIBS = -L"C:\Program Files (x86)\GnuWin32\lib" -ltiff
+```
+
+```
+CC=gcc-4.4
+CXX=g++-4.4
+
+PKG_CXXFLAGS = -fno-keep-inline-dllexport
+PKG_CFLAGS = -I"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\include" 
+PKG_CPPFLAGS = -I"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\include"
+PKG_LIBS = -L"C:\cygwin64\usr\x86_64-w64-mingw32\sys-root\mingw\lib" -ltiff
+```
+
+```
+CC=ccache clang -Qunused-arguments
+CXX=ccache clang++ -Qunused-arguments
+CCACHE_CPP2=yes
+
+PKG_CPPFLAGS =  -I"C:\Program Files (x86)\GnuWin32\include"
+PKG_LIBS = -L"C:\Users\naikymen\Documents\R\win-library\4.0\tiff\libs\x64" -ltiff
 ```
