@@ -326,7 +326,7 @@ shinyAppServer <-
         # Si hay algo seleccionado
         if(!is.null(brush_limits[1])){
           # Me quedo con las posiciones que me interesan
-          positions <- rcell2::rangeExpand(input$position, max(paths$pos))
+          positions <- rangeExpand(input$position, max(paths$pos))
 
           p <- subset(paths, pos %in% positions)
           d <- subset(values$cdata, pos %in% positions & filter == TRUE)
@@ -495,8 +495,7 @@ shinyAppServer <-
         # Si hay hover no NULL
         if(!is.null(input$hover[1])){
           # Me quedo con las posiciones que me interesan
-          positions <- rcell2::rangeExpand(input$position, max(paths$pos))
-          
+          positions <- rangeExpand(input$position, max(paths$pos))
           p <- subset(paths, pos %in% positions)
           d <- subset(values$cdata, pos %in% positions & filter == TRUE)
           

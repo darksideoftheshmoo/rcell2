@@ -35,6 +35,7 @@ numbers_to_intervals <- function(numbers = c(1:10, 20:30)){
 #' See https://www.rosettacode.org/wiki/Range_expansion#R
 #' @param text the input string to parse 
 #' @param maxPos total amount of positions (an int)
+#' @export
 rangeExpand <- function(text = "1:2, 7-9", maxPos) {
     print("F0.2")
     text <- gsub("[^0-9,\\:\\-]", replacement = "", text)

@@ -6,9 +6,13 @@
 #' @param cell_resize Size of the individual cell images. "100x100" by default.
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
 #' @param n maximum number of cells to display.
+#' @param .equalize Use magick's function to "equalize" the image when TRUE.
+#' @param .normalize Use magick's function to "normalize" the image when TRUE.
 #' @param ch Name of the CellID channel (BF, BF.out, RFP, ...). "BF.out" by default.
 #' @param sortVar Variable used to sort the cells. "xpos" by default.
 #' @param seed Seed value for sampling of cell images.
+#' @param .debug Print more messages if TRUE.
+#' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
 #' @return Lots of stuff.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -16,11 +20,15 @@
 #' @rawNamespace import(foreach, except = c("when", "accumulate"))
 #' @export
 magickCell <- function(cdata, paths,
-                       max_size = 500, cell_resize = 100,
-                       boxSize = 50, n = 100,
-                       .equalize = F, .normalize = T,
-                       ch = "BF.out", sortVar = "xpos",
-                       seed = 1, .debug=FALSE){
+                       max_size = 500, 
+                       cell_resize = 100,
+                       boxSize = 50, 
+                       n = 100,
+                       .equalize = F, 
+                       .normalize = T,
+                       ch = "BF.out",
+                       sortVar = "xpos",
+                       seed = 1, .debug=FALSE, return_single_imgs = FALSE){
   if(.debug) print("F8")
 
   # "100x100" pixels
@@ -94,6 +102,9 @@ magickCell <- function(cdata, paths,
     }
 
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
+  
+  if(return_single_imgs) return(list("img" = imga,
+                                     "ucids" = cdataSample$ucid))
 
   nRow <- ceiling(sqrt(n))
   nCol <- ceiling(n/nRow)

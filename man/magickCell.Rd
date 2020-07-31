@@ -16,7 +16,8 @@ magickCell(
   ch = "BF.out",
   sortVar = "xpos",
   seed = 1,
-  .debug = FALSE
+  .debug = FALSE,
+  return_single_imgs = FALSE
 )
 }
 \arguments{
@@ -32,11 +33,19 @@ magickCell(
 
 \item{n}{maximum number of cells to display.}
 
+\item{.equalize}{Use magick's function to "equalize" the image when TRUE.}
+
+\item{.normalize}{Use magick's function to "normalize" the image when TRUE.}
+
 \item{ch}{Name of the CellID channel (BF, BF.out, RFP, ...). "BF.out" by default.}
 
 \item{sortVar}{Variable used to sort the cells. "xpos" by default.}
 
 \item{seed}{Seed value for sampling of cell images.}
+
+\item{.debug}{Print more messages if TRUE.}
+
+\item{return_single_imgs}{If TRUE, return a vector of images instead of a tile.}
 }
 \value{
 Lots of stuff.
