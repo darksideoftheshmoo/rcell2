@@ -192,7 +192,7 @@ unsigned char overlap_value=0;
 //We define a "cell" as a closed set of segments.
 #define max_cells 200000
 //struct point *vacuole[max_cells];
-struct point *boundary[max_cells];
+struct point *boundary[max_cells];  // "declare boundary as array 20000 of pointer to struct point" https://cdecl.org/?q=struct+point+*boundary%5B20000%5D%3B
 struct point *interior[max_cells];
 struct point *boundary_p1[max_cells];
 struct point *interior_p1[max_cells];
@@ -6130,12 +6130,13 @@ void add_boundary_points_to_data(struct point *p_in){
   //if p_in==NULL then do all n_found borders.
   //add found_border to d[] array in appropriate place.
 
-  border=found_border;
+  border=found_border;  // tif_routines.h says: #define found_border 5
   p_start=p_in;
   //for(i=0;i<xmax_ymax;i++)d[i]=0;
   for(i=0;i<n_found;i++){
     //calculate_volume_cone_old(interior[i]);
-    if (p_in==NULL)p_start=boundary[i];
+    if (p_in==NULL) p_start=boundary[i];  //if p_in==NULL then do all n_found borders.
+    
     for(p1=p_start;p1!=NULL;p1=p1->next){
       p2=p1->next;
       if(p2==NULL) p2=p_start; //So make full circuit

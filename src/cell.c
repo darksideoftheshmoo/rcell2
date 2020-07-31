@@ -1981,11 +1981,11 @@ int main_(int * argc0, char *argv[], int* out){
     strcat(line,".out.tif");
     //strcat(line,".out_cfp.tif");
     printf("Writing found cells and data to output file %s.\n",line);
-    if(output_data_to_tif_file(line,
+    if(output_data_to_tif_file(line, // output file name
                                bf,
                                xmax,ymax,
                                bf_fl_labels,
-                               0,
+                               0, // type determines what set of labels to write out
                                8,
                                0)==0){
       printf("Couldn't output data to tif file %s.\n",line);

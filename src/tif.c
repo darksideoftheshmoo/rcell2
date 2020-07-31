@@ -232,7 +232,7 @@ int output_data_to_tif_file(char *file,
 			    int xmax_data,
 			    int ymax_data,
 			    int *labels,
-			    int type,
+			    int type,           //type determines what set of labels to write out
 			    int bit_size,
 			    int invert){
 
@@ -240,6 +240,8 @@ int output_data_to_tif_file(char *file,
   //Output array output_data to a file.
   //The array labels tells where to add boundaries, etc. (NULL for none)
   //(xmax_data,ymax_data)=size of input array (ie, "output_data")
+  
+  //type determines what set of labels to write out
 
   //uint32 rowsperstrip=8;
   uint32 planarconfig=1; 
@@ -330,53 +332,65 @@ int output_data_to_tif_file(char *file,
       //Convert data to 8 bit or 16 bit
       tmp=output_data[u];
       if(invert==1){ //Flip values back from array_max-c[][]
-	if(tmp>0.0)tmp=array_max-tmp;
+	      if(tmp>0.0)tmp=array_max-tmp;
       }
       if (labels!=NULL){
-	//type determines what set of labels to write out
-	k=labels[u];
-	if (type==0){
-	  if(k==found_border){
-	    tmp=array_max;
-	  }else if(k==found_border_a){
-	    tmp=array_max-onetmp;
-	  }else if(k==found_border_b){
-	    tmp=array_max-(2.0*onetmp);
-	  }else if(k==found_border_c){
-	    tmp=array_max-(3.0*onetmp);
-	  }else if(k==found_border_d){
-	    tmp=array_max-(4.0*onetmp);
-	  }else if(k==found_border_e){
-	    tmp=array_max-(5.0*onetmp);
-	  }else if(k==found_border_f){
-	    tmp=array_max-(6.0*onetmp);
-	  }else if(k==found_border_g){
-	    tmp=array_max-(7.0*onetmp);
-	  }else if(k==cell_label){
-	    tmp=array_max-(15.0*onetmp);
-	  }else if(k==delete_pixel){
-	    tmp=array_min;
-	  }
-	}else if (type==1){
-	  if(labels[u]==found_border){
-	    tmp=array_max;
-	    //tmp=8300.0;
-	  }
-	}else if (type==2){
-	  if(labels[u]==found_border){
-	    tmp=array_max;
-	  }else if (labels[u]==cell_nucleus){
-	    tmp=array_max-5.0;
-	  }
-	}
+      	//type determines what set of labels to write out
+      	k=labels[u];
+        
+      	if (type==0){
+      	  if(k==found_border){
+      	    tmp=array_max;
+      	    
+      	  }else if(k==found_border_a){
+      	    tmp=array_max-onetmp;
+      	    
+      	  }else if(k==found_border_b){
+      	    tmp=array_max-(2.0*onetmp);
+      	    
+      	  }else if(k==found_border_c){
+      	    tmp=array_max-(3.0*onetmp);
+      	    
+      	  }else if(k==found_border_d){
+      	    tmp=array_max-(4.0*onetmp);
+      	    
+      	  }else if(k==found_border_e){
+      	    tmp=array_max-(5.0*onetmp);
+      	    
+      	  }else if(k==found_border_f){
+      	    tmp=array_max-(6.0*onetmp);
+      	    
+      	  }else if(k==found_border_g){
+      	    tmp=array_max-(7.0*onetmp);
+      	    
+      	  }else if(k==cell_label){
+      	    tmp=array_max-(15.0*onetmp);
+      	    
+      	  }else if(k==delete_pixel){
+      	    tmp=array_min;
+      	  }
+      	  
+      	}else if (type==1){
+      	  if(labels[u]==found_border){
+      	    tmp=array_max;
+      	    //tmp=8300.0;
+      	  }
+      	  
+      	}else if (type==2){
+      	  if(labels[u]==found_border){
+      	    tmp=array_max;
+      	  }else if (labels[u]==cell_nucleus){
+      	    tmp=array_max-5.0;
+      	  }
+      	}
       }
       if(bitspersample==8){
-	*(p_char+i)=(unsigned char) ((tmp-array_min)*scale*xmax8);
+	      *(p_char+i)=(unsigned char) ((tmp-array_min)*scale*xmax8);
       }else{
-	if (tmp<0.0) tmp=0.0;
-	if(tmp>xmax16)tmp=xmax16;
-	*(p_short+i)=(unsigned short) tmp;
-	//Original is assumed to be 16-bit data, so just replace it here.
+      	if (tmp<0.0) tmp=0.0;
+      	if(tmp>xmax16)tmp=xmax16;
+      	*(p_short+i)=(unsigned short) tmp;
+      	//Original is assumed to be 16-bit data, so just replace it here.
       }
     }
     TIFFWriteScanline(tif,data_buf,j,1);    
