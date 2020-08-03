@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # devtools::install()
 # devtools::check()
 # devtools::build()
-devtools::build(path="../../test.tar.gz")
+devtools::build(path="../../test_libtiff.tar.gz")
 remove.packages("rcell2")
-install.packages("../../test.tar.gz", repos = NULL, type="source", clean = TRUE)
+install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
 
 library(tidyverse)
 library(rcell2)
@@ -120,7 +120,8 @@ cell(cell.args = cell.args,
 ## Load cell data
 
 ```{r}
-cell.data.old <- rcell2::cell.load.alt(path =  path)
+cell.data <- rcell2::cell.load.alt(path =  path, pdata = path.pdata)
+cell.data.old <- rcell2::cell.load.alt(path =  path, pdata = path.pdata)
 cell_data.new <- rcell2::load_cell_data(path = path)
 
 path_vcellid = "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_vcellid/"
@@ -288,7 +289,8 @@ cell.data$d %>%
 ```{r}
 cdata <- cell.data$d %>% 
   filter(ucid %in% c(
-    1000000152
+    # 1000000152
+    1000000001
   ))
 pdata <- read_csv(path.pdata)
 
