@@ -4,7 +4,7 @@ CCACHE_CPP2=yes
 
 $(warning checking libtiff)
 
-TIFFSTATUS := $(shell $(LD) -ltiff || echo 1)
+TIFFSTATUS := $(shell $(LD) -ltiff; echo 0 || echo 1)
 ifeq ($(TIFFSTATUS), 1)
 $(warning TIFF library not found $(PKG_LIBS))
 $(shell mv *.c ../inst/unused/ || echo 1)
