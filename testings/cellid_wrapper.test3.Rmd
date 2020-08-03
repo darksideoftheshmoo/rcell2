@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # devtools::install()
 # devtools::check()
 # devtools::build()
+devtools::build(path="../../test.tar.gz")
+remove.packages("rcell2")
+install.packages("../../test.tar.gz", repos = NULL, type="source", clean = TRUE)
 
 library(tidyverse)
 library(rcell2)
@@ -101,12 +104,6 @@ El argumento de "out" y de los parámetos no cambia:
      image_type brightfield
      bf_fl_mapping list
     
-
-
-```{r}
-#
-```
-
 
 # USAGE 1 - RUN CELL ID
 

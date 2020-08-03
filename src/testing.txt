@@ -1,0 +1,19 @@
+// This file will replace cell.c during package installation if libtiff is not installed.
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#include <tiffio.h>
+
+int CellID(int argc0, char *argv[], int* out){
+
+  //printf("Libtiff was not found during installation");
+  //printf(", if you wish to use the builtin CellID binary you must first install libtiff and then reinstall this package.");
+
+  out[0] = -1;
+  
+  return out[0];
+}
