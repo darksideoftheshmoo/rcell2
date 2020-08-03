@@ -2,18 +2,14 @@ CC=ccache clang -Qunused-arguments
 CXX=ccache clang++ -Qunused-arguments
 CCACHE_CPP2=yes
 
-$(warning checking libtiff)
+PKG_CPPFLAGS= -I./tiff410/include
+PKG_LIBS= -L./tiff410/libtiff -ltiff -ljpeg -llzma -lz
 
-TIFFSTATUS := $(shell $(LD) -ltiff; echo 0 || echo 1)
-ifeq ($(TIFFSTATUS), 1)
-$(warning TIFF library not found $(PKG_LIBS))
-$(shell mv *.c ../inst/unused/ || echo 1)
-$(shell mv *.h ../inst/unused/ || echo 1)
-$(shell cp testing.txt cell.c || echo 1)
-else
-$(warning TIFF library found)
-$(shell mv ../inst/unused/*.c ./ || echo 1)
-$(shell mv ../inst/unused/*.h ./ || echo 1)
-$(shell cp cell.txt cell.c || echo 1)
-PKG_LIBS = -ltiff
-endif
+.PHONY: all tiflibs
+
+all: $(SHLIB)
+
+$(SHLIB): tiflibs
+
+tiflibs:
+	cd tiff410; cmake .; make all; cd ..;
