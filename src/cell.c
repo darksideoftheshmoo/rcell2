@@ -117,7 +117,7 @@ int new_phase=0;
 
 // LA POSTA, importado en cellid_wrapper.R
 //int main_(int argc, char* argv[], int* out){
-int main_(int * argc0, char *argv[], int* out){
+int CellID(int * argc0, char *argv[], int* out){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
