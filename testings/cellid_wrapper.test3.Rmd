@@ -42,7 +42,7 @@ Sin tiempo:
 # path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
 # path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
 # parameters <-  paste0(path, "parameters_vcellid_out.txt")
-
+path <- "../data/image_samples/"
 cell.args <- cellArgs(#path = path,
                       path = path,
                       parameters = parameters,
@@ -60,7 +60,7 @@ cell.args$o
 # path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
 # path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
 # parameters <-  paste0(path, "parameters_vcellid_out.txt")
-
+path <- "../data/time_series_image_samples/"
 cell.args <- cellArgs(#path = path,
                       path = path,
                       parameters = parameters,
@@ -109,6 +109,7 @@ El argumento de "out" y de los parámetos no cambia:
 
 # USAGE 1 - RUN CELL ID
 
+## Without time series
 
 ```{r}
 # cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
@@ -116,19 +117,41 @@ El argumento de "out" y de los parámetos no cambia:
 cell(cell.args = cell.args,
      # cell.command = "~/Software/cellID-linux/cell",
      cell.command = "cellBUILTIN",
+     no_cores = 3, dry = T)
+
+cell(cell.args = cell.args,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "~/Software/cellID-linux/cell", 
+     no_cores = 3, dry = F)
+```
+
+## With time series
+
+```{r}
+# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
+# debugonce(cell)
+cell(cell.args = cell.args,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "cellBUILTIN",
+     position.time.pattern = "time\\d+",
+     no_cores = 3, dry = T)
+
+cell(cell.args = cell.args,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "~/Software/cellID-linux/cell", 
+     position.time.pattern = "time\\d+",
      no_cores = 3, dry = F)
 ```
 
 ## Load cell data
 
 ```{r}
-cell.data <- rcell2::cell.load.alt(path =  path, pdata = path.pdata)
-cell.data.old <- rcell2::cell.load.alt(path =  path, pdata = path.pdata)
+cell.data.old <- rcell2::cell.load.alt(path =  path)
 cell_data.new <- rcell2::load_cell_data(path = path)
 
-path_vcellid = "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_vcellid/"
-cell.data.old.vcell <- rcell2::cell.load.alt(path =  path_vcellid)
-cell_data.new.vcell <- rcell2::load_cell_data(path = path_vcellid)
+# path_vcellid = "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_vcellid/"
+# cell.data.old.vcell <- rcell2::cell.load.alt(path =  path_vcellid)
+# cell_data.new.vcell <- rcell2::load_cell_data(path = path_vcellid)
 ```
 
 
@@ -143,13 +166,13 @@ names(cell_data.new)
 Mismas columnas en `data`:
 
 ```{r}
-setdiff((cell_data.old$data %>% names), (cell_data.new$data %>% names))
+setdiff((cell.data.old$data %>% names), (cell_data.new$data %>% names))
 ```
 
-Inspeccionar filas:
+Inspeccionar filas de VCellID:
 
 ```{r}
-cell_data.new.vcell$data %>% View()
+# cell_data.new.vcell$data %>% View()
 ```
 
 
