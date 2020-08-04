@@ -415,7 +415,9 @@ cell <- function(cell.args,
                  # cell.command = "~/Software/cellID-linux/cell",
                  channels = c("b", "f"),
                  old_dirs_path = NULL, old_dirs_pattern = "^Position\\d\\d\\d$",
-                 no_cores = NULL, dry = F){
+                 no_cores = NULL, 
+                 label_cells = 1,
+                 dry = F){
   
   # Optional: remove old dirs
   if(!is.null(old_dirs_path)){
@@ -513,7 +515,8 @@ cell <- function(cell.args,
     )
 
     if(cell.command == "cellBUILTIN") {
-      if(!dry) cellid(command)
+      if(!dry) cellid(args = command,
+                      label_cells = label_cells)
     } else {
       if(!dry) system(command = command, wait = T)
     }

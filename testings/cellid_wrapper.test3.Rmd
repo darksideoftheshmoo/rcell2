@@ -125,7 +125,7 @@ cell(cell.args = cell.args,
 cell(cell.args = cell.args,
      # cell.command = "~/Software/cellID-linux/cell",
      cell.command = "~/Software/cellID-linux/cell", 
-     no_cores = 3, dry = F)
+     no_cores = 3, label_cells = 0)
 ```
 
 ## With time series

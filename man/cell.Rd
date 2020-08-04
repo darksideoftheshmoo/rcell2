@@ -15,6 +15,7 @@ cell(
   old_dirs_path = NULL,
   old_dirs_pattern = "^Position\\\\d\\\\d\\\\d$",
   no_cores = NULL,
+  label_cells = 1,
   dry = F
 )
 }
