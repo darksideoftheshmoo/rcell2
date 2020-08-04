@@ -8,28 +8,34 @@ library(ijtiff)
 ```
 
 ```{r}
-xfp_path <- "../data/image_samples_x/BF_Position001.tif"
+bf_path <- "../data/image_samples_x/BF_Position001.tif"
 
-xfp <- ijtiff::read_tif(xfp_path)
+bf <- ijtiff::read_tif(bf_path)
 
 dim(xfp)
 ```
 
 ```{r}
-xfp_path <- "../data/image_samples_x/XFP_Position001.tif"
+xfp_path <- "../data/image_samples_x/CFP_Position001.tif"
+xfp_path2 <- "../data/image_samples_x/CFP_Position002.tif"
+xfp_path3 <- "../data/image_samples_x/CFP_Position003.tif"
 
-xfp <- ijtiff::read_tif(xfp_path)
-```
-```{r}
-xfp[,,,] <- rbinom(n = prod(dim(xfp[,,,])), size = 10, prob = .5)
-
-xfp
-
-ijtiff::write_tif(xfp, xfp_path, overwrite = T, bits_per_sample = attributes(xfp)$bits_per_sample)
+# xfp <- ijtiff::read_tif(xfp_path)
 ```
 
 ```{r}
-xfp[,,,] %>% as.vector() %>% unique()
+bf[,,,] <- rbinom(n = prod(dim(xfp[,,,])), size = 10, prob = .5)
+bf[,,,] <- 0
+
+bf
+
+ijtiff::write_tif(bf, xfp_path, overwrite = T, bits_per_sample = attributes(xfp)$bits_per_sample)
+ijtiff::write_tif(bf, xfp_path2, overwrite = T, bits_per_sample = attributes(xfp)$bits_per_sample)
+ijtiff::write_tif(bf, xfp_path3, overwrite = T, bits_per_sample = attributes(xfp)$bits_per_sample)
+```
+
+```{r}
+bf[,,,] %>% as.vector() %>% unique()
 ```
 # Check output
 

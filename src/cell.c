@@ -1342,6 +1342,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
     free(dark);
     dark=NULL;
     t_exposure=get_exposure(fluor_files[i]);
+    
     for(j=0;j<n_dark;j++){
       if (t_exposure==exposure[j]){
         dark=get_data_from_tif_file(dark_files[j],0,NULL,&xmax_new,&ymax_new);
@@ -1670,8 +1671,8 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
 
       //Read in brightfield image data for ith file
       free(bf);
-      //Do no dark field correction for bright field image....
-      if((bf=get_data_from_tif_file(phase_files[j_cur],0,NULL,&xmax_new,&ymax_new))==NULL){
+      //Do no dark field correction for bright field image.... 
+      if((bf=get_data_from_tif_file(phase_files[j_cur],0,NULL,&xmax_new,&ymax_new))==NULL){ // "bf = return image_data; in tif.c"
         printf("Couldn't open tif file %s.\n",phase_files[j_cur]);
         free(bf);
         perror("Error! 14");
