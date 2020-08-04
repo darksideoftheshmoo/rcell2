@@ -9,8 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 devtools::document()
-# devtools::load_all()
-devtools::install(reload = T, build = T, quiet = T, upgrade = "never", keep_source = T)
+# devtools::load_all(recompile = T, reset = T)
+devtools::install(reload = T, build = T,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
 # devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 # devtools::check()
 # devtools::build()

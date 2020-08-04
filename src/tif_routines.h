@@ -16,6 +16,13 @@
 #define found_border_g 14
 #define delete_pixel 15
 float *get_data_from_tif_file(char *,int,float *,int *,int *);
-int output_data_to_tif_file(char *,float *, int, int,
-			    int *,int,int,int);
+int output_data_to_tif_file(char *,
+	                        float *, 
+	                        int, 
+	                        int,
+	                        int *,
+	                        int,
+	                        int,
+	                        int,
+	                        int);
 

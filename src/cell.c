@@ -117,14 +117,14 @@ int new_phase=0;
 
 // LA POSTA, importado en cellid_wrapper.R
 //int main_(int argc, char* argv[], int* out){
-int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debuf_flag){
+int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
   //   argv is a one-dimensional array of strings
   int argc = *argc0;
   int argc2 = argc;
-  if(*debuf_flag==1) printf("first argc2 value is: %d \n",argc2);
+  if(*debug_flag==1) printf("first argc2 value is: %d \n",argc2);
 
   int getopt(int argc, char * const argv[],
              const char *optstring);
@@ -154,7 +154,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   //name of the file ("myfile.oif") and the second argument is the output
 
   // Wellcome message
-  if(*debuf_flag==1) printf("\n*** Cell_ID Version 1.4.6 *** \n\n");
+  if(*debug_flag==1) printf("\n*** Cell_ID Version 1.4.6 *** \n\n");
 
   FILE *fp_in;
   FILE *fp;
@@ -329,7 +329,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   // error("error 2.0"); // hasta acá todo bien, el error está abajo de esto
 
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser\n");
 
   // b bright_list_file "Text file list of brightfield tif images"
   // f fluor_list_file "Text file of fluorescent tif images"
@@ -348,49 +348,49 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     switch(opt)
     {
     case 'p':
-      if(*debuf_flag==1) printf("parameters: %s\n", optarg);
+      if(*debug_flag==1) printf("parameters: %s\n", optarg);
       param_file=optarg;
       break;
     case 'b':
-      if(*debuf_flag==1) printf("brightfield: %s\n", optarg);
+      if(*debug_flag==1) printf("brightfield: %s\n", optarg);
       bright_list_file=optarg;
       break;
     case 'f':
-      if(*debuf_flag==1) printf("fluorescence: %s\n", optarg);
+      if(*debug_flag==1) printf("fluorescence: %s\n", optarg);
       fluor_list_file=optarg;
       break;
     case 'o':
-      if(*debuf_flag==1) printf("output_prefix: %s\n", optarg);
+      if(*debug_flag==1) printf("output_prefix: %s\n", optarg);
       output_basename=optarg;
       break;
     case ':':
-      if(*debuf_flag==1) printf("option needs a value\n");
+      if(*debug_flag==1) printf("option needs a value\n");
       break;
     case '?':
-      if(*debuf_flag==1) printf("unknown option: %c\n", optopt);
+      if(*debug_flag==1) printf("unknown option: %c\n", optopt);
       break;
     }
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 2\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 2\n");
 
   // optind is for the extra arguments
   // which are not parsed
   for(; optind < argc; optind++){
-    if(*debuf_flag==1) printf("extra arguments: %s\n", argv[optind]);
+    if(*debug_flag==1) printf("extra arguments: %s\n", argv[optind]);
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 3\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 3\n");
 
-  if(*debuf_flag==1) printf("bright_list_file: %s\n", bright_list_file);
-  if(*debuf_flag==1) printf("fluor_list_file: %s\n", fluor_list_file);
-  if(*debuf_flag==1) printf("third_list_file: %s\n", third_list_file);
-  if(*debuf_flag==1) printf("dark_list_file: %s\n", dark_list_file);
-  if(*debuf_flag==1) printf("flat_list_file: %s\n", flat_list_file);
-  if(*debuf_flag==1) printf("param_file: %s\n", param_file);
-  if(*debuf_flag==1) printf("output_basename: %s\n", output_basename);
+  if(*debug_flag==1) printf("bright_list_file: %s\n", bright_list_file);
+  if(*debug_flag==1) printf("fluor_list_file: %s\n", fluor_list_file);
+  if(*debug_flag==1) printf("third_list_file: %s\n", third_list_file);
+  if(*debug_flag==1) printf("dark_list_file: %s\n", dark_list_file);
+  if(*debug_flag==1) printf("flat_list_file: %s\n", flat_list_file);
+  if(*debug_flag==1) printf("param_file: %s\n", param_file);
+  if(*debug_flag==1) printf("output_basename: %s\n", output_basename);
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 4\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 4\n");
 
   //Checking for parameters file option in command line manually
   for(i=1;i<argc;i++){
@@ -407,7 +407,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
         if(i+1<argc && argv[i+1][0]!='-'){
           param_file=argv[i+1];
         }else{
-          if(*debuf_flag==1) printf("Filename requiered after -p or --param option");
+          if(*debug_flag==1) printf("Filename requiered after -p or --param option");
           perror("Error! 1");
           return 0;
         }
@@ -421,7 +421,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   // Look for parameters, one by one, in the parameters file.
   if(help_flag==0 && (fp=fopen(param_file,"r"))!=NULL ){
-    if(*debuf_flag==1) printf("Reading %s\n",param_file);
+    if(*debug_flag==1) printf("Reading %s\n",param_file);
     //fscanf() only reads to next white space, not end of line
     while((fgets(line,450,fp))!=NULL){ //next line (while not EOF)
       if (line[0]!='#'){ //if not a comment
@@ -472,17 +472,17 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
            sscanf(line,"%s %s",line2,line3);
            if(strstr(line3,"oif")!=NULL){
            file_type=oif_file;
-           if(*debuf_flag==1) printf("Olympus Image File (.oif) requiered as first argument.\n");
+           if(*debug_flag==1) printf("Olympus Image File (.oif) requiered as first argument.\n");
            }else if(strstr(line3,"oem")!=NULL){
            file_type=oem_file;
-           if(*debuf_flag==1) printf("Open Emviorment of Microscopy File (.oem) requiered as argument.\n");
+           if(*debug_flag==1) printf("Open Emviorment of Microscopy File (.oem) requiered as argument.\n");
            //printf("as arguments.\n");
            }else {
            file_type=list_file;
            if (strstr(line3,"bf_fl_list")==NULL){
-           if(*debuf_flag==1) printf("Not valid file_type in parameter.txt, using default.\n");
+           if(*debug_flag==1) printf("Not valid file_type in parameter.txt, using default.\n");
            }
-           if(*debuf_flag==1) printf("Bright field and fluorescence file lists required as arguments.\n");
+           if(*debug_flag==1) printf("Bright field and fluorescence file lists required as arguments.\n");
            //printf("arguments.\n");
            }
            */
@@ -498,8 +498,8 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
             //printf("Same number of elemtes requiered in list files.\n");
             bf_fl_mapping=bf_fl_mapping_list;
           } else {
-            if(*debuf_flag==1) printf("-%s- is a invalid value for bf_fl_mapping in parameter.txt.\n",line3);
-            if(*debuf_flag==1) printf("Using time mapping by default.\n");
+            if(*debug_flag==1) printf("-%s- is a invalid value for bf_fl_mapping in parameter.txt.\n",line3);
+            if(*debug_flag==1) printf("Using time mapping by default.\n");
             bf_fl_mapping=bf_fl_mapping_time;
           }
           //V1.4
@@ -573,14 +573,14 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
           recombination_cuts_type[n_recomb_cuts]=0;
           recombination_cuts[n_recomb_cuts]=tmp;
           recombination_cuts_flag[n_recomb_cuts]=itmp;
-          if(*debuf_flag==1) printf("Will try to recombine cells with nucleus fluorescence\n");
-          if(*debuf_flag==1) printf("intensity below %e for fl images with flag=%i.\n",
+          if(*debug_flag==1) printf("Will try to recombine cells with nucleus fluorescence\n");
+          if(*debug_flag==1) printf("intensity below %e for fl images with flag=%i.\n",
                  recombination_cuts[n_recomb_cuts],
                                    recombination_cuts_flag[n_recomb_cuts]);
 
           n_recomb_cuts++;
           if (n_recomb_cuts>=n_recomb_cuts_max){
-            if(*debuf_flag==1) printf("Too many recombination cuts, dropping %s.\n",line);
+            if(*debug_flag==1) printf("Too many recombination cuts, dropping %s.\n",line);
             n_recomb_cuts--;
           }
         }else if(strstr(line,"recombination_is_a_cell_fl_per_a")!=NULL){
@@ -588,25 +588,25 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
           recombination_cuts_type[n_recomb_cuts]=1;
           recombination_cuts[n_recomb_cuts]=tmp;
           recombination_cuts_flag[n_recomb_cuts]=itmp;
-          if(*debuf_flag==1) printf("For recomb only, considering cells with total FL\n");
-          if(*debuf_flag==1) printf("intensity above ");
-          if(*debuf_flag==1) printf("%e for fluorescence images with flag=%i.\n",
+          if(*debug_flag==1) printf("For recomb only, considering cells with total FL\n");
+          if(*debug_flag==1) printf("intensity above ");
+          if(*debug_flag==1) printf("%e for fluorescence images with flag=%i.\n",
                  recombination_cuts[n_recomb_cuts],
                                    recombination_cuts_flag[n_recomb_cuts]);
 
           n_recomb_cuts++;
           if (n_recomb_cuts>=n_recomb_cuts_max){
-            if(*debuf_flag==1) printf("Too many recombination cuts, dropping %s.\n",line);
+            if(*debug_flag==1) printf("Too many recombination cuts, dropping %s.\n",line);
             n_recomb_cuts--;
           }
         }else if(strstr(line,"recombination_all_new_cells")!=NULL){
           recombination_cuts_type[n_recomb_cuts]=2;
           recombination_cuts[n_recomb_cuts]=0.0;
           recombination_cuts_flag[n_recomb_cuts]=0;
-          if(*debuf_flag==1) printf("All cells produced after i_t 0 will be recombined.\n");
+          if(*debug_flag==1) printf("All cells produced after i_t 0 will be recombined.\n");
           n_recomb_cuts++;
           if (n_recomb_cuts>=n_recomb_cuts_max){
-            if(*debuf_flag==1) printf("Too many recombination cuts, dropping %s.\n",line);
+            if(*debug_flag==1) printf("Too many recombination cuts, dropping %s.\n",line);
             n_recomb_cuts--;
           }
         }else if(strstr(line,"append_output")!=NULL){
@@ -635,10 +635,10 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     } //End of while loop over parameters.txt
     fclose(fp);
   }else if (help_flag==0) {   //End of check that parameters.txt was open ok
-    if(*debuf_flag==1) printf("%s not found. Using default parameters. \n",param_file);
+    if(*debug_flag==1) printf("%s not found. Using default parameters. \n",param_file);
   }
 
-  if(*debuf_flag==1) printf("\nGOptions wizardry - 1\n");
+  if(*debug_flag==1) printf("\nGOptions wizardry - 1\n");
   //error("error 2.2");
   /*
 
@@ -699,7 +699,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   };
   */
 
-  if(*debuf_flag==1) printf("\nGOptions wizardry - 2\n");
+  if(*debug_flag==1) printf("\nGOptions wizardry - 2\n");
   /*
   // GOptions wizardry
   // El segfault viene de acá (entre esta linea y la del error 2.4)
@@ -726,39 +726,39 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   g_option_context_free(ctx);
   */
 
-  if(*debuf_flag==1) printf("\nGOptions wizardry - 3 - END\n");
+  if(*debug_flag==1) printf("\nGOptions wizardry - 3 - END\n");
 
-  if(*debuf_flag==1) printf("\n background_reject_factor NULL: %f", background_reject_factor);
-  if(*debuf_flag==1) printf("\n max_pixels_per_cell NULL: %d", max_pixels_per_cell);
-  if(*debuf_flag==1) printf("\n min_pixels_per_cell NULL: %d", min_pixels_per_cell);
-  if(*debuf_flag==1) printf("\n max_split_d_over_minor NULL: %f", max_split_d_over_minor);
-  if(*debuf_flag==1) printf("\n max_d_over_s_cut NULL: %f", max_d_over_s_cut);
-  if(*debuf_flag==1) printf("\n max_split_d_over_minor_t0 NULL: %f", max_split_d_over_minor_t0);
-  if(*debuf_flag==1) printf("\n max_d_over_s_cut_t0 NULL: %f", max_d_over_s_cut_t0);
-  if(*debuf_flag==1) printf("\n I_over_U_for_match NULL: %f", I_over_U_for_match);
-  if(*debuf_flag==1) printf("\n str_align_fl NULL %s", str_align_fl);
-  if(*debuf_flag==1) printf("\n (nucleus_radii[0]) NULL %i", (nucleus_radii[0]));
-  if(*debuf_flag==1) printf("\n (nucleus_radii[1]) NULL %i", (nucleus_radii[1]));
-  if(*debuf_flag==1) printf("\n (nucleus_radii[2]) NULL %i", (nucleus_radii[2]));
-  if(*debuf_flag==1) printf("\n (nucleus_radii[3]) NULL %i", (nucleus_radii[3]));
-  if(*debuf_flag==1) printf("\n (nucleus_radii[4]) NULL %i", (nucleus_radii[4]));
-  if(*debuf_flag==1) printf("\n (nucleus_radii[5]) NULL %i", (nucleus_radii[5]));
-  if(*debuf_flag==1) printf("\n force_nucleus_in_center NULL, %d", force_nucleus_in_center);
-  if(*debuf_flag==1) printf("\n bf_fl_mapping NULL: %d", bf_fl_mapping);
-  if(*debuf_flag==1) printf("\n treat_brightfield_as_fluorescence NULL: %d", treat_brightfield_as_fluorescence);
-  if(*debuf_flag==1) printf("\n align_individual_cells NULL: %d", align_individual_cells);
-  if(*debuf_flag==1) printf("\n align_individual_cells_boundary NULL: %d", align_individual_cells_boundary);
-  if(*debuf_flag==1) printf("\n output_individual_cells NULL: %d", output_individual_cells);
-  if(*debuf_flag==1) printf("\n overall_id_offset NULL: %d", overall_id_offset);
-  if(*debuf_flag==1) printf("\n paw_output NULL: %d", paw_output);
-  if(*debuf_flag==1) printf("\n do_recombination NULL: %d", do_recombination);
-  if(*debuf_flag==1) printf("\n fret_bf NULL: %s", fret_bf);
-  if(*debuf_flag==1) printf("\n fret_nuclear NULL: %s", fret_nuclear);
-  if(*debuf_flag==1) printf("\n pnt_image_type 'bright': %s", pnt_image_type);
-  if(*debuf_flag==1) printf("\n pnt_third_img_label 'none': %s", pnt_third_img_label);
+  if(*debug_flag==1) printf("\n background_reject_factor NULL: %f", background_reject_factor);
+  if(*debug_flag==1) printf("\n max_pixels_per_cell NULL: %d", max_pixels_per_cell);
+  if(*debug_flag==1) printf("\n min_pixels_per_cell NULL: %d", min_pixels_per_cell);
+  if(*debug_flag==1) printf("\n max_split_d_over_minor NULL: %f", max_split_d_over_minor);
+  if(*debug_flag==1) printf("\n max_d_over_s_cut NULL: %f", max_d_over_s_cut);
+  if(*debug_flag==1) printf("\n max_split_d_over_minor_t0 NULL: %f", max_split_d_over_minor_t0);
+  if(*debug_flag==1) printf("\n max_d_over_s_cut_t0 NULL: %f", max_d_over_s_cut_t0);
+  if(*debug_flag==1) printf("\n I_over_U_for_match NULL: %f", I_over_U_for_match);
+  if(*debug_flag==1) printf("\n str_align_fl NULL %s", str_align_fl);
+  if(*debug_flag==1) printf("\n (nucleus_radii[0]) NULL %i", (nucleus_radii[0]));
+  if(*debug_flag==1) printf("\n (nucleus_radii[1]) NULL %i", (nucleus_radii[1]));
+  if(*debug_flag==1) printf("\n (nucleus_radii[2]) NULL %i", (nucleus_radii[2]));
+  if(*debug_flag==1) printf("\n (nucleus_radii[3]) NULL %i", (nucleus_radii[3]));
+  if(*debug_flag==1) printf("\n (nucleus_radii[4]) NULL %i", (nucleus_radii[4]));
+  if(*debug_flag==1) printf("\n (nucleus_radii[5]) NULL %i", (nucleus_radii[5]));
+  if(*debug_flag==1) printf("\n force_nucleus_in_center NULL, %d", force_nucleus_in_center);
+  if(*debug_flag==1) printf("\n bf_fl_mapping NULL: %d", bf_fl_mapping);
+  if(*debug_flag==1) printf("\n treat_brightfield_as_fluorescence NULL: %d", treat_brightfield_as_fluorescence);
+  if(*debug_flag==1) printf("\n align_individual_cells NULL: %d", align_individual_cells);
+  if(*debug_flag==1) printf("\n align_individual_cells_boundary NULL: %d", align_individual_cells_boundary);
+  if(*debug_flag==1) printf("\n output_individual_cells NULL: %d", output_individual_cells);
+  if(*debug_flag==1) printf("\n overall_id_offset NULL: %d", overall_id_offset);
+  if(*debug_flag==1) printf("\n paw_output NULL: %d", paw_output);
+  if(*debug_flag==1) printf("\n do_recombination NULL: %d", do_recombination);
+  if(*debug_flag==1) printf("\n fret_bf NULL: %s", fret_bf);
+  if(*debug_flag==1) printf("\n fret_nuclear NULL: %s", fret_nuclear);
+  if(*debug_flag==1) printf("\n pnt_image_type 'bright': %s", pnt_image_type);
+  if(*debug_flag==1) printf("\n pnt_third_img_label 'none': %s", pnt_third_img_label);
 
 	//V1.4.5
-	if(*debuf_flag==1) printf("Using nucleus radii %i %i %i %i %i %i px.\n",nucleus_radii[0],nucleus_radii[1]
+	if(*debug_flag==1) printf("Using nucleus radii %i %i %i %i %i %i px.\n",nucleus_radii[0],nucleus_radii[1]
 				,nucleus_radii[2],nucleus_radii[3],nucleus_radii[4],nucleus_radii[5]);
 
   if(pnt_third_img_label==NULL) pnt_third_img_label=&str_third_img_label[0];
@@ -766,13 +766,13 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
 
   if(help_flag==1){
-    if(*debuf_flag==1) printf("For help type 'cell --help'\n");
-    if(*debuf_flag==1) printf("Required options: --bright brightfile.txt --fluor fluorfile.txt");
+    if(*debug_flag==1) printf("For help type 'cell --help'\n");
+    if(*debug_flag==1) printf("Required options: --bright brightfile.txt --fluor fluorfile.txt");
     perror("Error! 2");
     return 0;
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 5\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 5\n");
 
   // return out[0];
 
@@ -807,13 +807,13 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   //Printing the final fret and image type parameters
   if (fret_image==1){
-    if(*debuf_flag==1) printf("Searching a split FRET image.\n");
+    if(*debug_flag==1) printf("Searching a split FRET image.\n");
     if(image_type==fret_bf_top_only){
-      if(*debuf_flag==1) printf("Cells on top part of BF image only.\n");
+      if(*debug_flag==1) printf("Cells on top part of BF image only.\n");
     }else if(image_type==fret_bf_bottom_only){
-      if(*debuf_flag==1) printf("Cells on bottom part of BF image only.\n");
+      if(*debug_flag==1) printf("Cells on bottom part of BF image only.\n");
     }else if(image_type==fret_bf_bottom_and_top){
-      if(*debuf_flag==1) printf("Cells on bottom and top part of BF image.\n");
+      if(*debug_flag==1) printf("Cells on bottom and top part of BF image.\n");
     }
     //If nuclear_fret_lower wasn't set, set to defaults
     if (nuclear_fret_lower==(-1)){
@@ -824,28 +824,28 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       }
     }
     if (nuclear_fret_lower==1){
-      if(*debuf_flag==1) printf("Using top part of nuclear-image for nucleus.\n");
+      if(*debug_flag==1) printf("Using top part of nuclear-image for nucleus.\n");
     }else{
-      if(*debuf_flag==1) printf("Using bottom part of nuclear-image for nucleus.\n");
+      if(*debug_flag==1) printf("Using bottom part of nuclear-image for nucleus.\n");
     }
 
   } else {
     //image_type is either a fret type, or one of the following
     if (strstr(pnt_image_type,"bright")!=NULL){
       image_type=bright_field;
-      if(*debuf_flag==1) printf("Searching brightfield image for cells.\n");
+      if(*debug_flag==1) printf("Searching brightfield image for cells.\n");
     }else if(strstr(pnt_image_type,"decon")!=NULL){
       image_type=metamorph_deconvolution;
-      if(*debuf_flag==1) printf("Searching metamorph_deconvolution image for cells.\n");
+      if(*debug_flag==1) printf("Searching metamorph_deconvolution image for cells.\n");
     }else if(strstr(pnt_image_type,"hex")!=NULL){
       image_type=hexagonal_grid;
-      if(*debuf_flag==1) printf("Searching hexagonal_grid image type for cells.\n");
+      if(*debug_flag==1) printf("Searching hexagonal_grid image type for cells.\n");
       //}else if(strstr(str_image_type,"membrane_tagged_fl")!=NULL){
       //  image_type=membrane_tagged_fl;
-      //  if(*debuf_flag==1) printf("Searching a membrane tagged fluor image for cells.\n");
+      //  if(*debug_flag==1) printf("Searching a membrane tagged fluor image for cells.\n");
     }else if(strstr(pnt_image_type,"confocal")!=NULL){
       image_type=confocal_transmission;
-      if(*debuf_flag==1) printf("Searching a confocal transmission image for cells.\n");
+      if(*debug_flag==1) printf("Searching a confocal transmission image for cells.\n");
     }
   }
 
@@ -856,34 +856,34 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     }else if(strstr(str_align_fl,"bf")!=NULL){
       align_fl=2;
     }else{
-      if(*debuf_flag==1) printf("'%s' is a invalid value for --align-fl, no aligment will be done.\n"
+      if(*debug_flag==1) printf("'%s' is a invalid value for --align-fl, no aligment will be done.\n"
                ,str_align_fl);
     }
   }
 
   //Printing final values
   if(align_fl==1){
-    if(*debuf_flag==1) printf("Will align all FL files to first FL file.\n");
+    if(*debug_flag==1) printf("Will align all FL files to first FL file.\n");
   }else if (align_fl==2){
-    if(*debuf_flag==1) printf("Will align first FL files to brightfield.\n");
+    if(*debug_flag==1) printf("Will align first FL files to brightfield.\n");
   }
 
 
   if(treat_brightfield_as_fluorescence==1){
-    if(*debuf_flag==1) printf("Adding BF image as additional fluorescence image.\n");
+    if(*debug_flag==1) printf("Adding BF image as additional fluorescence image.\n");
   }
 
   //Cheking for third image type, note that the same string has been read in
   //parametes.txt and steped on with GOptions
   if((strstr(pnt_third_img_label,"nuclear")!=NULL)){
     third_image_type=nuclear_label;
-    if(*debuf_flag==1) printf("Third image will be used to label nucleus.\n");
+    if(*debug_flag==1) printf("Third image will be used to label nucleus.\n");
   }else if(strstr(pnt_third_img_label,"vacuole")!=NULL){
     third_image_type=vacuole_label;
-    if(*debuf_flag==1) printf("Third image will be used to correct for vacuole.\n");
+    if(*debug_flag==1) printf("Third image will be used to correct for vacuole.\n");
   }else{
     if(third_list_file!=NULL){
-      if(*debuf_flag==1) printf("Unknown third image type, ignoring third images.");
+      if(*debug_flag==1) printf("Unknown third image type, ignoring third images.");
     }
     third_image_type=no_third_image;
   }
@@ -891,13 +891,13 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   //printing values
   if(align_individual_cells_boundary==1){
     align_individual_cells=1;
-    if(*debuf_flag==1) printf("Will wiggle each cell around to re-align with BF");
-    if(*debuf_flag==1) printf(" using boundary.\n");
+    if(*debug_flag==1) printf("Will wiggle each cell around to re-align with BF");
+    if(*debug_flag==1) printf(" using boundary.\n");
   }else if(align_individual_cells==1){
-    if(*debuf_flag==1) printf("Will wiggle each cell around to re-align with BF.\n");
+    if(*debug_flag==1) printf("Will wiggle each cell around to re-align with BF.\n");
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 6\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 6\n");
 
   //return out[0];
 
@@ -905,24 +905,24 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
     strcpy(append,"a");
     do_append=1;
-    if(*debuf_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!    WARNING   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!                                       !!!!!!\n");
-    if(*debuf_flag==1) printf("!!!! We're going to OVERWRITE output data. !!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!                                       !!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    if(*debuf_flag==1) printf("All cells will be given ID offset %i.\n",
+    if(*debug_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("!!!!              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("!!!!    WARNING   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("!!!!              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("!!!!                                       !!!!!!\n");
+    if(*debug_flag==1) printf("!!!! We're going to OVERWRITE output data. !!!!!!\n");
+    if(*debug_flag==1) printf("!!!!                                       !!!!!!\n");
+    if(*debug_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    if(*debug_flag==1) printf("All cells will be given ID offset %i.\n",
            overall_id_offset);
 
   }else if (overall_id_offset==-1){
     overall_id_offset=0;
   }else{
-    if(*debuf_flag==1) printf("Append_output was requested with ID offset of %i.\n",overall_id_offset);
-    if(*debuf_flag==1) printf("Minimum offset is 0.\n");
+    if(*debug_flag==1) printf("Append_output was requested with ID offset of %i.\n",overall_id_offset);
+    if(*debug_flag==1) printf("Minimum offset is 0.\n");
     perror("Error! 3"); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
 
@@ -932,7 +932,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   n_third=0;
   if (third_list_file!=NULL){//if there is a third image
     if( (fp_in=fopen(third_list_file,"r"))==NULL ){
-      if(*debuf_flag==1) printf("Couldnt open third_list_file file %s.\n",third_list_file);
+      if(*debug_flag==1) printf("Couldnt open third_list_file file %s.\n",third_list_file);
       perror("Error! 4");
       return 0;
     }
@@ -948,31 +948,31 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   }
 
   if ((n_recomb_cuts>0)&&(do_recombination==0)){
-    if(*debuf_flag==1) printf("***** Recombination cuts were set but NOT doing the");
-    if(*debuf_flag==1) printf("***** recombination check.");
+    if(*debug_flag==1) printf("***** Recombination cuts were set but NOT doing the");
+    if(*debug_flag==1) printf("***** recombination check.");
   }
 
-  if(*debuf_flag==1) printf("Using parameters:\n");
-  if(*debuf_flag==1) printf("   max_dist_over_minor_axis=%le\n",max_split_d_over_minor);
-  if(*debuf_flag==1) printf("   max_dist_over_waist=%le\n",max_d_over_s_cut);
-  if(*debuf_flag==1) printf("   back_reject=%le\n",background_reject_factor);
-  if(*debuf_flag==1) printf("   max_pixels_per_cell=%i\n",max_pixels_per_cell);
-  if(*debuf_flag==1) printf("   min_pixels_per_cell=%i\n",min_pixels_per_cell);
-  if(*debuf_flag==1) printf("   I_over_U_for_match (tracking parameter)=%le\n",I_over_U_for_match);
+  if(*debug_flag==1) printf("Using parameters:\n");
+  if(*debug_flag==1) printf("   max_dist_over_minor_axis=%le\n",max_split_d_over_minor);
+  if(*debug_flag==1) printf("   max_dist_over_waist=%le\n",max_d_over_s_cut);
+  if(*debug_flag==1) printf("   back_reject=%le\n",background_reject_factor);
+  if(*debug_flag==1) printf("   max_pixels_per_cell=%i\n",max_pixels_per_cell);
+  if(*debug_flag==1) printf("   min_pixels_per_cell=%i\n",min_pixels_per_cell);
+  if(*debug_flag==1) printf("   I_over_U_for_match (tracking parameter)=%le\n",I_over_U_for_match);
   max_d_over_s_cut_save=max_d_over_s_cut;
   max_split_d_over_minor_save=max_split_d_over_minor;
   if (max_d_over_s_cut_t0>-10.0){
-    if(*debuf_flag==1) printf("   For first image: max_dist_over_waist=%e\n",
+    if(*debug_flag==1) printf("   For first image: max_dist_over_waist=%e\n",
            max_d_over_s_cut_t0);
   }
   if (max_split_d_over_minor_t0>-10.0){
-    if(*debuf_flag==1) printf("   For first image: max_dist_over_minor_axis=%e\n",
+    if(*debug_flag==1) printf("   For first image: max_dist_over_minor_axis=%e\n",
            max_split_d_over_minor_t0);
   }
 
   //End checking of arguments
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 7\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 7\n");
 
   //return out[0];
 
@@ -980,7 +980,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   //loading brightfield file names into array phase_files
   if( (fp_in=fopen(bright_list_file,"r"))==NULL ){
-    if(*debuf_flag==1) printf("Couldnt open bright_list_file file %s.\n",bright_list_file);
+    if(*debug_flag==1) printf("Couldnt open bright_list_file file %s.\n",bright_list_file);
     perror("Error! 5");
     return 0;
   }
@@ -995,7 +995,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   //loading fluorescence file names into array fluor_files
   if( (fp_in=fopen(fluor_list_file,"r"))==NULL ){
-    if(*debuf_flag==1) printf("Couldnt open fluor_list_file file %s.\n",fluor_list_file);
+    if(*debug_flag==1) printf("Couldnt open fluor_list_file file %s.\n",fluor_list_file);
     perror("Error! 6");
     return 0;
   }
@@ -1048,7 +1048,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   //dark files
   if( (fp_in=fopen(dark_list_file,"r"))==NULL ){
-    if(*debuf_flag==1) printf("%s not found. No dark-field corrections.\n", dark_list_file);
+    if(*debug_flag==1) printf("%s not found. No dark-field corrections.\n", dark_list_file);
     n_dark=0;
   }else{
     i=0;
@@ -1068,7 +1068,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   //Files to flatten image
   if( (fp_in=fopen(flat_list_file,"r"))==NULL ){
-    if(*debuf_flag==1) printf("%s not found. No flattening-image corrections.\n",flat_list_file);
+    if(*debug_flag==1) printf("%s not found. No flattening-image corrections.\n",flat_list_file);
     n_flat=0;
   }else{
     i=0;
@@ -1097,7 +1097,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     ph_dmin=(int)(0x1ffffff);
     for(i=0;i<n_phase;i++){
       if(get_date_and_time(phase_files[i],&dtmp,&t,&xstage,&ystage)==0){
-        if(*debuf_flag==1) printf("Couldn't get date and time for %s.\n",phase_files[i]);
+        if(*debug_flag==1) printf("Couldn't get date and time for %s.\n",phase_files[i]);
         dtmp=0.0;
         t=0.0;
         xstage=-99999.0;
@@ -1109,7 +1109,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
         ph_dmin=dtmp;
       }
       ph_d[i]=dtmp;
-      if(*debuf_flag==1) printf("Stage position: %e  %e\n",xstage,ystage);fflush(stdout);
+      if(*debug_flag==1) printf("Stage position: %e  %e\n",xstage,ystage);fflush(stdout);
     }
     //  exit(0);
     /*
@@ -1125,7 +1125,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     fl_dmin=(int)(0x1ffffff);
     for(i=0;i<n_fluor;i++){
       if(get_date_and_time(fluor_files[i],&dtmp,&t,&xstage,&ystage)==0){
-        if(*debuf_flag==1) printf("Couldn't get date and time for %s.\n",fluor_files[i]);
+        if(*debug_flag==1) printf("Couldn't get date and time for %s.\n",fluor_files[i]);
         dtmp=0.0;
         t=0.0;
         xstage=-99999.0;
@@ -1143,7 +1143,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     third_dmin=(int)(0x1ffffff);
     for(i=0;i<n_third;i++){
       if(get_date_and_time(third_files[i],&dtmp,&t,&xstage,&ystage)==0){
-        if(*debuf_flag==1) printf("Couldn't get date and time for %s.\n",third_files[i]);
+        if(*debug_flag==1) printf("Couldn't get date and time for %s.\n",third_files[i]);
         dtmp=0.0;
         t=0.0;
         xstage=-99999.0;
@@ -1155,13 +1155,13 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
         third_dmin=dtmp;
       }
       third_d[i]=dtmp;
-      if(*debuf_flag==1) printf("Thirdtime %i: %i  %i\n",i,third_t[i],third_d[i]);
+      if(*debug_flag==1) printf("Thirdtime %i: %i  %i\n",i,third_t[i],third_d[i]);
     }
 
     flat_dmin=(int)(0x1ffffff);
     for(i=0;i<n_flat;i++){
       if(get_date_and_time(flat_files[i],&dtmp,&t,&xstage,&ystage)==0){
-        if(*debuf_flag==1) printf("Couldn't get date and time for %s.\n",flat_files[i]);
+        if(*debug_flag==1) printf("Couldn't get date and time for %s.\n",flat_files[i]);
         perror("Error! 7");
         return 0;
       }else{
@@ -1227,8 +1227,8 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   }else if (bf_fl_mapping==bf_fl_mapping_list){ //V1.2a Mapping by list order
 
     if (n_phase!=n_fluor){
-      if(*debuf_flag==1) printf("The number of elements in %s (%i) and %s (%i) \n",bright_list_file,n_phase,fluor_list_file,n_fluor);
-      if(*debuf_flag==1) printf("must be equal. Make sure not lo leave any blank spaces at the end of the files");
+      if(*debug_flag==1) printf("The number of elements in %s (%i) and %s (%i) \n",bright_list_file,n_phase,fluor_list_file,n_fluor);
+      if(*debug_flag==1) printf("must be equal. Make sure not lo leave any blank spaces at the end of the files");
       perror("Error! 8");
       return 0;
     }
@@ -1257,7 +1257,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   }
 
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 8\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 8\n");
   void free(void *ptr);
   //printf("basename: %s\n", fluor_files[i]);
   //printf("basename: %s\n", basename(fluor_files[i]));
@@ -1294,7 +1294,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     }
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 8.1\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 8.1\n");
   //return out[0];
 
   //Print out message if we have different flags set.
@@ -1307,25 +1307,25 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   }
   if (j!=0){
     for(i=0;i<n_fluor;i++){
-      if(*debuf_flag==1) printf("File %s is given flag number %i\n",
+      if(*debug_flag==1) printf("File %s is given flag number %i\n",
              fluor_files[i],flag[i]);
     }
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 8.2\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 8.2\n");
   //return out[0];
 
   //Write out the absolute time of the first file.  This is so later
   //we can correct for the differences in t0 from position to position.
   if( (fp=fopen("time_of_t0.txt","a"))==NULL ){
-    if(*debuf_flag==1) printf("Couldnt open file time_of_t0.txt.\n");
+    if(*debug_flag==1) printf("Couldnt open file time_of_t0.txt.\n");
   }else{
     dt=((fl_d[0]-fl_dmin)*seconds_per_day)+(fl_t[0]);
     fprintf(fp,"%i\n",dt);
     fclose(fp);
   }
 
-  if(*debuf_flag==1) printf("\nNico's simple option parser - 9\n");
+  if(*debug_flag==1) printf("\nNico's simple option parser - 9\n");
   //return out[0];
 
   //Loop over each of the fluorescence files to calculate the
@@ -1333,9 +1333,9 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   //is closest in time to the fluorescence file
   for(i=0;i<n_fluor;i++){
 
-    if(*debuf_flag==1) printf("----------------------------------------------------\n");
-    if(*debuf_flag==1) printf("New Fluorescence image: %s.\n",fluor_files[i]);
-    if(*debuf_flag==1) printf("----------------------------------------------------\n");
+    if(*debug_flag==1) printf("----------------------------------------------------\n");
+    if(*debug_flag==1) printf("New Fluorescence image: %s.\n",fluor_files[i]);
+    if(*debug_flag==1) printf("----------------------------------------------------\n");
     free(fl);
 
     //Load dark image to subtract for this exposure time
@@ -1346,27 +1346,27 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     for(j=0;j<n_dark;j++){
       if (t_exposure==exposure[j]){
         dark=get_data_from_tif_file(dark_files[j],0,NULL,&xmax_new,&ymax_new);
-        if(*debuf_flag==1) printf("Correcting with dark image %s\n",dark_files[j]);
+        if(*debug_flag==1) printf("Correcting with dark image %s\n",dark_files[j]);
         break;
       }
     }
 
     if((fl=get_data_from_tif_file(fluor_files[i],0,dark,
                                   &xmax_new,&ymax_new))==NULL){
-      if(*debuf_flag==1) printf("Couldn't open tif file %s.\n",fluor_files[i]);
+      if(*debug_flag==1) printf("Couldn't open tif file %s.\n",fluor_files[i]);
       perror("Error! 9");
       return 0;
     }
     if (((xmax>0)&&(xmax!=xmax_new))||((ymax>0)&&(ymax!=ymax_new))){
-      if(*debuf_flag==1) printf("New file has different dimensions that others\n");
-      if(*debuf_flag==1) printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
+      if(*debug_flag==1) printf("New file has different dimensions that others\n");
+      if(*debug_flag==1) printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
              xmax,ymax,xmax_new,ymax_new);
       free(fl);
       perror("Error! 10");
       return 0;
     }
     if ((xmax_new<=0)||(ymax_new<=0)){
-      if(*debuf_flag==1) printf("Couldn't get data from tif file %s\n",fluor_files[i]);
+      if(*debug_flag==1) printf("Couldn't get data from tif file %s\n",fluor_files[i]);
       free(fl);
       perror("Error! 11");
       return 0;
@@ -1377,11 +1377,11 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     if (bf_fl_mapping==bf_fl_mapping_time){
       JulianToYMD(fl_d[i],&year,&month,&day);
       Int_To_Hours_Minutes_Seconds(fl_t[i],&hours,&minutes,&seconds);
-      if(*debuf_flag==1) printf("The time stamp of this file is: ");
+      if(*debug_flag==1) printf("The time stamp of this file is: ");
       date_stamp(year,month,day);
-      if(*debuf_flag==1) printf(" at ");
+      if(*debug_flag==1) printf(" at ");
       time_stamp(hours,minutes,seconds);
-      if(*debuf_flag==1) printf(".\n");
+      if(*debug_flag==1) printf(".\n");
     }
 
     d_cur=fl_d[i]; //Date and time of the current fluorescence file
@@ -1423,9 +1423,9 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       }
     }
     if (j_min<0){
-      if(*debuf_flag==1) printf("Not doing any flattening correction.\n");
+      if(*debug_flag==1) printf("Not doing any flattening correction.\n");
     }else{
-      if(*debuf_flag==1) printf("Correcting with should-be-flat image %s\n",
+      if(*debug_flag==1) printf("Correcting with should-be-flat image %s\n",
              flat_files[j_min]);
       //Calculate new corrections
       if (flat_cur!=j_min){ //We haven't done this correction yet
@@ -1448,11 +1448,11 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
           ftmp=get_data_from_tif_file(flat_files[flat_cur],0,dark,
                                       &xmax_new,&ymax_new);
           if (ftmp==NULL){
-            if(*debuf_flag==1) printf("Couldnt open corrections file: %s\n",flat_files[flat_cur]);
+            if(*debug_flag==1) printf("Couldnt open corrections file: %s\n",flat_files[flat_cur]);
             goto skip_flat;
           }
           if ((xmax_new!=xmax)||(ymax_new!=ymax)){
-            if(*debuf_flag==1) printf("Cant do corrections with this size image: (%i x %i)\n",
+            if(*debug_flag==1) printf("Cant do corrections with this size image: (%i x %i)\n",
                    xmax_new,ymax_new);
             free(ftmp);
             goto skip_flat;
@@ -1462,11 +1462,19 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
           free(ftmp);
           //Write out correction file in current-directory.
           //use "line" as defined just above
-          if(*debuf_flag==1) printf("Writing corrections to output file %s.\n",line);
+          if(*debug_flag==1) printf("Writing corrections to output file %s.\n",line);
           //Scale corrections by 20000.0 for writing out
           for(j=0;j<(xmax*ymax);j++)(flat_cors[j])*=(20000.0);
-          if(output_data_to_tif_file(line,flat_cors,xmax,ymax,NULL,0,16,0,0)==0){
-            if(*debuf_flag==1) printf("Couldn't output data to tif file %s.\n",line);
+          if(output_data_to_tif_file(line,
+                                     flat_cors,
+                                     xmax,
+                                     ymax,
+                                     NULL,
+                                     0,
+                                     16,
+                                     0,
+                                     0)==0){
+            if(*debug_flag==1) printf("Couldn't output data to tif file %s.\n",line);
           }
         }
         //If we just wrote out corrections, then we just scaled them
@@ -1524,19 +1532,19 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
         for(j=0;j<n_dark;j++){
           if (t_exposure==exposure[j]){
             dark=get_data_from_tif_file(dark_files[j],0,NULL,&xmax_new,&ymax_new);
-            if(*debuf_flag==1) printf("Correcting third image with dark image %s\n",dark_files[j]);
+            if(*debug_flag==1) printf("Correcting third image with dark image %s\n",dark_files[j]);
             break;
           }
         }
         if((third_image=get_data_from_tif_file(third_files[third_cur],0,dark,
                                                &xmax_new,&ymax_new))==NULL){
-          if(*debuf_flag==1) printf("Couldn't open tif file %s.\n",third_files[third_cur]);
+          if(*debug_flag==1) printf("Couldn't open tif file %s.\n",third_files[third_cur]);
           perror("Error! 12");
           return 0;
         }
         if ((xmax!=xmax_new)||(ymax!=ymax_new)){
-          if(*debuf_flag==1) printf("Third file has different dimensions than others\n");
-          if(*debuf_flag==1) printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
+          if(*debug_flag==1) printf("Third file has different dimensions than others\n");
+          if(*debug_flag==1) printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
                  xmax,ymax,xmax_new,ymax_new);
           free(third_image);
           perror("Error! 13");
@@ -1621,7 +1629,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       //call to find_cells(). (If this is the first call it won't do
       //anything since it loops over n_known, which starts at 0).
       if (do_recombination==1){
-        if(*debuf_flag==1) printf("Doing recombination check.\n");
+        if(*debug_flag==1) printf("Doing recombination check.\n");
         recombination_check(i_last_find_cell_call,
                             n_recomb_cuts,
                             recombination_cuts_type,
@@ -1640,7 +1648,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
           strcpy(line,"COMBINE_");
           strcat(line,phase_files[j_cur]);
           strcat(line,".out.tif");
-          if(*debuf_flag==1) printf("Writing found cells and data to output file %s.\n",line);
+          if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
           if(output_data_to_tif_file(line,
                                      bf,
                                      xmax,
@@ -1650,7 +1658,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                      8,
                                      0,
                                      *blank_out_bg) == 0){
-            if(*debuf_flag==1) printf("Couldn't output data to tif file %s.\n",line);
+            if(*debug_flag==1) printf("Couldn't output data to tif file %s.\n",line);
           }
         }
       }
@@ -1664,31 +1672,31 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       //recombination_check_cuts.  i is the loop over the fluorescence
       //images, and each i shows up in update_list_of_found_cells() below
 
-      if(*debuf_flag==1) printf("Doing new cell search.\n");
-      if(*debuf_flag==1) printf("New brightfield image: %s.\n",phase_files[j_cur]);fflush(stdout);
+      if(*debug_flag==1) printf("Doing new cell search.\n");
+      if(*debug_flag==1) printf("New brightfield image: %s.\n",phase_files[j_cur]);fflush(stdout);
 
       if(bf_fl_mapping==bf_fl_mapping_time){
         JulianToYMD(ph_d[j_cur],&year,&month,&day);
         Int_To_Hours_Minutes_Seconds(ph_t[j_cur],&hours,&minutes,&seconds);
-        if(*debuf_flag==1) printf("The time stamp of this file is: ");fflush(stdout);
+        if(*debug_flag==1) printf("The time stamp of this file is: ");fflush(stdout);
         date_stamp(year,month,day);
-        if(*debuf_flag==1) printf(" at ");
+        if(*debug_flag==1) printf(" at ");
         time_stamp(hours,minutes,seconds);
-        if(*debuf_flag==1) printf(".\n"); fflush(stdout);
+        if(*debug_flag==1) printf(".\n"); fflush(stdout);
       }
 
       //Read in brightfield image data for ith file
       free(bf);
       //Do no dark field correction for bright field image.... 
       if((bf=get_data_from_tif_file(phase_files[j_cur],0,NULL,&xmax_new,&ymax_new))==NULL){ // "bf = return image_data; in tif.c"
-        if(*debuf_flag==1) printf("Couldn't open tif file %s.\n",phase_files[j_cur]);
+        if(*debug_flag==1) printf("Couldn't open tif file %s.\n",phase_files[j_cur]);
         free(bf);
         perror("Error! 14");
         return 0;
       }
       if ((xmax!=xmax_new)||(ymax!=ymax_new)){
-        if(*debuf_flag==1) printf("BF file has different dimensions than others\n");
-        if(*debuf_flag==1) printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
+        if(*debug_flag==1) printf("BF file has different dimensions than others\n");
+        if(*debug_flag==1) printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
                xmax,ymax,xmax_new,ymax_new);
         free(bf);
         perror("Error! 15");
@@ -1712,10 +1720,10 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       /*
        if (image_type==hexagonal_grid){
        if (xmax>ymax){ //Make sure is square
-       if(*debuf_flag==1) printf("Reducing x-size to match y-size (%i-->%i).\n",xmax,ymax);
+       if(*debug_flag==1) printf("Reducing x-size to match y-size (%i-->%i).\n",xmax,ymax);
        xmax=ymax;
        }else if(ymax>xmax){
-       if(*debuf_flag==1) printf("Reducing y-size to match x-size (%i-->%i).\n",ymax,xmax);
+       if(*debug_flag==1) printf("Reducing y-size to match x-size (%i-->%i).\n",ymax,xmax);
        ymax=xmax;
        }
        //Now make sure is divisible by two, and lower it until
@@ -1728,7 +1736,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
        while ((j%itmp)==0) itmp*=2;
        }while(itmp<j);
        if (j!=xmax){
-       if(*debuf_flag==1) printf("Make size a power of 2 for FFT, new size=%ix%i.\n",j,j);
+       if(*debug_flag==1) printf("Make size a power of 2 for FFT, new size=%ix%i.\n",j,j);
        }
        xmax=j;
        ymax=j;
@@ -1876,15 +1884,23 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
         strcpy(line,"cells/");
         strcat(line,fluor_files[i]);
         if(output_individual_cells_to_file(i,line,fl,xmax,ymax,0,8,0)==0){
-          if(*debuf_flag==1) printf("Couldn't output individual to tif file %s.\n",line);
+          if(*debug_flag==1) printf("Couldn't output individual to tif file %s.\n",line);
         }
       }
 
       strcpy(line,fluor_files[i]);
       strcat(line,".out.tif");
-      if(*debuf_flag==1) printf("Writing found cells and data to output file %s.\n",line);
-      if(output_data_to_tif_file(line,fl,xmax,ymax,bf_fl_labels,1,8,0,0)==0){
-        if(*debuf_flag==1) printf("Couldn't output data to tif file %s.\n",line);
+      if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
+      if(output_data_to_tif_file(line,
+                                 fl,
+                                 xmax,
+                                 ymax,
+                                 bf_fl_labels,
+                                 1,
+                                 8,
+                                 0,
+                                 0) == 0){
+        if(*debug_flag==1) printf("Couldn't output data to tif file %s.\n",line);
       }
     }
 
@@ -1900,13 +1916,13 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                            8,
                                            0)==0){
 
-          if(*debuf_flag==1) printf("Couldn't output individual to tif file %s.\n",line);
+          if(*debug_flag==1) printf("Couldn't output individual to tif file %s.\n",line);
         }
       }
       output_third_image=0;
       strcpy(line,third_files[third_cur]);
       strcat(line,".out.tif");
-      if(*debuf_flag==1) printf("Writing found cells and data to output file %s.\n",line);
+      if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
       if(output_data_to_tif_file(line,
                                  third_image,
                                  xmax,ymax,
@@ -1916,7 +1932,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                  0,
                                  0)==0){
 
-        if(*debuf_flag==1) printf("Couldn't output data to tif file %s.\n",line);
+        if(*debug_flag==1) printf("Couldn't output data to tif file %s.\n",line);
       }
     }
 
@@ -1945,7 +1961,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
         strcpy(line,"cells/");
         strcat(line,phase_files[j_cur]);
         if(output_individual_cells_to_file(i,line,bf,xmax,ymax,0,8,0)==0){
-          if(*debuf_flag==1) printf("Couldn't output individual to tif file %s.\n",line);
+          if(*debug_flag==1) printf("Couldn't output individual to tif file %s.\n",line);
         }
       }
 
@@ -1953,7 +1969,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       strcpy(line,phase_files[j_cur]);
       strcat(line,".out.tif");
       //strcat(line,".out_cfp.tif");
-      if(*debuf_flag==1) printf("Writing found cells and data to output file %s.\n",line);
+      if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
       if(output_data_to_tif_file(line,
                                  bf,
                                  xmax,ymax,
@@ -1961,9 +1977,9 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                  0,
                                  8,
                                  0,
-                                 0)==0){
+                                 *blank_out_bg)==0){
 
-        if(*debuf_flag==1) printf("Couldn't output data to tif file %s.\n",line);
+        if(*debug_flag==1) printf("Couldn't output data to tif file %s.\n",line);
       }
 
     }
@@ -1997,16 +2013,17 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     strcat(line,phase_files[j_cur]);
     strcat(line,".out.tif");
     //strcat(line,".out_cfp.tif");
-    if(*debuf_flag==1) printf("Writing found cells and data to output file %s.\n",line);
+    if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
     if(output_data_to_tif_file(line, // output file name
                                bf,
-                               xmax,ymax,
+                               xmax,
+                               ymax,
                                bf_fl_labels,
                                0, // type determines what set of labels to write out
                                8,
                                0,
-                               0)==0){
-      if(*debuf_flag==1) printf("Couldn't output data to tif file %s.\n",line);
+                               *blank_out_bg)==0){
+      if(*debug_flag==1) printf("Couldn't output data to tif file %s.\n",line);
     }
   }
 
@@ -2018,7 +2035,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     output_basename="Output";
   }
 
-  if(*debuf_flag==1) printf("Writing output to files to directory %s.\n",output_basename);
+  if(*debug_flag==1) printf("Writing output to files to directory %s.\n",output_basename);
 
   // Tengo un problema acá y en "segment.c"...
   // Couldn't open file ~/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/all_positions/Position008/out_all
@@ -2027,15 +2044,15 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   //if(output_cells(line2,append,time_index)==0){
   if(paw_output==1){
-    if(*debuf_flag==1) printf("Output file in PAW format.\n");
+    if(*debug_flag==1) printf("Output file in PAW format.\n");
     if(output_cells(output_basename,append,time_index)==0){
-      if(*debuf_flag==1) printf("Couldn't open X output files: %s.\n",line2);
+      if(*debug_flag==1) printf("Couldn't open X output files: %s.\n",line2);
       perror("Error! 16");
     }
   } else {
-    if(*debuf_flag==1) printf("Output file in R format.\n");
+    if(*debug_flag==1) printf("Output file in R format.\n");
     if(output_cells_single_file(output_basename,append,time_index)==0){
-      if(*debuf_flag==1) printf("Couldn't open X output files: %s.\n",line2);
+      if(*debug_flag==1) printf("Couldn't open X output files: %s.\n",line2);
       perror("Error! 17");
     }
   }
@@ -2048,7 +2065,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
   if((bf_fl_file=fopen(bf_fl_file_name,"w"))==NULL){
     //perror("Couldn't open bf_fl_file file %s\n");
-    if(*debuf_flag==1) printf("Couldn't open bf_fl_file file %s\n",bf_fl_file_name);
+    if(*debug_flag==1) printf("Couldn't open bf_fl_file file %s\n",bf_fl_file_name);
     fflush(stdout);
     perror("Error! 18");
     return 0;
@@ -2073,22 +2090,22 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   //printf("\n");
 
   out[0] = 1;
-  if(*debuf_flag==1) printf("La variable out ahora es %d. Fin de la ejecución de CellID.\n", out[0]);
+  if(*debug_flag==1) printf("La variable out ahora es %d. Fin de la ejecución de CellID.\n", out[0]);
 
 
   // Patch for GLIB's modification of argv and argc
-  if(*debuf_flag==1) printf("\nReplacing NULL in input argument (argv[i]) by empty string ''.\n");
+  if(*debug_flag==1) printf("\nReplacing NULL in input argument (argv[i]) by empty string ''.\n");
   //error("\n\nError, Si dejo que termine, se aborta la Rsession, LPMQTRMP!"); // si dejo que termine, se caga.
   //Lo siguiente es para emparchar el bug.
   //Una solución quizás aparezca acá https://stackoverflow.com/questions/60047658/c-functions-in-r-packages-rsession-aborted-when-function-ends
   for(int i=0;i<argc2;i++){
-    if(*debuf_flag==1) printf(" %d ", i);
-    if(*debuf_flag==1) printf(" %s \n", argv[i]);
+    if(*debug_flag==1) printf(" %d ", i);
+    if(*debug_flag==1) printf(" %s \n", argv[i]);
     argv[i] = "";
   }
-  if(*debuf_flag==1) printf("\n");
+  if(*debug_flag==1) printf("\n");
 
-  if(*debuf_flag==1) printf("Last argc2 value is: %d \n",argc2);
+  if(*debug_flag==1) printf("Last argc2 value is: %d \n",argc2);
 
   return out[0];
 }

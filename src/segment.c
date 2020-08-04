@@ -3834,12 +3834,14 @@ int output_individual_cells_to_file(int i_t,
 	strcat(file,cellnum);
 	strcat(file,".tif");
 	if(output_data_to_tif_file(file,
-				   output_data,
-				   xmax_out,ymax_out,
-				   output_labels,
-				   type,
-				   bit_size,
-				   invert)==0){
+                             output_data,
+                             xmax_out,
+                             ymax_out,
+                             output_labels,
+                             type,
+                             bit_size,
+                             invert,
+                             0)==0){
 	  printf("Couldn't output cell %i to %s.\n",b->index,file);
 	}
 

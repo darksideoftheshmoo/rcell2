@@ -4,12 +4,16 @@
 \alias{cellid}
 \title{Correr cellid desde C}
 \usage{
-cellid(args, label_cells = 1)
+cellid(args, label_cells = 1, bf_out_null_bg = 1, debug_flag = 0)
 }
 \arguments{
 \item{args}{el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."}
 
 \item{label_cells}{Set to 0 to disable labeling cells with their number.}
+
+\item{bf_out_null_bg}{Set to 1 blank the BF out background.}
+
+\item{debug_flag}{Set to 0 to disable printf messages.}
 }
 \value{
 Nada, el output está en los directorios.
