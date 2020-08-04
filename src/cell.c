@@ -1470,7 +1470,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                      xmax,
                                      ymax,
                                      NULL,
-                                     0,
+                                     0,          // Type 0
                                      16,
                                      0,
                                      0)==0){
@@ -1654,7 +1654,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                      xmax,
                                      ymax,
                                      bf_fl_labels,
-                                     0,
+                                     0,                    // Type 0
                                      8,
                                      0,
                                      *blank_out_bg) == 0){
@@ -1896,7 +1896,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                  xmax,
                                  ymax,
                                  bf_fl_labels,
-                                 1,
+                                 1,                    // Type 1
                                  8,
                                  0,
                                  0) == 0){
@@ -1925,9 +1925,10 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
       if(output_data_to_tif_file(line,
                                  third_image,
-                                 xmax,ymax,
+                                 xmax,
+                                 ymax,
                                  third_labels,
-                                 2,
+                                 2,                    // Type 2
                                  8,
                                  0,
                                  0)==0){
@@ -1972,9 +1973,10 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       if(*debug_flag==1) printf("Writing found cells and data to output file %s.\n",line);
       if(output_data_to_tif_file(line,
                                  bf,
-                                 xmax,ymax,
+                                 xmax,
+                                 ymax,
                                  bf_fl_labels,
-                                 0,
+                                 0,                    // Type 0
                                  8,
                                  0,
                                  *blank_out_bg)==0){
@@ -2019,7 +2021,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
                                xmax,
                                ymax,
                                bf_fl_labels,
-                               0, // type determines what set of labels to write out
+                               0,              // Type 0: determines what set of labels to write out
                                8,
                                0,
                                *blank_out_bg)==0){

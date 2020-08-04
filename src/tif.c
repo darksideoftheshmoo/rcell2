@@ -228,14 +228,14 @@ float *get_data_from_tif_file(char *file,
 
 /******************************************************/
 int output_data_to_tif_file(char *file,
-          float *output_data,   // xej: "bf", is the output of bf=get_data_from_tif_file() in cell.c
-          int xmax_data,
-          int ymax_data,
-          int *labels,
-          int type,           //type determines what set of labels to write out
-          int bit_size,
-          int invert,
-          int blank_out_bg){
+                            float *output_data,   // xej: "bf", is the output of bf=get_data_from_tif_file() in cell.c
+                            int xmax_data,
+                            int ymax_data,
+                            int *labels,
+                            int type,             //type determines what set of labels to write out
+                            int bit_size,
+                            int invert,
+                            int blank_out_bg){
 
 
   //Output array output_data to a file.
@@ -328,7 +328,7 @@ int output_data_to_tif_file(char *file,
     for(j=0;j<ymax_data;j++){
       for(i=0;i<xmax_data;i++){
         u=j*xmax_data+i;
-        output_data[u] = 0;
+        output_data[u] = 1;
       } 
     }
   }
@@ -381,8 +381,11 @@ int output_data_to_tif_file(char *file,
         //type determines what set of labels to write out
         k=labels[u];
         
-        if (type==0){
-          if(k==found_border){
+        if (type==0){                              // The default type for BF and flat_cors. Also "k=labels[u]" will be "5" by default
+          if(blank_out_bg==1){
+            tmp=array_max-(labels[u]+1)*onetmp;    // In the modified segment.c, "k=labels[u]" will be a different "int" per cell.
+            //printf("\nlabels[u]: %i", labels[u]);
+          } else if(k==found_border){              // tif_routines.h defines found_border as: #define found_border 5
             tmp=array_max;
             
           }else if(k==found_border_a){  // #define found_border_a 8
@@ -414,15 +417,17 @@ int output_data_to_tif_file(char *file,
           }
         
         
-        }else if (type==1){                    // The default type. Als labels[u] will be "5" by default
-          if(blank_out_bg==1){
-            tmp=array_max-labels[u]*onetmp;    // In the modified segment.c, "labels[u]" will be a different int per cell.
-          } else if(labels[u]==found_border){  // tif_routines.h defines found_border as: #define found_border 5
+        }else if (type==1){                        // The default type for FL. Also "k=labels[u]" will be "5" by default
+          //if(blank_out_bg==1){
+          //  tmp=array_max-(labels[u]+1)*onetmp;    // In the modified segment.c, "labels[u]" will be a different int per cell.
+          //  printf("\nlabels[u]: %i", labels[u]);
+          //} else if(labels[u]==found_border){      // tif_routines.h defines found_border as: #define found_border 5
+          if(labels[u]==found_border){
             tmp=array_max;
             //tmp=8300.0;
           }
 
-        }else if (type==2){
+        }else if (type==2){                        // default type for third_image
           if(labels[u]==found_border){
             tmp=array_max;
           }else if (labels[u]==cell_nucleus){
