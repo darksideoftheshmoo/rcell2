@@ -8,19 +8,19 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-# devtools::document()
-devtools::load_all(recompile = T)
-# devtools::install()
+devtools::document()
+# devtools::load_all()
+devtools::install(reload = T, build = T, quiet = T, upgrade = "never", keep_source = T)
+# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 # devtools::check()
 # devtools::build()
 # devtools::build(path="../../test_libtiff.tar.gz")
 # remove.packages("rcell2")
 # install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
 
-# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 
 library(tidyverse)
-# library(rcell2)
+library(rcell2)
 
 path <- "../data/image_samples/"
 path.pdata <- paste0(path, "pdata.csv")
@@ -36,6 +36,7 @@ Sin tiempo:
 ```{r}
 # Generate CellID input paths
 path <- "../data/image_samples/"
+path <- "../data/image_samples_x//"
 cell.args <- cellArgs(#path = path,
                       path = path,
                       parameters = parameters,
@@ -45,7 +46,7 @@ cell.args <- cellArgs(#path = path,
                       )
 cellArgs.print(cell.args)  # Para revisar inputs
 
-cell.args$o
+# cell.args$o
 ```
 
 Con series temporales:
@@ -113,10 +114,10 @@ cell(cell.args = cell.args,
      no_cores = 3, dry = T)
 
 cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "~/Software/cellID-linux/cell", 
+     cell.command = "cellBUILTIN",
+     # cell.command = "~/Software/cellID-linux/cell", 
      no_cores = 3, 
-     label_cells = 0)  # Do not label cells 
+     label_cells = 0)  # Label cells?
 ```
 
 ## With time series

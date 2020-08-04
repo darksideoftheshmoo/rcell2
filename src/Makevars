@@ -12,4 +12,4 @@ all: $(SHLIB)
 $(SHLIB): tiflibs
 
 tiflibs:
-	cd tiff410 && cmake . && make all && cd ..
+	cd tiff410 && cmake --clean-first . && make all -j2 -B && cmake --target clean . && cd ..

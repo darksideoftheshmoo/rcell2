@@ -1630,7 +1630,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
           //Make output with re-combined data
           load_global_arrays(3,NULL,bf_fl_labels,xmax,ymax); //just in case
           memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
-          if (label_cells==1){
+          if (*label_cells==1){
             add_cell_number_to_the_data(i-1);
           }
           add_boundary_points_to_data(NULL);
@@ -1924,7 +1924,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
       load_global_arrays(3,NULL,bf_fl_labels,xmax,ymax); //just in case
 
       memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
-      if (label_cells==1){
+      if (*label_cells==1){
         add_cell_number_to_the_data(i);
       }
       add_boundary_points_to_data(NULL);
@@ -1977,7 +1977,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
     load_global_arrays(3,NULL,bf_fl_labels,xmax,ymax); //just in case
 
     memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
-    if (label_cells==1){
+    if (*label_cells==1){
       add_cell_number_to_the_data(i-1);
     }
     add_boundary_points_to_data(NULL);
