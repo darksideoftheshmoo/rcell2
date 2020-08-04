@@ -2,4 +2,14 @@ CC=ccache clang -Qunused-arguments
 CXX=ccache clang++ -Qunused-arguments
 CCACHE_CPP2=yes
 
-PKG_LIBS = -ltiff
+PKG_CPPFLAGS= -I./tiff410/include
+PKG_LIBS= -L./tiff410/libtiff -ltiff -ljpeg -llzma -lz
+
+.PHONY: all tiflibs
+
+all: $(SHLIB)
+
+$(SHLIB): tiflibs
+
+tiflibs:
+	cd tiff410 && cmake . && make all && cd ..

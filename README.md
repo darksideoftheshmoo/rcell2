@@ -45,8 +45,8 @@ While the image part may be tailored for data from fluorescence microscopy exper
 ## Installation
 
 1. Download this pacakge.
-2. Install external library dependencies `libtiff` and `glib-2.0`.
-3. Install the package from source.
+2. Install libtiff build dependencies (get `cmake` from https://cmake.org/download/).
+3. Install the package from source: `devtools::install_github("gerbeldo/rcell2", ref = "master")`
 
 ### Installing dependencies
 
@@ -54,24 +54,16 @@ For Ubuntu, Arch and Brew (macOS):
 
 ```
 # Aptitude
-sudo apt install libglib2.0-dev libtiff5-dev
+sudo apt install cmake
 
 # Pacman
-sudo pacman -S glib2 libtiff
+sudo pacman -S cmake
 
-# Brew
-brew install glib
-brew install libtiff
-```
+# macOS Brew https://stackoverflow.com/a/33628202/11524079
+brew install cmake
 
-### Installing the pakage from source
-
-```
-install.packages("devtools")
-
-path_to_file <- "cellMagick_0.1.3.tar.gz"
-
-devtools::install_local(path_to_file, dependencies = TRUE)
+# macOS .dmg
+# https://cmake.org/download/
 ```
 
 ## Future work
