@@ -9,7 +9,7 @@
 #' Correr cellid desde C
 #'
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
-#' @useDynLib rcell2 main_
+#' @useDynLib rcell2 CellID
 #' @export
 #' @return Nada, el output está en los directorios.
 cellid <- function(args) {
@@ -21,7 +21,14 @@ cellid <- function(args) {
   # print(argv)
   # print(argc)
 
-  .C(main_, as.integer(argc), as.character(argv), integer(1))[[3]]
+  exit_code = .C(CellID, as.integer(argc), as.character(argv), integer(1))[[3]]
+  
+  if(exit_code == -1){
+    stop("Libtiff was not found during Rcell2 installation. \
+         If you wish to use the builtin CellID binary you must first install libtiff in your system,\ 
+         and then reinstall this package. \
+         You may have to try 'install.packages' from source a couple times before it works :shrug:.")
+  }
 }
 
 
