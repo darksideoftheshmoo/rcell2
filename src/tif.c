@@ -322,7 +322,7 @@ int output_data_to_tif_file(char *file,
     for(j=0;j<ymax_data;j++){
       for(i=0;i<xmax_data;i++){
         u=j*xmax_data+i;
-        output_data[u] = 1;
+        output_data[u] = 0;
       } 
     }
   }
@@ -341,6 +341,18 @@ int output_data_to_tif_file(char *file,
     //onetmp=1.0/(scale*xmax8);
     onetmp=scale/xmax8;
   }
+
+  // Debug printfs
+  printf("array_max: %f.\n", array_max);
+  printf("array_min: %f.\n", array_min);
+  printf("scale: %f.\n", scale);
+  printf("onetmp: %f.\n", onetmp);
+  printf("xmax8: ");
+  printf(xmax8);
+  printf("\nxmax16:");
+  printf(xmax16);
+  printf("\n");
+
 
   for(j=0;j<ymax_data;j++){
     for(i=0;i<xmax_data;i++){
@@ -367,25 +379,25 @@ int output_data_to_tif_file(char *file,
           if(k==found_border){
             tmp=array_max;
             
-          }else if(k==found_border_a){
+          }else if(k==found_border_a){  // #define found_border_a 8
             tmp=array_max-onetmp;
             
-          }else if(k==found_border_b){
+          }else if(k==found_border_b){  // #define found_border_b 9
             tmp=array_max-(2.0*onetmp);
             
-          }else if(k==found_border_c){
+          }else if(k==found_border_c){  // #define found_border_c 10
             tmp=array_max-(3.0*onetmp);
             
-          }else if(k==found_border_d){
+          }else if(k==found_border_d){  // #define found_border_d 11
             tmp=array_max-(4.0*onetmp);
             
-          }else if(k==found_border_e){
+          }else if(k==found_border_e){  // #define found_border_e 12
             tmp=array_max-(5.0*onetmp);
             
-          }else if(k==found_border_f){
+          }else if(k==found_border_f){  // #define found_border_f 13
             tmp=array_max-(6.0*onetmp);
             
-          }else if(k==found_border_g){
+          }else if(k==found_border_g){  // #define found_border_g 14
             tmp=array_max-(7.0*onetmp);
             
           }else if(k==cell_label){
@@ -394,7 +406,7 @@ int output_data_to_tif_file(char *file,
           }else if(k==delete_pixel){
             tmp=array_min;
           }
-          
+        
         }else if (type==1){
           if(labels[u]==found_border){
             tmp=array_max;

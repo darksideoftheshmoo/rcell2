@@ -6127,12 +6127,14 @@ void add_boundary_points_to_data(struct point *p_in){
   int a,b,a2,b2;
 
   int border;
+  border=found_border;  // tif_routines.h says: #define found_border 5
+
   struct point *p_start;
+
   //Add boundary points for border list p_in.
   //if p_in==NULL then do all n_found borders.
   //add found_border to d[] array in appropriate place.
 
-  border=found_border;  // tif_routines.h says: #define found_border 5
   p_start=p_in;
   //for(i=0;i<xmax_ymax;i++)d[i]=0;
   for(i=0;i<n_found;i++){
@@ -6157,7 +6159,7 @@ void add_boundary_points_to_data(struct point *p_in){
           //New point
           a=a2;
           b=b2;
-	        d[(b*xmax+a)]=border;
+	        d[(b*xmax+a)]=border;  // border=found_border;  // tif_routines.h says: #define found_border 5
 	      }
       }
     }
