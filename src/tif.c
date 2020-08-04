@@ -347,11 +347,11 @@ int output_data_to_tif_file(char *file,
   printf("array_min: %f.\n", array_min);
   printf("scale: %f.\n", scale);
   printf("onetmp: %f.\n", onetmp);
-  printf("xmax8: ");
-  printf(xmax8);
-  printf("\nxmax16:");
-  printf(xmax16);
-  printf("\n");
+  printf("xmax8: 255.0\n");
+  //printf(xmax8);
+  printf("xmax16: 65535.0\n");
+  //printf(xmax16);
+  //printf("\n");
 
 
   for(j=0;j<ymax_data;j++){
