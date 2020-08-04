@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 # devtools::document()
-# devtools::load_all(recompile = T)
+devtools::load_all(recompile = T)
 # devtools::install()
 # devtools::check()
 # devtools::build()
@@ -17,19 +17,14 @@ knitr::opts_chunk$set(echo = TRUE)
 # remove.packages("rcell2")
 # install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
 
-devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
+# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 
 library(tidyverse)
-library(rcell2)
+# library(rcell2)
 
 path <- "../data/image_samples/"
 path.pdata <- paste0(path, "pdata.csv")
 parameters <- "../inst/parameters.txt"
-
-# path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
-# parameters <-  paste0(path, "parameters_vcellid_out.txt")
-
-
 
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
@@ -40,9 +35,6 @@ Sin tiempo:
 
 ```{r}
 # Generate CellID input paths
-# path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
-# path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
-# parameters <-  paste0(path, "parameters_vcellid_out.txt")
 path <- "../data/image_samples/"
 cell.args <- cellArgs(#path = path,
                       path = path,
@@ -56,12 +48,10 @@ cellArgs.print(cell.args)  # Para revisar inputs
 cell.args$o
 ```
 
+Con series temporales:
+
 ```{r}
 # Generate CellID input paths
-# path = "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/2019.12.12_Timecourse_FAR1-NG_RtCC/split"
-# path <- "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split/"
-# parameters <-  paste0(path, "parameters_vcellid_out.txt")
-
 path <- "../data/time_series_image_samples/"
 
 cell.args <- cellArgs(#path = path,
@@ -125,7 +115,8 @@ cell(cell.args = cell.args,
 cell(cell.args = cell.args,
      # cell.command = "~/Software/cellID-linux/cell",
      cell.command = "~/Software/cellID-linux/cell", 
-     no_cores = 3, label_cells = 0)
+     no_cores = 3, 
+     label_cells = 0)  # Do not label cells 
 ```
 
 ## With time series
@@ -293,6 +284,8 @@ d %>% group_by(pos, xpos, ypos) %>% summarise(count = n(),
 # USAGE 2
 
 ```{r}
+cell.data <- rcell2::cell.load.alt(path =  path)
+
 #### SETUP PATHS DATAFRAME ####
 paths <- magickPaths(cell.data)
 
@@ -320,7 +313,7 @@ cell.data$d %>%
 cdata <- cell.data$d %>% 
   filter(ucid %in% c(
     # 1000000152
-    1000000001
+    1000000011
   ))
 pdata <- read_csv(path.pdata)
 
