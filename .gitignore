@@ -6,3 +6,6 @@ rcell2.Rproj
 /data/image_samples/*.out.tif
 /testings/time_of_t0.txt
 src/rcell2.so
+data/time_series_image_samples/*.out.tif
+data/time_series_image_samples/Position*/out/
+/data/image_samples/Position*/out/pos*.txt
