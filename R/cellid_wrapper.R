@@ -9,10 +9,11 @@
 #' Correr cellid desde C
 #'
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
+#' @param label_cells Set to 0 to disable labeling cells with their number.
 #' @useDynLib rcell2 CellID
 #' @export
 #' @return Nada, el output está en los directorios.
-cellid <- function(args) {
+cellid <- function(args, label_cells=1) {
 
   # args <- "~/Software/cellID-linux/cell -p /home/nicomic/Projects/Colman/HD/scripts/cellMagick/data/images/parameters.txt -b /tmp/Rtmp7fjlFo/file2b401093d715 -f /tmp/Rtmp7fjlFo/file2b402742f6ef -o /home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/Position001/out"
   argv <- strsplit(args, " ")[[1]]
@@ -21,14 +22,14 @@ cellid <- function(args) {
   # print(argv)
   # print(argc)
 
-  exit_code = .C(CellID, as.integer(argc), as.character(argv), integer(1))[[3]]
+  exit_code = .C(CellID, 
+                 as.integer(argc),         # Argument count
+                 as.character(argv),       # Argument character vector
+                 integer(1),               # Return variable
+                 as.integer(label_cells)   # Option to disable
+                 )[[3]]
   
-  if(exit_code == -1){
-    stop("Libtiff was not found during Rcell2 installation. \
-         If you wish to use the builtin CellID binary you must first install libtiff in your system,\ 
-         and then reinstall this package. \
-         You may have to try 'install.packages' from source a couple times before it works :shrug:.")
-  }
+  exit_code
 }
 
 

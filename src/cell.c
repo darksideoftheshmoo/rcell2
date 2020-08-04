@@ -117,7 +117,7 @@ int new_phase=0;
 
 // LA POSTA, importado en cellid_wrapper.R
 //int main_(int argc, char* argv[], int* out){
-int CellID(int * argc0, char *argv[], int* out){
+int CellID(int * argc0, char *argv[], int* out, int* label_cells){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
@@ -1630,7 +1630,9 @@ int CellID(int * argc0, char *argv[], int* out){
           //Make output with re-combined data
           load_global_arrays(3,NULL,bf_fl_labels,xmax,ymax); //just in case
           memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
-          //add_cell_number_to_the_data(i-1);
+          if (label_cells==1){
+            add_cell_number_to_the_data(i-1);
+          }
           add_boundary_points_to_data(NULL);
 
           //Write out the files
@@ -1922,7 +1924,9 @@ int CellID(int * argc0, char *argv[], int* out){
       load_global_arrays(3,NULL,bf_fl_labels,xmax,ymax); //just in case
 
       memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
-      //add_cell_number_to_the_data(i);
+      if (label_cells==1){
+        add_cell_number_to_the_data(i);
+      }
       add_boundary_points_to_data(NULL);
 
       if (output_individual_cells==1){
@@ -1973,7 +1977,9 @@ int CellID(int * argc0, char *argv[], int* out){
     load_global_arrays(3,NULL,bf_fl_labels,xmax,ymax); //just in case
 
     memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
-    //add_cell_number_to_the_data(i-1);
+    if (label_cells==1){
+      add_cell_number_to_the_data(i-1);
+    }
     add_boundary_points_to_data(NULL);
     //Write out the files
     strcpy(line,"COMBINE_");

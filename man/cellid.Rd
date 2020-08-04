@@ -4,10 +4,12 @@
 \alias{cellid}
 \title{Correr cellid desde C}
 \usage{
-cellid(args)
+cellid(args, label_cells = 1)
 }
 \arguments{
 \item{args}{el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."}
+
+\item{label_cells}{Set to 0 to disable labeling cells with their number.}
 }
 \value{
 Nada, el output está en los directorios.
