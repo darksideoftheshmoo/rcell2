@@ -7,7 +7,7 @@ output: html_document
 
 # Rebuild
 
-```{r, eval=FALSE}
+```{r build, eval=FALSE, message=FALSE, warning=TRUE}
 
 devtools::document()
 # devtools::load_all(recompile = T, reset = T)
@@ -68,7 +68,7 @@ cell(cell.args = cell.args,
      cell.command = "cellBUILTIN",
      # cell.command = "~/Software/cellID-linux/cell", 
      no_cores = 3, 
-     label_cells = 0)  # Label cells?
+     label_cells = 1)  # Label cells?
 ```
 
 ## Con series temporales

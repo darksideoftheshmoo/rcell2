@@ -28,7 +28,7 @@ cellid <- function(args, label_cells=1, bf_out_null_bg=1, debug_flag=0){
                  as.integer(argc),           # Argument count
                  as.character(argv),         # Argument character vector
                  integer(1),                 # Return variable
-                 as.integer(label_cells),    # Option to disable
+                 as.integer(label_cells),    # Option to disable cell labeling on .out.tif files
                  as.integer(bf_out_null_bg), # Option to put blank backgound on BF out.tif
                  as.integer(debug_flag)
                  )[[3]]
