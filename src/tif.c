@@ -314,6 +314,17 @@ int output_data_to_tif_file(char *file,
     }
   }
 
+  //int bf_out_only_boundaries = 1
+  if(1==1){
+    //bf=get_data_from_tif_file("/home/nicomic/Projects/Rdevel/rcell2/data/image_samples_x/blank.tif",0,NULL,&xmax_new,&ymax_new)
+    for(j=0;j<ymax_data;j++){
+      for(i=0;i<xmax_data;i++){
+        u=j*xmax_data+i;
+        output_data[u] = 1;
+      } 
+    }
+  }
+
   // Define scale factor
   if (array_max>array_min){
     //scale=1.0/(array_max-array_min);
