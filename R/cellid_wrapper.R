@@ -13,7 +13,7 @@
 #' @useDynLib rcell2 CellID
 #' @export
 #' @return Nada, el output está en los directorios.
-cellid <- function(args, label_cells=1) {
+cellid <- function(args, label_cells=1){
 
   # args <- "~/Software/cellID-linux/cell -p /home/nicomic/Projects/Colman/HD/scripts/cellMagick/data/images/parameters.txt -b /tmp/Rtmp7fjlFo/file2b401093d715 -f /tmp/Rtmp7fjlFo/file2b402742f6ef -o /home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/Position001/out"
   argv <- strsplit(args, " ")[[1]]
@@ -399,6 +399,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP and pass cell id arguments.
 #' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
 #' @param dry Do everything without actually running CellID.
+#' @param label_cells Set to 0 to disable labeling cells with their number.
 #' @return Nothing.
 # @examples
 # cell(cell.args, path = path)
@@ -515,8 +516,7 @@ cell <- function(cell.args,
     )
 
     if(cell.command == "cellBUILTIN") {
-      if(!dry) cellid(args = command,
-                      label_cells = label_cells)
+      if(!dry) cellid(args = command, label_cells = label_cells)
     } else {
       if(!dry) system(command = command, wait = T)
     }

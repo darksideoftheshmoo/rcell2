@@ -36,6 +36,8 @@ cell(
 
 \item{no_cores}{Position-wise parallelization,internally capped to number of positions in cell.args.}
 
+\item{label_cells}{Set to 0 to disable labeling cells with their number.}
+
 \item{dry}{Do everything without actually running CellID.}
 }
 \value{

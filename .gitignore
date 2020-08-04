@@ -9,3 +9,5 @@ src/rcell2.so
 data/time_series_image_samples/*.out.tif
 data/time_series_image_samples/Position*/out/
 /data/image_samples/Position*/out/pos*.txt
+/data/image_samples_x/Position*/out/pos*.txt
+/data/image_samples_x/*out.tif
