@@ -117,7 +117,7 @@ int new_phase=0;
 
 // LA POSTA, importado en cellid_wrapper.R
 //int main_(int argc, char* argv[], int* out){
-int CellID(int * argc0, char *argv[], int* out, int* label_cells){
+int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
@@ -1465,7 +1465,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
           printf("Writing corrections to output file %s.\n",line);
           //Scale corrections by 20000.0 for writing out
           for(j=0;j<(xmax*ymax);j++)(flat_cors[j])*=(20000.0);
-          if(output_data_to_tif_file(line,flat_cors,xmax,ymax,NULL,0,16,0)==0){
+          if(output_data_to_tif_file(line,flat_cors,xmax,ymax,NULL,0,16,0,0)==0){
             printf("Couldn't output data to tif file %s.\n",line);
           }
         }
@@ -1641,7 +1641,15 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
           strcat(line,phase_files[j_cur]);
           strcat(line,".out.tif");
           printf("Writing found cells and data to output file %s.\n",line);
-          if(output_data_to_tif_file(line,bf,xmax,ymax,bf_fl_labels,0,8,0)==0){
+          if(output_data_to_tif_file(line,
+                                     bf,
+                                     xmax,
+                                     ymax,
+                                     bf_fl_labels,
+                                     0,
+                                     8,
+                                     0,
+                                     *blank_out_bg) == 0){
             printf("Couldn't output data to tif file %s.\n",line);
           }
         }
@@ -1875,7 +1883,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
       strcpy(line,fluor_files[i]);
       strcat(line,".out.tif");
       printf("Writing found cells and data to output file %s.\n",line);
-      if(output_data_to_tif_file(line,fl,xmax,ymax,bf_fl_labels,1,8,0)==0){
+      if(output_data_to_tif_file(line,fl,xmax,ymax,bf_fl_labels,1,8,0,0)==0){
         printf("Couldn't output data to tif file %s.\n",line);
       }
     }
@@ -1905,6 +1913,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
                                  third_labels,
                                  2,
                                  8,
+                                 0,
                                  0)==0){
 
         printf("Couldn't output data to tif file %s.\n",line);
@@ -1951,6 +1960,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
                                  bf_fl_labels,
                                  0,
                                  8,
+                                 0,
                                  0)==0){
 
         printf("Couldn't output data to tif file %s.\n",line);
@@ -1994,6 +2004,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells){
                                bf_fl_labels,
                                0, // type determines what set of labels to write out
                                8,
+                               0,
                                0)==0){
       printf("Couldn't output data to tif file %s.\n",line);
     }

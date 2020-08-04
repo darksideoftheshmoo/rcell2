@@ -228,13 +228,14 @@ float *get_data_from_tif_file(char *file,
 
 /******************************************************/
 int output_data_to_tif_file(char *file,
-			    float *output_data,   // xej: "bf", is the output of bf=get_data_from_tif_file() in cell.c
-			    int xmax_data,
-			    int ymax_data,
-			    int *labels,
-			    int type,           //type determines what set of labels to write out
-			    int bit_size,
-			    int invert){
+          float *output_data,   // xej: "bf", is the output of bf=get_data_from_tif_file() in cell.c
+          int xmax_data,
+          int ymax_data,
+          int *labels,
+          int type,           //type determines what set of labels to write out
+          int bit_size,
+          int invert,
+          int blank_out_bg){
 
 
   //Output array output_data to a file.
@@ -315,7 +316,7 @@ int output_data_to_tif_file(char *file,
   }
 
   //int bf_out_only_boundaries = 1
-  if(1==1){
+  if(blank_out_bg==1){
     //bf=get_data_from_tif_file("/home/nicomic/Projects/Rdevel/rcell2/data/image_samples_x/blank.tif",0,NULL,&xmax_new,&ymax_new)
     for(j=0;j<ymax_data;j++){
       for(i=0;i<xmax_data;i++){

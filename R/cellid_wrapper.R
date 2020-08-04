@@ -13,7 +13,7 @@
 #' @useDynLib rcell2 CellID
 #' @export
 #' @return Nada, el output está en los directorios.
-cellid <- function(args, label_cells=1){
+cellid <- function(args, label_cells=1, bf_out_null_bg=1){
 
   # args <- "~/Software/cellID-linux/cell -p /home/nicomic/Projects/Colman/HD/scripts/cellMagick/data/images/parameters.txt -b /tmp/Rtmp7fjlFo/file2b401093d715 -f /tmp/Rtmp7fjlFo/file2b402742f6ef -o /home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/Position001/out"
   argv <- strsplit(args, " ")[[1]]
@@ -23,10 +23,11 @@ cellid <- function(args, label_cells=1){
   # print(argc)
 
   exit_code = .C(CellID, 
-                 as.integer(argc),         # Argument count
-                 as.character(argv),       # Argument character vector
-                 integer(1),               # Return variable
-                 as.integer(label_cells)   # Option to disable
+                 as.integer(argc),           # Argument count
+                 as.character(argv),         # Argument character vector
+                 integer(1),                 # Return variable
+                 as.integer(label_cells),    # Option to disable
+                 as.integer(bf_out_null_bg)  # Option to put blank backgound on BF out.tif
                  )[[3]]
   
   exit_code
