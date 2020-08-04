@@ -6116,7 +6116,7 @@ void re_align_cell(struct point *p_in,int *offx_out, int *offy_out){
   return;
 }
 /****************************************************/
-void add_boundary_points_to_data(struct point *p_in){
+void add_boundary_points_to_data(struct point *p_in, int blank_out_bg){
 
   struct point *p1;
   struct point *p2;
@@ -6159,7 +6159,15 @@ void add_boundary_points_to_data(struct point *p_in){
           //New point
           a=a2;
           b=b2;
-	        d[(b*xmax+a)]=border;  // border=found_border;  // tif_routines.h says: #define found_border 5
+          // The following data in "d[(b*xmax+a)]=border;" ends up in labels[u] at tif.c
+          // Parameter border=found_border; defined above.
+          //   And tif_routines.h defines found_border as: #define found_border 5
+          // If the blank_out_bg flag is set to 1, label the cells with their "number" in the for loop. This may not be the CellID.
+          if(blank_out_bg==1){
+            d[(b*xmax+a)]=i;
+          } else {
+            d[(b*xmax+a)]=border;
+          }
 	      }
       }
     }

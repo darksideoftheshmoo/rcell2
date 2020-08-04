@@ -5,8 +5,9 @@ date: "7/20/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Rebuild
+
+```{r, eval=FALSE}
 
 devtools::document()
 # devtools::load_all(recompile = T, reset = T)
@@ -19,7 +20,11 @@ devtools::install(reload = T, build = T,
 # devtools::build(path="../../test_libtiff.tar.gz")
 # remove.packages("rcell2")
 # install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
+```
 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(rcell2)
@@ -31,9 +36,9 @@ parameters <- "../inst/parameters.txt"
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
 
-# USAGE 0 - Exectuion arguments
+# USAGE
 
-Sin tiempo:
+## Sin tiempo
 
 ```{r}
 # Generate CellID input paths
@@ -51,7 +56,22 @@ cellArgs.print(cell.args)  # Para revisar inputs
 # cell.args$o
 ```
 
-Con series temporales:
+```{r}
+# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
+# debugonce(cell)
+cell(cell.args = cell.args,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "cellBUILTIN",
+     no_cores = 3, dry = T)
+
+cell(cell.args = cell.args,
+     cell.command = "cellBUILTIN",
+     # cell.command = "~/Software/cellID-linux/cell", 
+     no_cores = 3, 
+     label_cells = 0)  # Label cells?
+```
+
+## Con series temporales
 
 ```{r}
 # Generate CellID input paths
@@ -67,6 +87,24 @@ cell.args <- cellArgs(#path = path,
 cellArgs.print(cell.args)  # Para revisar inputs
 
 cell.args$o
+```
+
+```{r}
+# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
+# debugonce(cell)
+cell(cell.args = cell.args,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "cellBUILTIN",
+
+     position.time.pattern = "time\\d+",
+     no_cores = 3, dry = T)
+
+cell(cell.args = cell.args,
+     # cell.command = "~/Software/cellID-linux/cell",
+     cell.command = "~/Software/cellID-linux/cell", 
+     position.time.pattern = "time\\d+",
+
+     no_cores = 3, dry = F)
 ```
 
 ## Time series arguments
@@ -102,45 +140,6 @@ El argumento de "out" y de los parámetos no cambia:
      image_type brightfield
      bf_fl_mapping list
     
-
-# USAGE 1 - RUN CELL ID
-
-## Without time series
-
-```{r}
-# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
-# debugonce(cell)
-cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "cellBUILTIN",
-     no_cores = 3, dry = T)
-
-cell(cell.args = cell.args,
-     cell.command = "cellBUILTIN",
-     # cell.command = "~/Software/cellID-linux/cell", 
-     no_cores = 3, 
-     label_cells = 0)  # Label cells?
-```
-
-## With time series
-
-```{r}
-# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
-# debugonce(cell)
-cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "cellBUILTIN",
-
-     position.time.pattern = "time\\d+",
-     no_cores = 3, dry = T)
-
-cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "~/Software/cellID-linux/cell", 
-     position.time.pattern = "time\\d+",
-
-     no_cores = 3, dry = F)
-```
 
 ## Load cell data
 

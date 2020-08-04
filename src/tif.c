@@ -272,6 +272,12 @@ int output_data_to_tif_file(char *file,
 
   int u;
 
+  // unique cell boundaries value will surely need enough bits, 255 cells may not be enough
+  if(blank_out_bg==1){
+    bit_size=16;
+  } else {
+    bit_size=8;
+  }
   bitspersample=(uint16)bit_size;
 
   tif=TIFFOpen(file,"w");
@@ -407,12 +413,15 @@ int output_data_to_tif_file(char *file,
             tmp=array_min;
           }
         
-        }else if (type==1){
-          if(labels[u]==found_border){
+        
+        }else if (type==1){                    // The default type. Als labels[u] will be "5" by default
+          if(blank_out_bg==1){
+            tmp=array_max-labels[u]*onetmp;    // In the modified segment.c, "labels[u]" will be a different int per cell.
+          } else if(labels[u]==found_border){  // tif_routines.h defines found_border as: #define found_border 5
             tmp=array_max;
             //tmp=8300.0;
           }
-          
+
         }else if (type==2){
           if(labels[u]==found_border){
             tmp=array_max;

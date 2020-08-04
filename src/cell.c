@@ -1642,7 +1642,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
           if (*label_cells==1){
             add_cell_number_to_the_data(i-1);
           }
-          add_boundary_points_to_data(NULL);
+          add_boundary_points_to_data(NULL, *blank_out_bg);
 
           //Write out the files
           strcpy(line,"COMBINE_");
@@ -1805,7 +1805,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
 
     memset(bf_fl_labels,0,(xmax*ymax*sizeof(int)));
 
-    add_boundary_points_to_data(NULL);
+    add_boundary_points_to_data(NULL, 0);  // probably for "fl" images
 
     //Check for nucleus or vacuole, etc, using third image.
     if ((third_image_type!=no_third_image)||(fret_image==1)){
@@ -1953,7 +1953,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
       if (*label_cells==1){
         add_cell_number_to_the_data(i);
       }
-      add_boundary_points_to_data(NULL);
+      add_boundary_points_to_data(NULL, *blank_out_bg);
 
       if (output_individual_cells==1){
 
@@ -2007,7 +2007,7 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
     if (*label_cells==1){
       add_cell_number_to_the_data(i-1);
     }
-    add_boundary_points_to_data(NULL);
+    add_boundary_points_to_data(NULL, *blank_out_bg);
     //Write out the files
     strcpy(line,"COMBINE_");
     strcat(line,phase_files[j_cur]);
