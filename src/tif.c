@@ -392,7 +392,7 @@ int output_data_to_tif_file(char *file,
         if (type==0){                            // The default type for BF and flat_cors.
           if(blank_out_bg==1){                   // If only masks are requested
             if(labels[u]>0){
-              tmp=array_max-(labels[u]+1)*onetmp;  // Set the intensity value to something related to the cellid
+              tmp=array_max-(labels[u]+100)*onetmp;  // Set the intensity value to something related to the cellid
               // In the modified segment.c, "k=labels[u]" will be a different "int" per cell starting at 1.
               // Note that since in segment.c "d[(b*xmax+a)]=i+1" starts at 1, then labels[u]==0 can mean something else.
               // Therefore, tmp should start at array_max-2*onetmp.
