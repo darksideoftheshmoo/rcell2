@@ -395,9 +395,9 @@ int output_data_to_tif_file(char *file,
               tmp=array_max-(labels[u]+1)*onetmp;  // Set the intensity value to something related to the cellid
               // In the modified segment.c, "k=labels[u]" will be a different "int" per cell starting at 1.
               // Note that since in segment.c "d[(b*xmax+a)]=i+1" starts at 1, then labels[u]==0 can mean something else.
-            // Therefore, tmp should start at array_max-2*onetmp.
+              // Therefore, tmp should start at array_max-2*onetmp.
             } else {
-              tmp=labels[u]*onetmp;
+              tmp=labels[u]*onetmp;                // this results in 0 intensity with current settings when mask is requested
             }
 
           }else if(k==found_border){   // tif_routines.h defines found_border as: #define found_border 5
@@ -425,12 +425,12 @@ int output_data_to_tif_file(char *file,
             tmp=array_max-(7.0*onetmp);
             
           }else if(k==cell_label){          // tif_routines.h says: #define cell_label 6, the default for cell labels if present.
-            if(blank_out_bg==1){            // but if only mask output is desired
-              tmp=array_max;                // set the label to max intensity value
+            if(blank_out_bg==1){            // If only mask output is desired
+              tmp=array_max;                // set the label to max intensity value, though in the output this is only 65528 for some reason.
             } else {
               tmp=array_max-(15.0*onetmp);  // instead of this, the default.
             }
-          }else if(k==delete_pixel){
+          }else if(k==delete_pixel){    // #define delete_pixel 15
             tmp=array_min;
           }
         
@@ -459,11 +459,11 @@ int output_data_to_tif_file(char *file,
         *(p_char+i)=(unsigned char) ((tmp-array_min)*xmax8/scale);
       }else{
         if (tmp<0.0){
-          printf("tmp<0.0 was activated");
+          //printf("tmp<0.0 was activated");
           tmp=0.0;
         }
         if(tmp>xmax16){
-          printf("tmp>xmax16 was activated");
+          //printf("tmp>xmax16 was activated");
           tmp=xmax16;
         }
         *(p_short+i)=(unsigned short) tmp;

@@ -68,7 +68,7 @@ cell(cell.args = cell.args,
      cell.command = "cellBUILTIN",
      # cell.command = "~/Software/cellID-linux/cell", 
      no_cores = 3, 
-     label_cells = 0)  # Label cells? 1 is true
+     label_cells = 1)  # Label cells? 1 is true
 ```
 
 ## Con series temporales
