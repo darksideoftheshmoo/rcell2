@@ -404,6 +404,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
 #' @param dry Do everything without actually running CellID.
 #' @param label_cells Set to 0 to disable labeling cells with their number.
+#' @param bf_out_null_bg Set to 1 blank the BF out background.
 #' @return Nothing.
 # @examples
 # cell(cell.args, path = path)
@@ -421,7 +422,7 @@ cell <- function(cell.args,
                  channels = c("b", "f"),
                  old_dirs_path = NULL, old_dirs_pattern = "^Position\\d\\d\\d$",
                  no_cores = NULL, 
-                 label_cells = 1,
+                 label_cells = 1, bf_out_null_bg=1,
                  dry = F){
   
   # Optional: remove old dirs
@@ -520,7 +521,7 @@ cell <- function(cell.args,
     )
 
     if(cell.command == "cellBUILTIN") {
-      if(!dry) cellid(args = command, label_cells = label_cells)
+      if(!dry) cellid(args = command, label_cells = label_cells, bf_out_null_bg = bf_out_null_bg)
     } else {
       if(!dry) system(command = command, wait = T)
     }

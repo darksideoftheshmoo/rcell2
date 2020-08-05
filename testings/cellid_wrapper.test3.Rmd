@@ -23,7 +23,7 @@ devtools::install(reload = T, build = T,
 ```
 
 
-```{r setup, include=FALSE}
+```{r include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
@@ -57,7 +57,7 @@ cellArgs.print(cell.args)  # Para revisar inputs
 ```
 
 ```{r}
-# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
+# cell(cell.args, pth = path, cell.command = "~/Software/cellID-linux/cell", )
 # debugonce(cell)
 cell(cell.args = cell.args,
      # cell.command = "~/Software/cellID-linux/cell",
@@ -68,7 +68,7 @@ cell(cell.args = cell.args,
      cell.command = "cellBUILTIN",
      # cell.command = "~/Software/cellID-linux/cell", 
      no_cores = 3, 
-     label_cells = 1)  # Label cells?
+     label_cells = 0)  # Label cells? 1 is true
 ```
 
 ## Con series temporales

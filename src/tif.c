@@ -330,7 +330,7 @@ int output_data_to_tif_file(char *file,
     for(j=0;j<ymax_data;j++){
       for(i=0;i<xmax_data;i++){
         u=j*xmax_data+i;
-        output_data[u] = 10000;
+        output_data[u] = 1;
       } 
     }
   }
@@ -372,6 +372,12 @@ int output_data_to_tif_file(char *file,
       //  output_data[u]-=onetmp;
       //}
 
+      //if(blank_out_bg==1){
+      //  tmp=1;
+      //} else {
+      //  tmp=output_data[u];
+      //}
+
       tmp=output_data[u];
 
       if(invert==1){ //Flip values back from array_max-c[][]
@@ -383,11 +389,13 @@ int output_data_to_tif_file(char *file,
         //type determines what set of labels to write out
         k=labels[u];
         
-        if (type==0){                              // The default type for BF and flat_cors. Also "k=labels[u]" will be "5" by default
-          if(blank_out_bg==1){
-            tmp=array_max-(labels[u]+1)*onetmp;    // In the modified segment.c, "k=labels[u]" will be a different "int" per cell.
-            //printf("\nlabels[u]: %i", labels[u]);
-          } else if(k==found_border){              // tif_routines.h defines found_border as: #define found_border 5
+        if (type==0){                            // The default type for BF and flat_cors.
+          if(blank_out_bg==1){                   // If only masks are requested
+            tmp=array_max-(labels[u]+1)*onetmp;  // Set the intensity value to something related to the cellid
+            // note that if in in segment.c "d[(b*xmax+a)]=i+1" starts at 1, then labels[u]==0 can mean something else.
+            // In the modified segment.c, "k=labels[u]" will be a different "int" per cell starting at 1.
+            // Subtract this times onetmp from max intensity, starting at labels[u]+1 (which should then be == 2).
+          }else if(k==found_border){   // tif_routines.h defines found_border as: #define found_border 5
             tmp=array_max;
             
           }else if(k==found_border_a){  // #define found_border_a 8
@@ -411,25 +419,26 @@ int output_data_to_tif_file(char *file,
           }else if(k==found_border_g){  // #define found_border_g 14
             tmp=array_max-(7.0*onetmp);
             
-          }else if(k==cell_label){
-            tmp=array_max-(15.0*onetmp);
-            
+          }else if(k==cell_label){          // tif_routines.h says: #define cell_label 6, the default for cell labels if present.
+            if(blank_out_bg==1){            // but if only mask output is desired
+              tmp=array_max;                // set the label to max intensity value
+            } else {
+              tmp=array_max-(15.0*onetmp);  // instead of this, the default.
+            }
           }else if(k==delete_pixel){
             tmp=array_min;
           }
         
-        
-        }else if (type==1){                        // The default type for FL. Also "k=labels[u]" will be "5" by default
+        }else if (type==1){                          // The default type for FL is 1.
           //if(blank_out_bg==1){
           //  tmp=array_max-(labels[u]+1)*onetmp;    // In the modified segment.c, "labels[u]" will be a different int per cell.
           //  printf("\nlabels[u]: %i", labels[u]);
-          //} else if(labels[u]==found_border){      // tif_routines.h defines found_border as: #define found_border 5
-          if(labels[u]==found_border){
-            tmp=array_max;
-            //tmp=8300.0;
+          //} else if(labels[u]==found_border){      
+          if(labels[u]==found_border){               // tif_routines.h defines found_border as: #define found_border 5
+            tmp=array_max;                           // "k=labels[u]" will be "5" by default for FL tiffs.
           }
 
-        }else if (type==2){                        // default type for third_image
+        }else if (type==2){                          // default type for third_image
           if(labels[u]==found_border){
             tmp=array_max;
           }else if (labels[u]==cell_nucleus){
@@ -444,8 +453,14 @@ int output_data_to_tif_file(char *file,
         //*(p_char+i)=(unsigned char) ((tmp-array_min)*scale*xmax8);
         *(p_char+i)=(unsigned char) ((tmp-array_min)*xmax8/scale);
       }else{
-        if (tmp<0.0) tmp=0.0;
-        if(tmp>xmax16)tmp=xmax16;
+        if (tmp<0.0){
+          printf("tmp<0.0 was activated");
+          tmp=0.0;
+        }
+        if(tmp>xmax16){
+          printf("tmp>xmax16 was activated");
+          tmp=xmax16;
+        }
         *(p_short+i)=(unsigned short) tmp;
         //Original is assumed to be 16-bit data, so just replace it here.
       }

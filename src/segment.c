@@ -6162,12 +6162,13 @@ void add_boundary_points_to_data(struct point *p_in, int blank_out_bg){
           // The following data in "d[(b*xmax+a)]=border;" ends up in labels[u] at tif.c
           // Parameter border=found_border; defined above.
           //   And tif_routines.h defines found_border as: #define found_border 5
-          // If the blank_out_bg flag is set to 1, label the cells with their "number" in the for loop. This may not be the CellID.
+          // If the blank_out_bg flag is set to 1, label the cells with their "number" in the for loop startin at 1.
+          // This may not be the CellID.
           if(blank_out_bg==1){
-            d[(b*xmax+a)]=i;
-            //printf("\nd[(b*xmax+a)]=i: %i", i);
+            d[(b*xmax+a)]=i+1;     // note that if this will not be 5 except for i=4
+                                   // other functions may behave unexpectedly. I have not checked this.
           } else {
-            d[(b*xmax+a)]=border;
+            d[(b*xmax+a)]=border;  // else: tif_routines.h defines found_border as: #define found_border 5
           }
 	      }
       }

@@ -36,10 +36,12 @@ ijtiff::write_tif(bf, xfp_path3, overwrite = T, bits_per_sample = attributes(bf)
 # Check output
 
 ```{r}
-xfp_path <- "../data/image_samples_x/CFP_Position001.tif.out.tif"
+xfp_path <- "../data/image_samples_x/BF_Position001.tif.out.tif"
 
 xfp <- ijtiff::read_tif(xfp_path)
 
 dim(xfp)
+
+xfp
 ```
 
