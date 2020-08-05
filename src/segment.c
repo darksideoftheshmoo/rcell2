@@ -6170,7 +6170,9 @@ void add_boundary_points_to_data(struct point *p_in, int blank_out_bg){
           } else {
             d[(b*xmax+a)]=border;  // else: tif_routines.h defines found_border as: #define found_border 5
           }
-	      }
+        } else if (blank_out_bg==1){  // If this is not a new point but mask output is desired
+            d[(b*xmax+a)]=0;       // set non-border to 0. Other functions may behave unexpectedly. I have not checked this.
+        }
       }
     }
     //A hack--break out of loop if only doing the passed in list.

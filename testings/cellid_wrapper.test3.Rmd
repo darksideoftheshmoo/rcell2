@@ -59,10 +59,10 @@ cellArgs.print(cell.args)  # Para revisar inputs
 ```{r}
 # cell(cell.args, pth = path, cell.command = "~/Software/cellID-linux/cell", )
 # debugonce(cell)
-cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "cellBUILTIN",
-     no_cores = 3, dry = T)
+# cell(cell.args = cell.args,
+#      # cell.command = "~/Software/cellID-linux/cell",
+#      cell.command = "cellBUILTIN",
+#      no_cores = 3, dry = T)
 
 cell(cell.args = cell.args,
      cell.command = "cellBUILTIN",
