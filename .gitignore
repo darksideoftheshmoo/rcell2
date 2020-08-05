@@ -11,3 +11,6 @@ data/time_series_image_samples/Position*/out/
 /data/image_samples/Position*/out/pos*.txt
 /data/image_samples_x/Position*/out/pos*.txt
 /data/image_samples_x/*out.tif
+/data/image_samples_x/v*/*out.tif
+/testings/XFP_files.nb.html
+/data/image_samples_x/Position*/out*

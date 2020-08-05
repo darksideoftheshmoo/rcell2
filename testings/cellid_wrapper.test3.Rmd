@@ -9,7 +9,7 @@ output: html_document
 
 ```{r build, eval=FALSE, message=FALSE, warning=TRUE}
 
-devtools::document()
+# devtools::document()
 # devtools::load_all(recompile = T, reset = T)
 devtools::install(reload = T, build = T,
                   quiet = T,
@@ -68,7 +68,9 @@ cell(cell.args = cell.args,
      cell.command = "cellBUILTIN",
      # cell.command = "~/Software/cellID-linux/cell", 
      no_cores = 3, 
-     label_cells = 1)  # Label cells? 1 is true
+     label_cells = 0,  # Label cells? 1 is true
+     bf_out_null_bg = 1
+     )  
 ```
 
 ## Con series temporales

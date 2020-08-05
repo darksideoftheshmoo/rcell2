@@ -16,6 +16,7 @@ cell(
   old_dirs_pattern = "^Position\\\\d\\\\d\\\\d$",
   no_cores = NULL,
   label_cells = 1,
+  bf_out_null_bg = 1,
   dry = F
 )
 }
@@ -37,6 +38,8 @@ cell(
 \item{no_cores}{Position-wise parallelization,internally capped to number of positions in cell.args.}
 
 \item{label_cells}{Set to 0 to disable labeling cells with their number.}
+
+\item{bf_out_null_bg}{Set to 1 blank the BF out background.}
 
 \item{dry}{Do everything without actually running CellID.}
 }
