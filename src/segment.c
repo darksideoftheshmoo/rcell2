@@ -3772,82 +3772,80 @@ int output_individual_cells_to_file(int i_t,
       //fflush(stdout);
 
       if (((b->x)>=0.0)&&((b->y)>=0.0)){
-	i0=((int)(b->x))-xmax_out/2;
-	j0=((int)(b->y))-ymax_out/2;
-
-	//Zero out this box first (ie, mark all pixels as "deleted")
-	for(ix=0;ix<xmax_out;ix++){
-	  for(iy=0;iy<ymax_out;iy++){
-	    u=(iy*xmax_out+ix);
-	    output_labels[u]=delete_pixel;
-	    output_data[u]=0.0;
-	  }
-	}
-
-	//Add in our cell and its boundary
-	for(p=b->interior;p!=NULL;p=p->next){
-	  ix=(p->i)-i0;
-	  iy=(p->j)-j0;
-	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
-	    u=(iy*xmax_out+ix);
-	    output_labels[u]=0; //transparent
-	  }
-	}
-	for(p=b->boundary;p!=NULL;p=p->next){
-	  ix=(p->i)-i0;
-	  iy=(p->j)-j0;
-	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
-	    u=(iy*xmax_out+ix);
-	    output_labels[u]=found_border;
-	  }
-	}
-
-	//Now copy over to our box
-	//Zero out this box first (ie, mark all pixels as "deleted")
-	for(ix=0;ix<xmax_out;ix++){
-	  for(iy=0;iy<ymax_out;iy++){
-	    //Now zero out d[] array in this region (see we can
-	    //use add_boundary_pixels()....
-	    u=(iy*xmax_out+ix);
-	    iuse=ix+i0;
-	    juse=iy+j0;
-	    output_data[u]=0.0;
-	    if ((iuse>=0)&&(iuse<xmax_data)&&(juse>=0)&&(juse<ymax_data)){
-	      uuse=(juse*xmax_data+iuse);
-	      output_data[u]=input_data[uuse];
-	    }
-	  }
-	}
-
-	//Put number in middle of bottom
-	add_numbers_to_data(b->index,
-			    (xmax_out/2),(ymax_out-10),
-			    output_labels,
-			    xmax_out,ymax_out);
-
-	strcpy(file,basefile);
-	strcat(file,"_");
-	digits_to_string(cellnum,bit_size,10);
-	strcat(file,cellnum);
-	strcat(file,"b_id_");
-	digits_to_string(cellnum,b->index,9999);
-	strcat(file,cellnum);
-	strcat(file,".tif");
-	if(output_data_to_tif_file(file,
-                             output_data,
-                             xmax_out,
-                             ymax_out,
-                             output_labels,
-                             type,
-                             bit_size,
-                             invert,
-                             0)==0){
-	  printf("Couldn't output cell %i to %s.\n",b->index,file);
-	}
-
+      	i0=((int)(b->x))-xmax_out/2;
+      	j0=((int)(b->y))-ymax_out/2;
+      
+      	//Zero out this box first (ie, mark all pixels as "deleted")
+      	for(ix=0;ix<xmax_out;ix++){
+      	  for(iy=0;iy<ymax_out;iy++){
+      	    u=(iy*xmax_out+ix);
+      	    output_labels[u]=delete_pixel;
+      	    output_data[u]=0.0;
+      	  }
+      	}
+      
+      	//Add in our cell and its boundary
+      	for(p=b->interior;p!=NULL;p=p->next){
+      	  ix=(p->i)-i0;
+      	  iy=(p->j)-j0;
+      	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
+      	    u=(iy*xmax_out+ix);
+      	    output_labels[u]=0; //transparent
+      	  }
+      	}
+      	for(p=b->boundary;p!=NULL;p=p->next){
+      	  ix=(p->i)-i0;
+      	  iy=(p->j)-j0;
+      	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
+      	    u=(iy*xmax_out+ix);
+      	    output_labels[u]=found_border;
+      	  }
+      	}
+      
+      	//Now copy over to our box
+      	//Zero out this box first (ie, mark all pixels as "deleted")
+      	for(ix=0;ix<xmax_out;ix++){
+      	  for(iy=0;iy<ymax_out;iy++){
+      	    //Now zero out d[] array in this region (see we can
+      	    //use add_boundary_pixels()....
+      	    u=(iy*xmax_out+ix);
+      	    iuse=ix+i0;
+      	    juse=iy+j0;
+      	    output_data[u]=0.0;
+      	    if ((iuse>=0)&&(iuse<xmax_data)&&(juse>=0)&&(juse<ymax_data)){
+      	      uuse=(juse*xmax_data+iuse);
+      	      output_data[u]=input_data[uuse];
+      	    }
+      	  }
+      	}
+      
+      	//Put number in middle of bottom
+      	add_numbers_to_data(b->index,
+      			    (xmax_out/2),(ymax_out-10),
+      			    output_labels,
+      			    xmax_out,ymax_out);
+      
+      	strcpy(file,basefile);
+      	strcat(file,"_");
+      	digits_to_string(cellnum,bit_size,10);
+      	strcat(file,cellnum);
+      	strcat(file,"b_id_");
+      	digits_to_string(cellnum,b->index,9999);
+      	strcat(file,cellnum);
+      	strcat(file,".tif");
+      	if(output_data_to_tif_file(file,
+                                   output_data,
+                                   xmax_out,
+                                   ymax_out,
+                                   output_labels,
+                                   type,
+                                   bit_size,
+                                   invert,
+                                   0)==0){
+      	  printf("Couldn't output cell %i to %s.\n",b->index,file);
+      	}
       }
     }
-
   }
 
   free(file);
@@ -4960,7 +4958,7 @@ void add_cell_number_to_the_data(int i_t){
 
   count=0;
   for(i=0;i<n_known;i++){
-    b=cs[i]; //cs[] points to most recently added cell
+    b=cs[i];                    // A "cell" list. cs[] points to most recently added cell, defined as: "struct blob *cs[max_cells];"
     if(b->i_time==i_t){
       //Write number i at position (b->x,b->y)
       //     printf("Adding number %i at (%e,%e).\n",b->index,b->x,b->y);
@@ -4969,9 +4967,11 @@ void add_cell_number_to_the_data(int i_t){
       if((count%alternate)==0){
 	       if (((b->x)>=0.0)&&((b->y)>=0.0)){
 	         add_numbers_to_data(b->index,
-			       ((int)((b->x))),
-			       ((int)((b->y))),
-			       d,xmax,ymax);
+			                         ((int)((b->x))),
+			                         ((int)((b->y))),
+			                         d,                   // used by add_numbers_to_data to label pixels as: "d[(iy*xmax)+ix]=cell_label;"
+			                         xmax,
+			                         ymax);
 	       }
       }
       count++;
@@ -6162,10 +6162,10 @@ void add_boundary_points_to_data(struct point *p_in, int blank_out_bg){
           // The following data in "d[(b*xmax+a)]=border;" ends up in labels[u] at tif.c
           // Parameter border=found_border; defined above.
           //   And tif_routines.h defines found_border as: #define found_border 5
-          // If the blank_out_bg flag is set to 1, label the cells with their "number" in the for loop startin at 1.
+          // If the blank_out_bg flag is set to 1, label the cells with their "number" in the for loop starting at 1.
           // This may not be the CellID.
           if(blank_out_bg==1){
-            d[(b*xmax+a)]=i+1;     // note that if this will not be 5 except for i=4
+            d[(b*xmax+a)]=i+1+19;  // start at 20 to avoid any conflicts with labels in tif_routines.h
                                    // other functions may behave unexpectedly. I have not checked this.
           } else {
             d[(b*xmax+a)]=border;  // else: tif_routines.h defines found_border as: #define found_border 5

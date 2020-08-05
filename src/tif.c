@@ -389,18 +389,22 @@ int output_data_to_tif_file(char *file,
         //type determines what set of labels to write out
         k=labels[u];
         
-        if (type==0){                            // The default type for BF and flat_cors.
-          if(blank_out_bg==1){                   // If only masks are requested
-            if(labels[u]>0){
-              tmp=array_max-(labels[u]+100)*onetmp;  // Set the intensity value to something related to the cellid
-              // In the modified segment.c, "k=labels[u]" will be a different "int" per cell starting at 1.
-              // Note that since in segment.c "d[(b*xmax+a)]=i+1" starts at 1, then labels[u]==0 can mean something else.
-              // Therefore, tmp should start at array_max-2*onetmp.
+        if (type==0){                    // The default type for BF and flat_cors.
+          
+          if(blank_out_bg==1){                       // If only masks are requested
+            if(k>=20){
+              tmp=array_max-(labels[u]-20)*onetmp;   // Set the intensity value to something related to the cellid
+                                                     // In the modified segment.c, "k=labels[u]" will be a different "int" per cell starting at 1.
+                                                     // Note that since in segment.c "d[(b*xmax+a)]=i+1" starts at 1, then labels[u]==0 can mean something else.
+                                                     // Therefore, tmp should start at array_max-2*onetmp.
+            } else if(k==cell_label){                // tif_routines.h says: #define cell_label 6, the default for cell labels if present.
+              tmp=array_max;                         // set this to max intensity
             } else {
-              tmp=labels[u]*onetmp;                // this results in 0 intensity with current settings when mask is requested
+              tmp=labels[u]*onetmp;                  // this results in 0 intensity with current settings when mask is requested
+              //tmp=array_min;                       // this may be equivalent and safer
             }
 
-          }else if(k==found_border){   // tif_routines.h defines found_border as: #define found_border 5
+          }else if(k==found_border){    // tif_routines.h defines found_border as: #define found_border 5
             tmp=array_max;
             
           }else if(k==found_border_a){  // #define found_border_a 8
@@ -425,11 +429,8 @@ int output_data_to_tif_file(char *file,
             tmp=array_max-(7.0*onetmp);
             
           }else if(k==cell_label){          // tif_routines.h says: #define cell_label 6, the default for cell labels if present.
-            if(blank_out_bg==1){            // If only mask output is desired
-              tmp=array_max;                // set the label to max intensity value, though in the output this is only 65528 for some reason.
-            } else {
-              tmp=array_max-(15.0*onetmp);  // instead of this, the default.
-            }
+              tmp=array_max-(15.0*onetmp);  // The default, overriden by blank background option.
+
           }else if(k==delete_pixel){    // #define delete_pixel 15
             tmp=array_min;
           }
