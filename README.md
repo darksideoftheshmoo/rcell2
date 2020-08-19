@@ -24,7 +24,7 @@ BiocManager::install("EBImage")
 Install using devtools, from github repo:
 
 ```
-devtools::install_github("gerbeldo/rcell2")
+devtools::install_github("darksideoftheshmoo/rcell2")
 
 ```
 
