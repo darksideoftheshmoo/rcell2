@@ -2,3 +2,10 @@
 .RData
 .Rproj.user
 rcell2.Rproj
+/data/image_samples/
+/data/image_samples_x/
+/data/time_series_image_samples/
+/src/*.o
+/src/*.so
+/testings/XFP_files.nb.html
+/testings/time_of_t0.txt
