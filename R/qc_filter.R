@@ -8,7 +8,7 @@
 #' i.e. to apply the same area filter but only to cells with f.tot.y values under 50,
 #' call \code{qc_filter(X, a.tot > 100, subset = f.tot.y < 50)}
 #'
-#' It does not delete the filtered rows, it only modifies the QC variable. To effectively
+#' It does not delete the filtered rows, it only modifies the qc variable. To effectively
 #' remove them, use \link{qc_execute}.
 #'
 #' @param X cell.data object
@@ -24,50 +24,50 @@ qc_filter <- function(X, filter, subset=NULL){
     filter = substitute(filter)
     subset = substitute(subset)
 
-    #initializing QC if required
-    if(is.null(X$data$QC)) X$data$QC = rep(TRUE, times = dim(X$data)[1])
+    #initializing qc if required
+    if(is.null(X$data$qc)) X$data$qc = rep(TRUE, times = dim(X$data)[1])
 
     #saving the old filter for undo vector
-    QC.last = X$data$QC
+    qc.last = X$data$qc
 
-    attributes(QC.last) <- NULL
-    QC.attr = attributes(X$data$QC)
+    attributes(qc.last) <- NULL
+    qc.attr = attributes(X$data$qc)
 
-    #updating the QC filter
+    #updating the qc filter
     if(is.null(subset))
-        X$data$QC = X$data$QC & eval(filter, X$data)
+        X$data$qc = X$data$qc & eval(filter, X$data)
     else
-        X$data$QC = X$data$QC & ( eval(filter,X$data) | !eval(subset, X$data) )
+        X$data$qc = X$data$qc & ( eval(filter,X$data) | !eval(subset, X$data) )
 
     #trating NAs as FALSE
-    X$data$QC[is.na(X$data$QC)] <- FALSE
+    X$data$qc[is.na(X$data$qc)] <- FALSE
 
-    #adding the information for undos as attributes of QC
-    QC.attr.names = names(QC.attr)
-    QC.history.names = names(X$QC.history)
+    #adding the information for undos as attributes of qc
+    qc.attr.names = names(qc.attr)
+    qc.history.names = names(X$qc.history)
 
-    if(is.null(QC.attr.names))
-        hNum = "QC0001"
+    if(is.null(qc.attr.names))
+        hNum = "qc0001"
     else
-        hNum = paste("QC",
-                     formatC(1 + as.numeric(substring(max(QC.history.names), 3, 6)),
+        hNum = paste("qc",
+                     formatC(1 + as.numeric(substring(max(qc.history.names), 3, 6)),
                              width = 4,
                              flag = "0"),
                      sep="")
 
-    attr(X$data$QC, hNum) <- QC.last
+    attr(X$data$qc, hNum) <- qc.last
 
-    for(i in QC.attr.names) {
-        attr(X$data$QC,i) <- QC.attr[[i]]
+    for(i in qc.attr.names) {
+        attr(X$data$qc,i) <- qc.attr[[i]]
     }
 
-    if(length(QC.attr.names) >= 10) {
-        attr(X$data$QC, min(QC.attr.names)) <- NULL
+    if(length(qc.attr.names) >= 10) {
+        attr(X$data$qc, min(qc.attr.names)) <- NULL
     }
 
-    cer = sum(!X$data$QC) / length(X$data$QC)
+    cer = sum(!X$data$qc) / length(X$data$qc)
 
-    #adding call to QC.history
+    #adding call to qc.history
     tmp<-list()
     tmp[[hNum]] <- list(type = "filter",
                         filter = filter,
@@ -78,7 +78,7 @@ qc_filter <- function(X, filter, subset=NULL){
         tmp[[hNum]]$subset = NA
     } else {tmp[[hNum]]$subset = subset}
 
-    X$QC.history <- c(X$QC.history,tmp)
+    X$qc.history <- c(X$qc.history,tmp)
 
     cat("cumulative row exclusion: ", round(100*cer,1), "%\n", sep="")
 
@@ -100,25 +100,25 @@ qc_filter <- function(X, filter, subset=NULL){
 #' @examples
 qc_undo <- function(X){
     #browser()
-    if(is.null(X$data$QC) || length(X$QC.history) == 0) stop("No QC variable\n")
-    if(is.null(attributes(X$data$QC))) stop("No more undos available\n")
+    if(is.null(X$data$qc) || length(X$qc.history) == 0) stop("No qc variable\n")
+    if(is.null(attributes(X$data$qc))) stop("No more undos available\n")
 
-    hNum = paste("QC", formatC(1 + as.numeric(substring(max(names(X$QC.history)),3,6)),width=4,flag="0"),sep="")
-    QC.attr=attributes(X$data$QC)
-    QC.restore=max(names(QC.attr))
-    X$data$QC<-QC.attr[[QC.restore]]
-    QC.attr[[QC.restore]]<-NULL
-    for(i in names(QC.attr)) attr(X$data$QC,i)<-QC.attr[[i]]
+    hNum = paste("qc", formatC(1 + as.numeric(substring(max(names(X$qc.history)),3,6)),width=4,flag="0"),sep="")
+    qc.attr=attributes(X$data$qc)
+    qc.restore=max(names(qc.attr))
+    X$data$qc<-qc.attr[[qc.restore]]
+    qc.attr[[qc.restore]]<-NULL
+    for(i in names(qc.attr)) attr(X$data$qc,i)<-qc.attr[[i]]
 
-    #adding call to QC.history
+    #adding call to qc.history
     tmp<-list()
-    tmp[[hNum]]<-list(type="undo",undo=QC.restore)
-    X$QC.history<-c(X$QC.history,tmp)
-    X$QC.history[[QC.restore]]$undo<-TRUE
+    tmp[[hNum]]<-list(type="undo",undo=qc.restore)
+    X$qc.history<-c(X$qc.history,tmp)
+    X$qc.history[[qc.restore]]$undo<-TRUE
 
-    QCr=X$QC.history[[QC.restore]]
-    cat("undoing filter",deparse(QCr[["filter"]])
-        ,ifelse(class(QCr[["subset"]])=="call",paste("( on",deparse(QCr[["subset"]]),")"),"")
+    qcr=X$qc.history[[qc.restore]]
+    cat("undoing filter",deparse(qcr[["filter"]])
+        ,ifelse(class(qcr[["subset"]])=="call",paste("( on",deparse(qcr[["subset"]]),")"),"")
         ,"\n")
 
     return(X)
@@ -126,11 +126,11 @@ qc_undo <- function(X){
 
 #*************************************************************************#
 #public
-#resets the QC filter and undo history
+#resets the qc filter and undo history
 #ToDo: allow subset?
 #' qc_reset
 #'
-#' resets the \code{QC} variable to \code{TRUE}, removing all applied \code{qc_filters}.
+#' resets the \code{qc} variable to \code{TRUE}, removing all applied \code{qc_filters}.
 #'
 #' @param X cell.data object
 #'
@@ -140,24 +140,24 @@ qc_undo <- function(X){
 #' @examples
 qc_reset <- function(X){
 
-    QC.reseted=c()
+    qc.reseted=c()
 
-    if(is.null(X$data$QC) || length(X$QC.history)==0) hNum="QC0001"
+    if(is.null(X$data$qc) || length(X$qc.history)==0) hNum="qc0001"
     else {
-        hNum=paste("QC",formatC(1+as.numeric(substring(max(names(X$QC.history)),3,6)),width=4,flag="0"),sep="")
-        for(i in names(X$QC.history))
-            if(is.na(X$QC.history[[i]]$undo)){
-                X$QC.history[[i]]$undo=TRUE
-                QC.reseted=c(QC.reseted,i)
+        hNum=paste("qc",formatC(1+as.numeric(substring(max(names(X$qc.history)),3,6)),width=4,flag="0"),sep="")
+        for(i in names(X$qc.history))
+            if(is.na(X$qc.history[[i]]$undo)){
+                X$qc.history[[i]]$undo=TRUE
+                qc.reseted=c(qc.reseted,i)
             }
     }
 
-    X$data$QC=rep(TRUE,times=dim(X$data)[1])
+    X$data$qc=rep(TRUE,times=dim(X$data)[1])
 
-    #adding call to QC.history
+    #adding call to qc.history
     tmp<-list()
-    tmp[[hNum]]<-list(type="reset",undo=QC.reseted)
-    X$QC.history<-c(X$QC.history,tmp)
+    tmp[[hNum]]<-list(type="reset",undo=qc.reseted)
+    X$qc.history<-c(X$qc.history,tmp)
     cat("resetting all filters\n")
 
     return(X)
@@ -166,12 +166,12 @@ qc_reset <- function(X){
 
 #*************************************************************************#
 
-#ToDo: modify undo value of prevoius QC.history elements
+#ToDo: modify undo value of prevoius qc.history elements
 #ToDo: use subset to code this function
-if(getRversion() >= "2.15.1") utils::globalVariables(c("QC"))
+if(getRversion() >= "2.15.1") utils::globalVariables(c("qc"))
 #' qc_execute
 #'
-#' removes cells with \code{QC == False}.
+#' removes cells with \code{qc == False}.
 #'
 #' @param X cell.data
 #'
@@ -180,33 +180,33 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("QC"))
 #'
 #' @examples
 qc_execute <- function(X){
-    QC.attr=attributes(X$data$QC)
-    QC.attr.names=names(QC.attr)
-    QC.history.names=names(X$QC.history)
-    if(is.null(QC.attr.names))
-        hNum="QC0001"
+    qc.attr=attributes(X$data$qc)
+    qc.attr.names=names(qc.attr)
+    qc.history.names=names(X$qc.history)
+    if(is.null(qc.attr.names))
+        hNum="qc0001"
     else
-        hNum=paste("QC",formatC(1+as.numeric(substring(max(QC.history.names),3,6)),width=4,flag="0"),sep="")
+        hNum=paste("qc",formatC(1+as.numeric(substring(max(qc.history.names),3,6)),width=4,flag="0"),sep="")
 
     #calculating the cummulative row exclusion before deleting the registers
-    cer=sum(!X$data$QC)/length(X$data$QC)
+    cer=sum(!X$data$qc)/length(X$data$qc)
 
     cat("Eliminating ",format(round(100*cer,1),digits=3,nsmall=1),"% of the dataset registers\n",sep="")
 
-    X$data<-subset(X$data,QC)
-    X$data$QC=rep(TRUE,times=dim(X$data)[1])
+    X$data<-subset(X$data,qc)
+    X$data$qc=rep(TRUE,times=dim(X$data)[1])
 
     tmp<-list()
     tmp[[hNum]]<-list(type="execute",filter=NA,undo=FALSE,cumulative.exclusion.ratio=cer,subset=NA)
 
     #setting previous filters as definitive
-    X$QC.history<-
-        lapply(X$QC.history,FUN=function(l){
+    X$qc.history<-
+        lapply(X$qc.history,FUN=function(l){
             if(is.na(l$undo)) l$undo<-FALSE
             return(l)
         })
 
-    X$QC.history<-c(X$QC.history,tmp)
+    X$qc.history<-c(X$qc.history,tmp)
 
     return(X)
 }

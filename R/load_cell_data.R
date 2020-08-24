@@ -147,7 +147,6 @@ load_cell_data <-
         posdir = dir(pattern = pattern, path = path)
         print(posdir)
 
-        #ToDo: #autoload and associate pdata file
 
         #######################
         ## initialize variables
@@ -282,7 +281,7 @@ load_cell_data <-
             pos.data[[ipos]] <- dplyr::mutate(pos.data[[ipos]],
                                               pos = ipos,
                                               ucid = ipos * 1e6 + cellID,
-                                              QC = T)
+                                              qc = T)
         }
 
 
@@ -440,7 +439,7 @@ load_cell_data <-
             pos.data[[ipos]] <- curr.pos.data
         }
 
-        cat("\n")
+        cat("\n\n")
 
         ######### ASSERT #########
         #checking the number of columns after reshaping
@@ -469,7 +468,7 @@ load_cell_data <-
 
         # el.p = ratio of ellipse perim over the perimeter measured by cellID.
         # If this number is small ( < ~0.7) it's probably not a cell.
-        cat('Creating additional variables:\nellipse.perim\nel.p\nf.x\ncf.x\n')
+        cat('Creating additional variables:\nellipse.perim\nel.p\n')
 
         pos.data <- dplyr::mutate(pos.data,
                                   ellipse.perim = pi *
@@ -489,35 +488,58 @@ load_cell_data <-
         va <- names(pos.data)
 
         if ("f.tot.y" %in% va) {
-            dplyr::mutate(pos.data,
+            cat("f.y\ncf.y\n")
+            pos.data <- dplyr::mutate(pos.data,
                           f.y = f.tot.y - (a.tot * f.bg.y),
                           cf.y = f.y / a.tot)
         }
 
         if ("f.tot.c" %in% va) {
-            dplyr::mutate(pos.data,
+            cat("f.c\ncf.c\n")
+            pos.data <- dplyr::mutate(pos.data,
                           f.c = f.tot.c - (a.tot * f.bg.c),
                           cf.c = f.c / a.tot)
         }
 
         if ("f.tot.r" %in% va) {
-            dplyr::mutate(pos.data,
+            cat("f.r\ncf.r\n")
+            pos.data <- dplyr::mutate(pos.data,
                           f.r = f.tot.r - (a.tot * f.bg.r),
                           cf.r = f.r / a.tot)
         }
+
+
 
         #################################################################
         # Removing duplicates
         #################################################################
 
         if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
-            cat("removing duplicate con.vol\n")
+            cat("\nremoving duplicate con.vol\n")
             pos.data <- dplyr::select(pos.data, -con.vol_1)
         }
+
+
+        #################################################################
+        # g: read pdata if it exists
+        #################################################################
+
+        pdata_file <- list.files(path = path, pattern = ".*pdata.csv$")
+
+        if (length(pdata_file == 1)) {
+            cat("\nJoining pdata!\n\n")
+            pdata <- file.path(path, pdata_file)
+            pdata <- readr::read_csv(pdata)
+            pos.data <- dplyr::left_join(pos.data, pdata, by ="pos")
+        } else if (length(pdata_path > 1)) {
+            cat("\n MULTIPLE PDATA FILES IN EXPERIMENT FOLDER! \n\n\n")
+        }
+
 
         #################################################################
         # g: hasta aca tengo el DF con los datos crudos: pos.data
         #################################################################
+
 
         # g: agrego data de imagenes. paths  y eso.
 
@@ -608,10 +630,10 @@ load_cell_data <-
 
         variables = list(id.vars = .CELLID_ID_VARS,
                          id.vars.deriv = .CELLID_ID_VARS_DERIV,
-                         morpho = unique(c(setdiff(main.header, c(.CELLID_ID_VARS_DERIV,"QC")),
+                         morpho = unique(c(setdiff(main.header, c(.CELLID_ID_VARS_DERIV,"qc")),
                                            grep(glob2rx("a.*"), names(pos.data), value = TRUE))),
                          fluor = grep(glob2rx("f.*"), names(pos.data), value = TRUE),
-                         QC = "QC",
+                         qc = "qc",
                          as.factor = c("pos", "cellID", "ucid"),
                          all = names(pos.data))
 
@@ -625,7 +647,7 @@ load_cell_data <-
 
         cell.data=
             list(data = pos.data,
-                 QC.history = list(),
+                 qc.history = list(),
                  subset.history = list(),
                  transform = list(),
                  channels = channels,
