@@ -51,13 +51,14 @@ magickCell <- function(cdata, paths,
   n <- min(c(n, nrow(cdata))) # Limit amount of pics to "n"
 
   # TO-DO
-  # Bin the data in 2D and sample 1 cell from within both bin groups.
-  # Can be an animated GIF to show more than 1 cell per bin.
-  # https://rdrr.io/cran/magick/man/image_ggplot.html
-  # funcion cut() https://www.jdatalab.com/data_science_and_data_mining/2017/01/30/data-binning-plot.html
-  # http://finzi.psych.upenn.edu/R/library/ks/html/binning.html
-  # https://rdrr.io/cran/ks/man/binning.html
-  # https://www.rdocumentation.org/packages/npsp/versions/0.7-5/topics/binning
+  ## Read only parts of the TIFF matrix to speed up stuff: https://stackoverflow.com/questions/51920316/open-only-part-of-an-image-jpeg-tiff-etc-in-r
+  ## Bin the data in 2D and sample 1 cell from within both bin groups.
+  ## Can be an animated GIF to show more than 1 cell per bin.
+  ## https://rdrr.io/cran/magick/man/image_ggplot.html
+  ## funcion cut() https://www.jdatalab.com/data_science_and_data_mining/2017/01/30/data-binning-plot.html
+  ## http://finzi.psych.upenn.edu/R/library/ks/html/binning.html
+  ## https://rdrr.io/cran/ks/man/binning.html
+  ## https://www.rdocumentation.org/packages/npsp/versions/0.7-5/topics/binning
 
   # Sample first
   set.seed(seed)
