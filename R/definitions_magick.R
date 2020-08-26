@@ -63,7 +63,7 @@ magickCell <- function(cdata, paths,
   set.seed(seed)
   .cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
   cdataSample <- .cdataSample[order(.cdataSample[[sortVar]]),  # sort the sample
-                       unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
+                              unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
 
   imga <-
     foreach::foreach(i=1:nrow(cdataSample), .combine=c) %do% {
@@ -71,10 +71,11 @@ magickCell <- function(cdata, paths,
     position <- cdataSample$pos[i]
     ucid <- cdataSample$ucid[i]
     t_frame <- cdataSample$t.frame[i]
-    picPath <- subset(paths, pos == position & channel == ch & t.frame == t_frame)$file
-
+    picPath.df <- subset(paths, pos == position & channel %in% ch & t.frame == t_frame)
+    picPath <- picPath.df$file[order(match(picPath.df$channel, ch))]  # order paths according to ch argument
+    
     stopifnot(length(position) == 1 &length(ucid) == 1 &length(t_frame) == 1) # Checks
-    stopifnot(length(picPath) == 1 & is.character(picPath)) # Checks
+    stopifnot(length(picPath) == length(ch) & is.character(picPath)) # Checks
 
     magick::image_read(picPath) %>%
       {if (.normalize) magick::image_normalize(.) else .} %>%
@@ -98,7 +99,8 @@ magickCell <- function(cdata, paths,
                              boxcolor = "black",
                              font = "Comic sans",
                              gravity = "NorthWest") %>%
-      magick::image_border("black","1x1")
+      magick::image_border("black","1x1") %>% 
+      magick::image_append()
     }
 
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
