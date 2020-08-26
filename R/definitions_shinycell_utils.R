@@ -45,7 +45,7 @@ plot_filters <- function(saved_data,
       geom_point(aes(
         x = !!x_,
         y = !!y_
-      ), data = filter(cdata, t.frame == 0)) +
+      ), data = filter(saved_data$cdata, t.frame == 0)) +
       geom_polygon(aes(x = !!x_, 
                        y = !!y_,
                        color = polygon,
