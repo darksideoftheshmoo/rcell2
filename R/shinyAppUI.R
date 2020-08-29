@@ -1,4 +1,4 @@
-#' Shiny app UI object
+#' Shiny app UI object for shinyCell
 #'
 #' @import shiny formattable shinydashboard
 #'

@@ -3,7 +3,6 @@
 # globalVariables(strsplit("channel choice counts h i level pos saved treatment w x y", " ")[[1]])
 # "A horrible hack" (?)
 
-
 # I have found the cause of re-rendering plots.
 # clientData$output_scatterplot_width changes 10 PIXELS for no reason and triggers a re-render.
 # Maybe its the scrollbar or something...

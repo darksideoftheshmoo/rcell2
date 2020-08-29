@@ -1,6 +1,11 @@
-### SERVER ###
-
-server <- function(input, output, session) {
+#' Shiny app server function for tagCell
+#' Define server logic required to draw a histogram
+#' @param input provided by shiny
+#' @param output provided by shiny
+#' @param session provided by shiny
+#' @import shiny formattable dplyr tidyr hexbin magick
+#' @importFrom graphics polygon
+tagCellServer <- function(input, output, session) {
   
   ### OUTPUT OBSERVERS ###
   # Reactive image 1

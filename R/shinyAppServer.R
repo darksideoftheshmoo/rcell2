@@ -1,4 +1,4 @@
-#' Shiny app server function
+#' Shiny app server function for shinyCell
 #' Define server logic required to draw a histogram
 #' @param input provided by shiny
 #' @param output provided by shiny

@@ -1,7 +1,11 @@
 # Added to remove NOTES from devtools:check()
 # https://stackoverflow.com/questions/9439256/how-can-i-handle-r-cmd-check-no-visible-binding-for-global-variable-notes-when
-globalVariables(strsplit("channel choice counts h i level pos saved treatment w x y", " ")[[1]])
+# globalVariables(strsplit("channel choice counts h i level pos saved treatment w x y", " ")[[1]])
 # "A horrible hack" (?)
+
+# I have found the cause of re-rendering plots.
+# clientData$output_scatterplot_width changes 10 PIXELS for no reason and triggers a re-render.
+# Maybe its the scrollbar or something...
 
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
@@ -37,18 +41,13 @@ shinyTag <- function(cdata,
   # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
   # Integrate polygon filter functionality, currently the drawn polygons do nothing (except show up).
   
-  # Load definitions
-  source("R/definitions.R", local = T)
-  
-  #### UI ####
-  source("R/tagCell_ui.R", local = T)
-  #### SERVER ####
-  source("R/tagCell_server.R", local = T)
+  environment(tagCellServer) <- environment()
+  environment(tagCellUi) <- environment()
   
   #### RUN APP ####
   # runApp inicia la app inmediatamente, shinyApp solo no se dispara dentro de una función parece
   # saved <- runApp(shinyApp(ui, server))
-  shiny::runApp(list(ui=ui, server=server), launch.browser = TRUE)
+  saved <- shiny::runApp(list(ui = tagCellUi(), server = tagCellServer))
   
   # Imprimir cosas antes de cerrar la app
   print("Chau")

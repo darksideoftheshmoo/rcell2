@@ -1,4 +1,8 @@
-ui <- shiny::fluidPage(
+#' Shiny app UI object for tagCell
+#'
+#' @import shiny formattable shinydashboard
+#'
+tagCellUi <- shiny::fluidPage(
   shiny::fluidRow(
     shiny::column(width = 4,
            shiny::p("A rough app to tagg cells from CellID data"),
