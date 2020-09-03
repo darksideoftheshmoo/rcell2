@@ -7,15 +7,14 @@
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   
+  i = 0    
+  d <- cdata
+  p <- paths
+  
   ### OUTPUT OBSERVERS ###
   # Reactive image 1
   output$pics <- shiny::renderImage({
     print("Rendering image 1")
-    
-    # Me quedo con las posiciones que me interesan
-    positions <- paths$pos %>% unique()
-    d <- subset(cdata, pos %in% positions & filter == TRUE)
-    p <- subset(paths, pos %in% positions)
 
     # Output an image if filtering returns a non-empty selection
     if(nrow(d) > 0) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/shinyAppServer.R
 \name{shinyAppServer}
 \alias{shinyAppServer}
-\title{Shiny app server function
+\title{Shiny app server function for shinyCell
 Define server logic required to draw a histogram}
 \usage{
 shinyAppServer(input, output, session)
@@ -15,6 +15,6 @@ shinyAppServer(input, output, session)
 \item{session}{provided by shiny}
 }
 \description{
-Shiny app server function
+Shiny app server function for shinyCell
 Define server logic required to draw a histogram
 }

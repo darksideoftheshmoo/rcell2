@@ -2,10 +2,10 @@
 % Please edit documentation in R/shinyAppUI.R
 \name{shinyAppUI}
 \alias{shinyAppUI}
-\title{Shiny app UI object}
+\title{Shiny app UI object for shinyCell}
 \usage{
 shinyAppUI()
 }
 \description{
-Shiny app UI object
+Shiny app UI object for shinyCell
 }
