@@ -54,6 +54,4 @@ Imports:
     readr
 Suggests: 
     tidyverse,
-    skimr,
-    rgdal,
-    raster
+    skimr
