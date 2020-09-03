@@ -16,7 +16,8 @@
 #' @return Lots of stuff.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
-#' @import magick rgdal raster dplyr
+#' @import magick dplyr
+#' @importFrom raster getValuesBlock raster maxValue
 #' @rawNamespace import(foreach, except = c("when", "accumulate"))
 #' @export
 rasterCell <- function(cdata, paths,
@@ -85,10 +86,10 @@ rasterCell <- function(cdata, paths,
       # imagen <- "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/data/test.TIFF"
       # imagen <- "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/data/dark.TIFF"
       
-      .image.pointer <- raster::raster(imagen)  # raster::inMemory(r)  # FALSE
+      .image.pointer <- raster::raster(picPath)  # raster::inMemory(r)  # FALSE
       .image.arr <- raster::getValuesBlock(.image.pointer,
-                                           row=58,nrows=boxSize,
-                                           col=40, ncols=boxSize,
+                                           row=cdataSample$xpos[i] - max(1, floor(boxSize/2)), nrows=boxSize,
+                                           col=cdataSample$ypos[i] - max(1, floor(boxSize/2)), ncols=boxSize,
                                            format='matrix')
       .image.m <- matrix(.image.arr/raster::maxValue(.image.pointer), 
                   nrow=boxSize, 
