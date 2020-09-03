@@ -26,15 +26,19 @@
 #' @importFrom grDevices rgb
 #' @importFrom utils head
 #' @export
-shinyTag <- function(cdata,
-                     pdata,
-                     paths,
-                     filters = list(),
-                     plotType = "Hex",
-                     seed = 1,
-                     initial_facet = "",
-                     facet_grid_option = TRUE, facets_scale_free = NULL,
-                     ...){
+tagCell <- function(cdata,
+                    pdata,
+                    paths,
+                    filters = list(),
+                    plotType = "Hex",
+                    tag_ggplot = NULL,
+                    seed = 1,
+                    initial_facet = "",
+                    facet_grid_option = TRUE,
+                    facets_scale_free = NULL,
+                    n_max=10,
+                    tmp_csv_output=tempfile(tmpdir = "./", fileext = ".txt"),
+                    ...){
   
   # To-do
   # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.

@@ -1,0 +1,73 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+# Rebuild
+
+```{r build, eval=FALSE, message=FALSE, warning=TRUE}
+
+devtools::document()
+devtools::load_all(recompile = F, reset = T, quiet = T)
+# devtools::install(reload = T, build = F,
+#                   quiet = T,
+#                   upgrade = "never", keep_source = T)
+# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
+# devtools::check()
+# devtools::build()
+# devtools::build(path="../../test_libtiff.tar.gz")
+# remove.packages("rcell2")
+# install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+# library(rcell2)
+
+path <- "../data/image_samples/"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+
+difference <- function(lista) abs(lista[1] - lista[2])
+```
+
+# USAGE 
+
+```{r}
+cell.data <- rcell2::cell.load.alt(path =  path)
+
+#### SETUP PATHS DATAFRAME ####
+paths <- rcell2::magickPaths(cell.data)
+
+p <- cell.data$d %>% ggplot() +
+  geom_point(aes(x = a.tot, y = fft.stat, color = pos)) +
+  theme(legend.position = "none")
+
+saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
+                         cell_tags = list(far1_drop = c(TRUE, FALSE)),
+                         tag_ggplot = p,
+                         t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
+                         tag_channels_select = NULL,
+                         tag_box_size = 75)
+
+read_csv(saved, col_names = FALSE)
+```
+
+
+```{r}
+saved_data <- shinyCell(cell.data$d, pdata, paths,
+                        plotType = "Dots",
+                        # initial_facet = "pos ~ .",
+                        #filters = saved_data$filters,
+                        facet_grid_option = TRUE,
+                        n_max = 7^2, max_size = 720)
+
+# More plots would be useful
+ggplot(data = subset(saved_data$cdata, filter == T)) +
+  geom_boxplot(aes(y = cf.y, x = factor(pos)), width=0.1) +
+  geom_violin(aes(y = cf.y, x = factor(pos), color = factor(pos)), alpha = 0) +
+  theme_minimal()
+```
+
