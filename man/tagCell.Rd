@@ -19,29 +19,35 @@ tagCell(
 )
 }
 \arguments{
-\item{cdata}{A Rcell data.frame (not the object).}
+\item{cdata}{dataframe of "cell data"}
 
-\item{pdata}{A "pdata" data.frame with position metadata.}
+\item{pdata}{dataframe "position data"}
 
-\item{paths}{Paths a la imagen de cada posición.}
+\item{paths}{dataframe of image paths}
 
-\item{filters}{Vector de strings con los filtros. c() by default.}
+\item{cell_tags}{list of named vectors corresponding to tag groups and tags.}
 
-\item{seed}{Seed value for sampling of cell images.}
+\item{tag_box_size}{size of the image crop in pixels}
 
-\item{...}{Further arguments passed to magickCell()}
+\item{n_max}{max number of boxes in the image}
 
-\item{plotType}{"Hex", "Density", and "Dots" are available.}
+\item{seed}{seed for random sampling of images}
 
-\item{initial_facet}{Initial facet formula as a string.}
+\item{tmp_csv_output}{file path into which tagging information will be dumped progressively}
 
-\item{facet_grid_option}{Use facet_grid (TRUE, default) or facet_wrap.}
-
-\item{facets_scale_free}{Use facets with fixed scales (NULL, default) or free scales ("free").}
+\item{tag_ggplot}{a ggplot object to display in the second tab, may be used for something someday.}
 }
 \value{
 Lots of stuff.
 }
 \description{
-Filtrar cdata usando gráficos y dibujando regiones
+Ejemplo:
+saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
+                         cell_tags = list(far1_drop = c(TRUE,
+                                                        FALSE),
+                                          artifact = c("segmentation",
+                                                       "death")
+                         ),  # list(named_item1 = c(option1, option2, ...), named_item2 ...)
+                         tag_box_size = 75,
+                         tag_ggplot = p)
 }

@@ -9,16 +9,16 @@
 
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
-#' @param cdata A Rcell data.frame (not the object).
-#' @param pdata A "pdata" data.frame with position metadata.
-#' @param paths Paths a la imagen de cada posición.
-#' @param filters Vector de strings con los filtros. c() by default.
-#' @param plotType "Hex", "Density", and "Dots" are available.
-#' @param seed Seed value for sampling of cell images.
-#' @param initial_facet Initial facet formula as a string.
-#' @param facet_grid_option Use facet_grid (TRUE, default) or facet_wrap.
-#' @param facets_scale_free Use facets with fixed scales (NULL, default) or free scales ("free").
-#' @param ... Further arguments passed to magickCell()
+#' @param cdata dataframe of "cell data"
+#' @param pdata dataframe "position data"
+#' @param paths dataframe of image paths 
+#' @param cell_tags list of named vectors corresponding to tag groups and tags. 
+#' @param tag_box_size size of the image crop in pixels
+#' @param n_max max number of boxes in the image
+#' @param seed seed for random sampling of images
+#' @param tmp_csv_output file path into which tagging information will be dumped progressively
+#' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
+# @param ... extra arguments, not used.
 #' @return Lots of stuff.
 # @examples
 # saved_data <- shinyCell(cdata, pdata, paths, plotType = "Dots")
@@ -30,7 +30,6 @@ tagCell <- function(cdata,
                     pdata,
                     paths,
                     cell_tags,
-                    filters = list(),
                     tag_box_size = 50,
                     n_max=10,
                     seed = 1,

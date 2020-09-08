@@ -52,6 +52,7 @@ p
 ```{r}
 # devtools::document()
 # devtools::load_all(recompile = F, reset = T, quiet = T)
+# ?rcell2::tagCell
 saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
                          cell_tags = list(far1_drop = c(TRUE,
                                                         FALSE),
