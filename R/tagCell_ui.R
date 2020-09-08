@@ -19,13 +19,14 @@ tagCellUi <- function(){shiny::fluidPage(
                     # tags$head(tags$style("#{height:100vh !important;}")),
                     shiny::tabPanel("Cell pics",
                                     shiny::p("Tag the current cell to tag to the next one:"),
-                                    shiny::plotOutput(outputId = "pics",
-                                                      height = "100%", width = "100%"
-                                                      # height = "auto", width = "auto"
-                                                      ),
-                                    shiny::p(shiny::actionButton(inputId = "next_cell", label = "Next")),
-                                    shiny::p(shiny::actionButton(inputId = "prev_cell", label = "Previous")),
-                                    shiny::verbatimTextOutput("cell_ith")
+                                    shiny::p(shiny::plotOutput(outputId = "pics",
+                                                               height = "100%", width = "100%"
+                                                               # height = "auto", width = "auto"
+                                    )),
+                                    shiny::p(uiOutput("moreControls"),
+                                             shiny::actionButton(inputId = "prev_cell", label = "Previous"),
+                                             shiny::actionButton(inputId = "next_cell", label = "Next"),
+                                             shiny::verbatimTextOutput("cell_ith"))
                     ),
                     shiny::tabPanel("My ggplot",
                                     shiny::plotOutput(outputId = "plot"#, 

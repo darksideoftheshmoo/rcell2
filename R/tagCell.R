@@ -29,15 +29,17 @@
 tagCell <- function(cdata,
                     pdata,
                     paths,
+                    cell_tags,
                     filters = list(),
-                    plotType = "Hex",
-                    tag_ggplot = NULL,
-                    seed = 1,
-                    initial_facet = "",
-                    facet_grid_option = TRUE,
-                    facets_scale_free = NULL,
+                    tag_box_size = 50,
                     n_max=10,
+                    seed = 1,
                     tmp_csv_output=tempfile(tmpdir = "./", fileext = ".txt"),
+                    tag_ggplot = NULL,
+                    # plotType = "Hex",
+                    # initial_facet = "",
+                    # facet_grid_option = TRUE,
+                    # facets_scale_free = NULL,
                     ...){
   
   # To-do

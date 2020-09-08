@@ -8,15 +8,13 @@ tagCell(
   cdata,
   pdata,
   paths,
+  cell_tags,
   filters = list(),
-  plotType = "Hex",
-  tag_ggplot = NULL,
-  seed = 1,
-  initial_facet = "",
-  facet_grid_option = TRUE,
-  facets_scale_free = NULL,
+  tag_box_size = 50,
   n_max = 10,
+  seed = 1,
   tmp_csv_output = tempfile(tmpdir = "./", fileext = ".txt"),
+  tag_ggplot = NULL,
   ...
 )
 }
@@ -29,17 +27,17 @@ tagCell(
 
 \item{filters}{Vector de strings con los filtros. c() by default.}
 
-\item{plotType}{"Hex", "Density", and "Dots" are available.}
-
 \item{seed}{Seed value for sampling of cell images.}
+
+\item{...}{Further arguments passed to magickCell()}
+
+\item{plotType}{"Hex", "Density", and "Dots" are available.}
 
 \item{initial_facet}{Initial facet formula as a string.}
 
 \item{facet_grid_option}{Use facet_grid (TRUE, default) or facet_wrap.}
 
 \item{facets_scale_free}{Use facets with fixed scales (NULL, default) or free scales ("free").}
-
-\item{...}{Further arguments passed to magickCell()}
 }
 \value{
 Lots of stuff.

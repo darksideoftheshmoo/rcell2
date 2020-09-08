@@ -7,7 +7,7 @@ output: html_document
 
 # Rebuild
 
-```{r build, eval=FALSE, message=FALSE, warning=TRUE}
+```{r build, message=FALSE, warning=TRUE}
 
 devtools::document()
 devtools::load_all(recompile = F, reset = T, quiet = T)
@@ -41,18 +41,28 @@ cell.data <- rcell2::cell.load.alt(path =  path)
 #### SETUP PATHS DATAFRAME ####
 paths <- rcell2::magickPaths(cell.data)
 
-p <- cell.data$d %>% ggplot() +
+p <- cell.data$d %>% ggplot() + 
   geom_point(aes(x = a.tot, y = fft.stat, color = pos)) +
   theme(legend.position = "none")
 
-saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
-                         cell_tags = list(far1_drop = c(TRUE, FALSE)),
-                         tag_ggplot = p,
-                         t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
-                         tag_channels_select = NULL,
-                         tag_box_size = 75)
+p
+```
 
-read_csv(saved, col_names = FALSE)
+
+```{r}
+saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
+                         cell_tags = list(far1_drop = c(TRUE,
+                                                        FALSE),
+                                          artifact = c("segmentation",
+                                                       "death")
+                                          ),  # list(named_item1 = c(option1, option2, ...), named_item2 ...)
+                         # t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
+                         # tag_channels_select = NULL,  # c("BF.out", "BF", "YFP", ...)
+                         tag_box_size = 75,
+                         tag_ggplot = p)
+
+
+saved
 ```
 
 
