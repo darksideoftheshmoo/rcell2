@@ -35,13 +35,18 @@ tagCellServer <- function(input, output, session) {
     # print(selected_cell_tags[ith_cell])
     
     lapply(1:length(names(cell_tags)), function(tag_group){
-      shiny::selectInput(names(cell_tags)[tag_group],
-                         names(cell_tags)[tag_group],
-                         cell_tags[tag_group], 
-                         multiple = TRUE, 
-                         # selected = unlist(selected_cell_tags[ith_cell])[tag_group],
-                         selected = NULL,
-                         selectize = T)
+      # shiny::selectInput(inputId = names(cell_tags)[tag_group], 
+      #                    label = names(cell_tags)[tag_group],
+      #                    choices = cell_tags[tag_group],
+      #                    multiple = TRUE,
+      #                    # selected = unlist(selected_cell_tags[ith_cell])[tag_group],
+      #                    selected = NULL,
+      #                    selectize = T)
+      shiny::checkboxGroupInput(inputId = names(cell_tags)[tag_group], 
+                                label = names(cell_tags)[tag_group],
+                                choices = unlist(cell_tags[tag_group])
+                                # choices = list("asd", "dddd")
+                                )
     })
   })
   
@@ -107,24 +112,28 @@ tagCellServer <- function(input, output, session) {
       selected_cell_tags <- selected_cell_tags[[ith_ucid]]
       for(tag_group in names(cell_tags)){
         if(tag_group %in% names(selected_cell_tags)){
-          shiny::updateSelectInput(session,
-                                   inputId = tag_group,
-                                   choices = cell_tags[tag_group],
-                                   selected = selected_cell_tags[[tag_group]])
+          # shiny::updateSelectInput(session,
+          shiny::updateCheckboxGroupInput(session,
+                                          inputId = tag_group,
+                                          choices = cell_tags[[tag_group]],
+                                          selected = selected_cell_tags[[tag_group]])
         } else {
-          shiny::updateSelectInput(session,
-                                   inputId = tag_group,
-                                   choices = cell_tags[tag_group],
-                                   selected = NULL)
+          # shiny::updateSelectInput(session,
+          shiny::updateCheckboxGroupInput(session,
+                                          inputId = tag_group,
+                                          choices = cell_tags[[tag_group]],
+                                          selected = NULL)
         }
       }
     } else {
       print("--- UCID not tagged")
       for(tag_group in names(cell_tags)){
-        shiny::updateSelectInput(session,
-                                 inputId = tag_group,
-                                 choices = cell_tags[tag_group],
-                                 selected = NULL)
+        # shiny::updateSelectInput(session,
+        # shiny::updateSelectInput(session,
+        shiny::updateCheckboxGroupInput(session,
+                                        inputId = tag_group,
+                                        choices = cell_tags[[tag_group]],
+                                        selected = NULL)
       }
     }
   })
@@ -161,9 +170,10 @@ tagCellServer <- function(input, output, session) {
     
     write(tag_line, file=tmp_csv_output,append=TRUE)
     
-    shiny::isolate({reactive_values$i_line <- reactive_values$i_line +1})
-    
-    reactive_values$ith_cell
+    paste(
+    "ucid: ", d[reactive_values$ith_cell, c("ucid")],
+    "\nt.frame: ", d[reactive_values$ith_cell, c("t.frame")]
+    )
   })
   
   # Reactive image 1: magickCell  ----------------
