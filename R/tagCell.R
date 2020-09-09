@@ -14,6 +14,8 @@
 #' @param paths dataframe of image paths 
 #' @param cell_tags list of named vectors corresponding to tag groups and tags. 
 #' @param tag_box_size size of the image crop in pixels
+#' @param cell_resize resize of the image crop in pixels
+#' @param tag_channels_select a vector giving names for the image channels: c("BF", "YFP.out", etc....)
 #' @param n_max max number of boxes in the image
 #' @param seed seed for random sampling of images
 #' @param tmp_csv_output file path into which tagging information will be dumped progressively
@@ -31,6 +33,8 @@ tagCell <- function(cdata,
                     paths,
                     cell_tags,
                     tag_box_size = 50,
+                    cell_resize=100,
+                    tag_channels_select=c("BF"),
                     n_max=10,
                     seed = 1,
                     tmp_csv_output=tempfile(tmpdir = "./", fileext = ".txt"),

@@ -2,7 +2,7 @@
 #'
 #' @param cdata A Rcell data.frame (not the object).
 #' @param paths Paths a la imagen de cada posición.
-#' @param max_size Maximum size of the final image (this resize is applied last) in pixels. 500 by default.
+#' @param max_composite_size Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.
 #' @param cell_resize Size of the individual cell images. "100x100" by default.
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
 #' @param n maximum number of cells to display.
@@ -20,8 +20,8 @@
 #' @rawNamespace import(foreach, except = c("when", "accumulate"))
 #' @export
 magickCell <- function(cdata, paths,
-                       max_size = 500, 
-                       cell_resize = 100,
+                       max_composite_size = 1000, 
+                       cell_resize = NULL,
                        boxSize = 50, 
                        n = 100,
                        .equalize = F, 
@@ -32,6 +32,7 @@ magickCell <- function(cdata, paths,
   if(.debug) print("F8")
 
   # "100x100" pixels
+  if(is.null(cell_resize)) cell_resize <- boxSize
   cell_resize_string <- paste0(cell_resize, "x", cell_resize)
 
   # Intento con magick
@@ -40,8 +41,8 @@ magickCell <- function(cdata, paths,
   getCellGeom <- function(xpos, ypos, boxSize = 50){
     geometry <- magick::geometry_area(width = boxSize,
                                       height = boxSize,
-                                      x_off = xpos - boxSize/2,
-                                      y_off = ypos - boxSize/2)
+                                      x_off = xpos - base::floor(boxSize/2),
+                                      y_off = ypos - base::floor(boxSize/2))
     return(geometry)
   }
 
@@ -125,8 +126,8 @@ magickCell <- function(cdata, paths,
   }
   imgb <- magick::image_append(imgb, stack = T)
 
-  if(nRow*cell_resize >= max_size || nCol*cell_resize >= max_size){
-    resize_string <- paste0(max_size, "x", max_size)
+  if(nRow*cell_resize >= max_composite_size || nCol*cell_resize >= max_composite_size){
+    resize_string <- paste0(max_composite_size, "x", max_composite_size)
     imgb <- magick::image_resize(imgb, resize_string)
   }
 

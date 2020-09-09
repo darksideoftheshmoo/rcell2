@@ -9,8 +9,9 @@ tagCell(
   pdata,
   paths,
   cell_tags,
-  filters = list(),
   tag_box_size = 50,
+  cell_resize = 100,
+  tag_channels_select = c("BF"),
   n_max = 10,
   seed = 1,
   tmp_csv_output = tempfile(tmpdir = "./", fileext = ".txt"),
@@ -29,6 +30,10 @@ tagCell(
 
 \item{tag_box_size}{size of the image crop in pixels}
 
+\item{cell_resize}{resize of the image crop in pixels}
+
+\item{tag_channels_select}{a vector giving names for the image channels: c("BF", "YFP.out", etc....)}
+
 \item{n_max}{max number of boxes in the image}
 
 \item{seed}{seed for random sampling of images}
@@ -41,13 +46,5 @@ tagCell(
 Lots of stuff.
 }
 \description{
-Ejemplo:
-saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
-                         cell_tags = list(far1_drop = c(TRUE,
-                                                        FALSE),
-                                          artifact = c("segmentation",
-                                                       "death")
-                         ),  # list(named_item1 = c(option1, option2, ...), named_item2 ...)
-                         tag_box_size = 75,
-                         tag_ggplot = p)
+Filtrar cdata usando gráficos y dibujando regiones
 }

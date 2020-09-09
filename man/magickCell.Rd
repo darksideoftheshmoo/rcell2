@@ -7,8 +7,8 @@
 magickCell(
   cdata,
   paths,
-  max_size = 500,
-  cell_resize = 100,
+  max_composite_size = 1000,
+  cell_resize = NULL,
   boxSize = 50,
   n = 100,
   .equalize = F,
@@ -25,7 +25,7 @@ magickCell(
 
 \item{paths}{Paths a la imagen de cada posición.}
 
-\item{max_size}{Maximum size of the final image (this resize is applied last) in pixels. 500 by default.}
+\item{max_composite_size}{Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.}
 
 \item{cell_resize}{Size of the individual cell images. "100x100" by default.}
 

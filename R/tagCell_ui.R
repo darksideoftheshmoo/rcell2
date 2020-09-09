@@ -4,16 +4,16 @@
 #'
 tagCellUi <- function(){shiny::fluidPage(
   fluidPage(shiny::fluidRow(
-    shiny::column(
-      width = 3,
-      # shiny::p("A rough app to tag cells from CellID data"),
-      shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
-      shiny::hr(),
-      # shiny::verbatimTextOutput("info"),
-      # shiny::verbatimTextOutput("logs"),
-      shiny::p(shiny::actionButton(inputId = "quit", label = "Save & Quit"))
-    ),
-    shiny::column(width = 6, 
+    # shiny::column(
+    #   width = 3,
+    #   # shiny::p("A rough app to tag cells from CellID data"),
+    #   shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
+    #   shiny::hr(),
+    #   # shiny::verbatimTextOutput("info"),
+    #   # shiny::verbatimTextOutput("logs"),
+    #   shiny::p(shiny::actionButton(inputId = "quit", label = "Save & Quit"))
+    # ),
+    shiny::column(width = 9, 
                   offset = 0,
                   shiny::tabsetPanel(
                     # tags$head(tags$style("#{height:100vh !important;}")),
@@ -36,5 +36,11 @@ tagCellUi <- function(){shiny::fluidPage(
                     uiOutput("moreControls"),
                     shiny::actionButton(inputId = "prev_cell", label = "Previous"),
                     shiny::actionButton(inputId = "next_cell", label = "Next")
-                    ))
+                    ),
+                  shiny::p(
+                    shiny::hr(),
+                    shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
+                    shiny::hr(),
+                    shiny::p(shiny::actionButton(inputId = "quit", label = "Save & Quit"))
+                  ))
 )))}

@@ -11,7 +11,7 @@ tagCellServer <- function(input, output, session) {
   print(tmp_csv_output)
   write("", file=tmp_csv_output,append=TRUE)
   
-  d <- cdata %>% dplyr::arrange(ucid) %>% 
+  d <- cdata %>% dplyr::arrange(ucid, t.frame) %>% 
     mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_"))
   p <- paths
   
@@ -69,8 +69,8 @@ tagCellServer <- function(input, output, session) {
       
       # Handle previous > total
       reactive_values$ith_cell <- ith_cell + 1                     # Update the ith_cell reactive value
-      if(ith_cell + 1 > length(cdata)){
-        showNotification("There is no previous cell, staying at the first one.")
+      if(ith_cell + 1 > nrow(cdata)){
+        showNotification("There is no next cell, staying at the first one.")
         reactive_values$ith_cell <- 1
       }
     })
@@ -182,14 +182,18 @@ tagCellServer <- function(input, output, session) {
     
     if(nrow(d) > 0) {
       print("-- Selection not empty: magick!")
-      cdata.selected <- d[d$ucid == d$ucid[reactive_values$ith_cell],]
+      # cdata.selected <- d[d$ucid == d$ucid[reactive_values$ith_cell],]
+      cdata.selected <- d[reactive_values$ith_cell,]
       magick.cell <-  magickCell(cdata = cdata.selected, 
                                  p,
-                                 ch=input$image_channel, 
+                                 # ch=input$image_channel, 
+                                 cell_resize=cell_resize,
+                                 ch=tag_channels_select, 
                                  n = n_max, 
                                  .equalize = F,
                                  .normalize = T,
-                                 boxSize = tag_box_size)
+                                 boxSize = tag_box_size, 
+                                 return_single_imgs = T)
       tmpimage <- magick.cell$img
       print(magick.cell$ucids)
     } else {
@@ -199,7 +203,9 @@ tagCellServer <- function(input, output, session) {
     }
     
     tmpfile <- magick::image_write(tmpimage, tempfile(fileext='jpg'), format = 'jpg')
-    list(src = tmpfile, contentType = "image/jpeg")
+    
+    list(src = tmpfile, 
+         contentType = "image/jpeg")
   }, deleteFile=TRUE)
   
   # Reactive plot 1  ----------------
