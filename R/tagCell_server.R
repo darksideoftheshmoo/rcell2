@@ -212,8 +212,16 @@ tagCellServer <- function(input, output, session) {
   output$plot <- shiny::renderPlot({
     print("- Rendering plot 1")
     
+    ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
+    ith_t.frame <- as.character(d$t.frame[reactive_values$ith_cell])
+    
+    print(ith_ucid)
+    
+    ucid_data <- filter(cdata, ucid == ith_ucid)
+    
     if(!is.null(tag_ggplot)){
-      tag_ggplot
+      tag_ggplot <- tag_ggplot %+% ucid_data
+      tag_ggplot + geom_vline(xintercept = as.numeric(ith_t.frame), color = "red")
     }
   })
 }

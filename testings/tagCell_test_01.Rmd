@@ -67,6 +67,45 @@ saved <- rcell2::tagCell(cell.data$d, pdata, paths,
 
 saved
 ```
+```{r}
+cell.data <- readRDS("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/output/cell.data20200728_a20c377c8979.RDS")
+image.paths <- rcell2::magickPaths(cell.data)
+datos_splines <- readRDS("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/output//datos_splines_20200902_1bd5862e36193.RDS")
+cdata.filtered4 <- readRDS("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/output/cdata.filtered4_20200814_9a43be8ccdb.RDS")
+pdata <- readr::read_csv("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/data/arresto-lavado/Pre_alphaF/2019_11_20_Exp_Ali.csv")
+```
+
+
+```{r}
+p <- ggplot(cdata.filtered4) + 
+  geom_line(aes(x=t.frame, y=cf.y, group=ucid))
+
+p %+% arrange(cdata.filtered4, ucid)[1:10,]
+```
+
+
+```{r}
+devtools::document()
+devtools::load_all(recompile = F, reset = T, quiet = T)
+saved <- rcell2::tagCell(cdata.filtered4,
+                         pdata, image.paths,
+                         cell_tags = list(far1_drop = c(TRUE,
+                                                        FALSE),  # t.drop aparente pero falso por algun artefacto
+                                          budding =   c("emergence",
+                                                        "division"),
+                                          artifact =  c("segmentation",
+                                                        "out_of_focus",
+                                                        "interesante",
+                                                        "death",
+                                                        "flown_away")
+                                          ),  # list(named_item1 = c(option1, option2, ...), named_item2 ...)
+                         # t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
+                         tag_channels_select = c("BF.out", "YFP"),  # c("BF.out", "BF", "YFP", ...)
+                         n_max = 50,
+                         tag_box_size = 75,
+                         cell_resize = 300,
+                         tag_ggplot = p)
+```
 
 
 ```{r}

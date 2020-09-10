@@ -22,12 +22,15 @@ tagCellUi <- function(){shiny::fluidPage(
                                     shiny::p(shiny::plotOutput(outputId = "pics",
                                                                height = "100%", width = "100%"
                                                                # height = "auto", width = "auto"
-                                    ))),
-                    shiny::tabPanel("My ggplot",
-                                    shiny::plotOutput(outputId = "plot"#, 
-                                                      # height = "100%", width = "100%"
-                                                      # height = "auto", width = "auto"
-                                    )))
+                                    )),
+                                    shiny::p(
+                                      shiny::plotOutput(outputId = "plot"#, 
+                                                        # height = "100%", width = "100%"
+                                                        # height = "auto", width = "auto"
+                                    ))
+                                    ),
+                    shiny::tabPanel("My ggplot")
+                    )
                   ),
     shiny::column(width = 3, 
                   offset = 0,
