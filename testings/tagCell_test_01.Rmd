@@ -11,9 +11,9 @@ output: html_document
 
 devtools::document()
 devtools::load_all(recompile = F, reset = T, quiet = T)
-devtools::install(reload = T, build = F,
-                  quiet = T,
-                  upgrade = "never", keep_source = T)
+# devtools::install(reload = T, build = F,
+#                   quiet = T,
+#                   upgrade = "never", keep_source = T)
 # devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 # devtools::check()
 # devtools::build()

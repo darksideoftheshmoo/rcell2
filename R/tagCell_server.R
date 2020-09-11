@@ -58,8 +58,8 @@ tagCellServer <- function(input, output, session) {
     eventExpr = input$next_cell,
     handlerExpr = {
       print("- Next cell requested, saving current tags...")
-      shinyjs::disable("prev_cell")
       shinyjs::disable("next_cell")
+      shinyjs::disable("prev_cell")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
       
@@ -117,10 +117,10 @@ tagCellServer <- function(input, output, session) {
     eventExpr = input$next_ucid,
     handlerExpr = {
       print("- Next ucid requested, saving current tags...")
-      shinyjs::disable("prev_cell")
-      shinyjs::disable("next_cell")
-      shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
+      shinyjs::disable("prev_ucid")
+      shinyjs::disable("next_cell")
+      shinyjs::disable("prev_cell")
       
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
@@ -152,10 +152,10 @@ tagCellServer <- function(input, output, session) {
     eventExpr = input$prev_ucid,
     handlerExpr = {
       print("- Previous ucid requested...")
-      shinyjs::disable("prev_cell")
-      shinyjs::disable("next_cell")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
+      shinyjs::disable("prev_cell")
+      shinyjs::disable("next_cell")
       
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
@@ -226,10 +226,12 @@ tagCellServer <- function(input, output, session) {
       }
     }
     
-    shinyjs::enable("prev_cell")
-    shinyjs::enable("next_cell")
-    shinyjs::enable("prev_ucid")
-    shinyjs::enable("next_ucid")
+    shinyjs::delay(300, expr = {
+      shinyjs::enable("prev_cell")
+      shinyjs::enable("next_cell")
+      shinyjs::enable("prev_ucid")
+      shinyjs::enable("next_ucid")
+    })
   })
   
   # BUTTON OBSERVER 2: EXIT  ----------------
