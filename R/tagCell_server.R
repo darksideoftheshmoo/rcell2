@@ -15,7 +15,12 @@ tagCellServer <- function(input, output, session) {
   # write("", file=tmp_output_file)
   
   d <- cdata %>% dplyr::arrange(ucid, t.frame) %>% 
-    mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_"))
+    mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_")) %>% 
+    mutate(
+      cellID = as.integer(cellID),
+      ucid = as.integer(ucid),
+      t.frame = as.integer(t.frame)
+    )
   p <- paths
   
   ucid.unique <- unique(d$ucid)
@@ -245,19 +250,21 @@ tagCellServer <- function(input, output, session) {
       writeLines("\n- Quit event fired")
 
       print(paste("-- Saving progress to file:", tmp_output_file))
-      table_output <- reactive_values$selected_cell_tags %>% 
-        bind_rows(.id = "ucid_t.frame")
-      if(nrow(table_output) > 0)
-        separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
-          readr::write_csv(path = tmp_output_file)
-  
-      output <- reactive_values$selected_cell_tags %>% 
-        bind_rows(.id = "ucid_t.frame") %>% #%>% mutate(ucid = as.numeric(ucid_t.frame))
-        separate(ucid_t.frame, c("ucid", "t.frame"))
-
+      
+      table_output <- reactive_values$selected_cell_tags %>% bind_rows(.id = "ucid_t.frame")
+      if(nrow(table_output) > 0){
+        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
+          mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
+          left_join(select(d, ucid, pos, cellID))
+        table_output %>% readr::write_csv(path = tmp_output_file)
+      } else {
+        table_output <- data.frame()
+      }
+      
+      print("-- Returning progress to output:")
       # stopApp(list(tmp_csv_output, reactive_values$selected_cell_tags))
       # stopApp(tmp_csv_output)
-      stopApp(output)
+      stopApp(table_output)
     }
   )
   
@@ -272,7 +279,9 @@ tagCellServer <- function(input, output, session) {
         bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
       
       if(nrow(table_output) > 0){
-        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame"))
+        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
+          mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
+          left_join(select(d, ucid, pos, cellID))
         showNotification(paste("-- Saving progress to file:", tmp_output_file), duration = 4, type = "message")
       } else {
         table_output <- data.frame(message = "No annotations yet...")
@@ -285,7 +294,7 @@ tagCellServer <- function(input, output, session) {
   )
   
   ### OUTPUT OBSERVERS and RENDERERS  ----------------
-  # Reactive table 1   ----------------
+  # Reactive table 1: PROGRESS  ----------------
   output$saved_annotations <- shiny::renderTable({
     print("- Rendering table 1")
     
@@ -293,7 +302,9 @@ tagCellServer <- function(input, output, session) {
       bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
     
     if(nrow(table_output) > 0){
-      table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame"))
+      table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
+        mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
+        left_join(select(d, ucid, pos, cellID))
     } else {
       table_output <- data.frame(message = "No annotations yet...")
     }
@@ -301,7 +312,7 @@ tagCellServer <- function(input, output, session) {
     table_output
   })
   
-  # Reactive text 1  ----------------
+  # Reactive text 1: current UCID and t.frame  ----------------
   output$cell_ith <- shiny::renderText({
     ith_ucid <- d$ucid[reactive_values$ith_cell]
     
@@ -352,7 +363,7 @@ tagCellServer <- function(input, output, session) {
          contentType = "image/jpeg")
   }, deleteFile=TRUE)
   
-  # Reactive plot 1  ----------------
+  # Reactive plot 1: user plot  ----------------
   output$plot <- shiny::renderPlot({
     print("- Rendering plot 1")
     

@@ -179,6 +179,10 @@ cell.load.alt <- function(path = "data/images2/",
     # By padding to the same number of digits, cells from positions as 90 and 9 could have the same UCID.
     #mutate(ucid = 10 - pos %>% as.character %>% nchar - cellID %>% as.character %>% nchar) %>% #glimpse()
     # The next lines fix that bug, which would cells to not be filtered correctly, and be plotted anyways, or other problems.
+    mutate(
+      cellID = as.integer(cellID),
+      t.frame = as.integer(t.frame)
+    ) %>% 
     mutate(cellid.pad = cellid.zero.pad - nchar(as.character(cellID))) %>%
     mutate(
       ucid = paste0(
@@ -289,8 +293,11 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
       read_tsv(col_types = cols()) %>%
       mutate(pos = .pos)  # La columna de ID es "pos"
 
-    print("Removing 'con.vol_1' duplicated column if it exists.")
-    if("con.vol_1" %in% names(d)) d <- d %>% select(-con.vol_1)
+    
+    if("con.vol_1" %in% names(d)) {
+      print("Removing 'con.vol_1' column.")
+      d <- d %>% select(-con.vol_1)
+    }
 
     d
   }
@@ -308,13 +315,13 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   # # Cargo y junto los "out_bf_fl_mapping"
   d.map <- purrr::map(.x = .nombre.archivos.map,
                       .f = read_tsv.con.id,
-                        .carpeta = .carpeta) %>%
+                      .carpeta = .carpeta) %>%
     bind_rows() %>%
     mutate(pos = as.integer(pos)) %>%
     # select(-bright, -bf.as.fl) %>%
     mutate(channel = str_replace(string = fluor,
-                               pattern = fluorescence.pattern,
-                               replacement = "\\1")) %>%
+                                 pattern = fluorescence.pattern,
+                                 replacement = "\\1")) %>%
     mutate(channel = tolower(channel))
 
   # Return join
