@@ -7,15 +7,17 @@
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   
-  print("Appending tags to tempfile:")
-  print(tmp_csv_output)
-  write("", file=tmp_csv_output,append=TRUE)
+  # print("Appending tags to tempfile:")
+  # print(tmp_csv_output)
+  # write("", file=tmp_csv_output,append=TRUE)
   
   d <- cdata %>% dplyr::arrange(ucid, t.frame) %>% 
     mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_"))
   p <- paths
   
-  reactive_values <- shiny::reactiveValues(ith_cell = 1,
+  ucid.unique <- unique(d$ucid)
+  
+  reactive_values <- shiny::reactiveValues(ith_cell = 1, ith_ucid = numeric(),
                                            i_line = 1,
                                            other_reactive_values = c(),
                                            selected_cell_tags = list())
@@ -56,7 +58,12 @@ tagCellServer <- function(input, output, session) {
     eventExpr = input$next_cell,
     handlerExpr = {
       print("- Next cell requested, saving current tags...")
-      ith_cell <- reactive_values$ith_cell                         # Get the current reactive cell number
+      shinyjs::disable("prev_cell")
+      shinyjs::disable("next_cell")
+      shinyjs::disable("prev_ucid")
+      shinyjs::disable("next_ucid")
+      
+      ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid for that cell
       
       print("-- Saving tag selection")
@@ -65,13 +72,14 @@ tagCellServer <- function(input, output, session) {
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
           ith_cell_tags[[names(cell_tags)[tag_group]]]  # Store it in a list element appropriately named 
       
-      reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
+      # reactive_values$ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])  # Save the ucid
+      reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags             # Save the tag list to a UCID name element in a reactive values list.
       
       # Handle previous > total
-      reactive_values$ith_cell <- ith_cell + 1                     # Update the ith_cell reactive value
-      if(ith_cell + 1 > nrow(cdata)){
-        showNotification("There is no next cell, staying at the first one.")
-        reactive_values$ith_cell <- 1
+      if(ith_cell == nrow(cdata)){
+        showNotification("There is no next cell, staying at the current one.")
+      } else {
+        reactive_values$ith_cell <- ith_cell + 1                     # Update the ith_cell reactive value
       }
     })
   
@@ -80,7 +88,12 @@ tagCellServer <- function(input, output, session) {
     eventExpr = input$prev_cell,
     handlerExpr = {
       print("- Previous cell requested...")
-      ith_cell <- reactive_values$ith_cell                       # Get the current reactive cell number
+      shinyjs::disable("prev_cell")
+      shinyjs::disable("next_cell")
+      shinyjs::disable("prev_ucid")
+      shinyjs::disable("next_ucid")
+      
+      ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
       
       print("-- Saving tag selection")
@@ -92,19 +105,95 @@ tagCellServer <- function(input, output, session) {
       reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
       
       # Handle previous < 1
-      reactive_values$ith_cell <- ith_cell - 1                   # Update the ith_cell reactive value
       if(reactive_values$ith_cell < 1){
-        showNotification("There is no previous cell, staying at the first one.")
-        reactive_values$ith_cell <- 1
+        showNotification("There is no previous cell, staying at the current one.")
+      } else {
+        reactive_values$ith_cell <- ith_cell - 1                   # Update the ith_cell reactive value
       }
     })
   
-  # SIDE EFFECTS FOR PREV/NEXT BUTTON
+  # BUTTON 2.1: NEXT UCID  ----------------
+  shiny::observeEvent(
+    eventExpr = input$next_ucid,
+    handlerExpr = {
+      print("- Next ucid requested, saving current tags...")
+      shinyjs::disable("prev_cell")
+      shinyjs::disable("next_cell")
+      shinyjs::disable("prev_ucid")
+      shinyjs::disable("next_ucid")
+      
+      ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
+      ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
+      
+      print("-- Saving tag selection")
+      ith_cell_tags <- list()
+      for(tag_group in 1:length(names(cell_tags)))      # For each tag group
+        input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
+        ith_cell_tags[[names(cell_tags)[tag_group]]]  # Store it in a list element appropriately named 
+      
+      reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
+      
+      # Skip to the next UCID
+      ucid.oi <- as.character(d$ucid[reactive_values$ith_cell])   # Get bare ucid for the current cell
+      ucid.oi.index <- match(ucid.oi, ucid.unique)
+      ucid.next <- ucid.unique[ucid.oi.index + 1]                 # Get the next ucid
+      ucid.next.index <- match(ucid.next, d$ucid)                 # Get the next ucid's row index
+      # Handle next > total
+      if(ucid.oi.index >= length(ucid.unique)){
+        showNotification("--- There is no next ucid, staying at the current one.")
+      } else {
+        showNotification("--- Moving to next ucid.", duration = 1)
+        reactive_values$ith_cell <- ucid.next.index               # Update the ith_cell reactive value
+      }
+    })
+  
+  # BUTTON 2.2: PREVIOUS UCID ----------------
+  shiny::observeEvent(
+    eventExpr = input$prev_ucid,
+    handlerExpr = {
+      print("- Previous ucid requested...")
+      shinyjs::disable("prev_cell")
+      shinyjs::disable("next_cell")
+      shinyjs::disable("prev_ucid")
+      shinyjs::disable("next_ucid")
+      
+      ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
+      ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
+      
+      print("-- Saving tag selection")
+      ith_cell_tags <- list()
+      for(tag_group in 1:length(names(cell_tags)))      # For each tag group
+        input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
+        ith_cell_tags[[names(cell_tags)[tag_group]]]  # Store it in a list element appropriately named 
+      
+      reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
+      
+      # Skip to the previous UCID
+      ucid.oi <- as.character(d$ucid[reactive_values$ith_cell])   # Get bare ucid for the current cell
+      ucid.oi.index <- match(ucid.oi, ucid.unique)
+      ucid.next <- ucid.unique[ucid.oi.index - 1]                 # Get the previous ucid
+      ucid.next.index <- match(ucid.next, d$ucid)                 # Get the previous ucid's row index
+      
+      # Handle next > total
+      if(ucid.oi.index == 1){
+        showNotification("--- There is no previous ucid, staying at the current one.")
+      } else {
+        showNotification("--- Moving to previous ucid.", duration = 1)
+        reactive_values$ith_cell <- ucid.next.index               # Update the ith_cell reactive value
+      }
+    })
+  
+  # SIDE EFFECTS FOR PREV/NEXT BUTTON  ----------------
   shiny::observe({
-    print("-- Updating tag selection for next cell")
-    selected_cell_tags <- reactive_values$selected_cell_tags
+    print("-- Updating tag selection for next or previous cell")
+    shinyjs::disable("prev_cell")
+    shinyjs::disable("next_cell")
+    shinyjs::disable("prev_ucid")
+    shinyjs::disable("next_ucid")
+    
     ith_cell <- reactive_values$ith_cell
     ith_ucid <- as.character(d$ucid_t.frame[ith_cell])
+    selected_cell_tags <- isolate(reactive_values$selected_cell_tags)
     
     if(ith_ucid %in% names(selected_cell_tags)){
       print("--- UCID tag found")
@@ -126,7 +215,7 @@ tagCellServer <- function(input, output, session) {
         }
       }
     } else {
-      print("--- UCID not tagged")
+      print("--- UCID not yet tagged")
       for(tag_group in names(cell_tags)){
         # shiny::updateSelectInput(session,
         # shiny::updateSelectInput(session,
@@ -136,6 +225,11 @@ tagCellServer <- function(input, output, session) {
                                         selected = NULL)
       }
     }
+    
+    shinyjs::enable("prev_cell")
+    shinyjs::enable("next_cell")
+    shinyjs::enable("prev_ucid")
+    shinyjs::enable("next_ucid")
   })
   
   # BUTTON OBSERVER 2: EXIT  ----------------
@@ -168,7 +262,7 @@ tagCellServer <- function(input, output, session) {
       sep = ", "
     )
     
-    write(tag_line, file=tmp_csv_output,append=TRUE)
+    # write(tag_line, file=tmp_csv_output,append=TRUE)
     
     paste(
     "ucid: ", d[reactive_values$ith_cell, c("ucid")],
@@ -195,7 +289,7 @@ tagCellServer <- function(input, output, session) {
                                  boxSize = tag_box_size, 
                                  return_single_imgs = T)
       tmpimage <- magick.cell$img
-      print(magick.cell$ucids)
+      print(paste("--", magick.cell$ucids))
     } else {
       # Output white if selection is empty
       print("-- Selection is empty")
@@ -215,7 +309,7 @@ tagCellServer <- function(input, output, session) {
     ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
     ith_t.frame <- as.character(d$t.frame[reactive_values$ith_cell])
     
-    print(ith_ucid)
+    print(paste("--", ith_ucid))
     
     ucid_data <- filter(cdata, ucid == ith_ucid)
     

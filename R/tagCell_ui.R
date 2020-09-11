@@ -1,8 +1,8 @@
 #' Shiny app UI object for tagCell
 #'
-#' @import shiny formattable shinydashboard
+#' @import shiny shinyjs formattable shinydashboard
 #'
-tagCellUi <- function(){shiny::fluidPage(
+tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
   fluidPage(shiny::fluidRow(
     # shiny::column(
     #   width = 3,
@@ -37,12 +37,14 @@ tagCellUi <- function(){shiny::fluidPage(
                   shiny::p(
                     shiny::verbatimTextOutput("cell_ith"),
                     uiOutput("moreControls"),
-                    shiny::actionButton(inputId = "prev_cell", label = "Previous"),
-                    shiny::actionButton(inputId = "next_cell", label = "Next")
+                    shiny::actionButton(inputId = "prev_cell", label = "Previous", icon = shiny::icon("step-backward")),
+                    shiny::actionButton(inputId = "next_cell", label = "Next", icon = shiny::icon("step-forward"))
                     ),
                   shiny::p(
                     shiny::hr(),
-                    shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
+                    # shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
+                    shiny::actionButton(inputId = "prev_ucid", label = "Unskip", icon = shiny::icon("fast-backward")),
+                    shiny::actionButton(inputId = "next_ucid", label = "Skip", icon = shiny::icon("fast-forward")),
                     shiny::hr(),
                     shiny::p(shiny::actionButton(inputId = "quit", label = "Save & Quit"))
                   ))
