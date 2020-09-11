@@ -152,6 +152,7 @@ cellArgs.print <- function(cell.args, which.args = c("p", "b", "f", "o")) for(i 
 #'
 #' @param path Path to images directory
 #' @param position.pattern Regex describing what the position string looks like (default 'Position\\d+')
+#' @param ucid.zero.pad amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions)
 #' @param ... pass "pdata" with the path to the pdata file to merge it internally
 #' @return a data frame
 # @examples
@@ -162,6 +163,7 @@ cellArgs.print <- function(cell.args, which.args = c("p", "b", "f", "o")) for(i 
 cell.load.alt <- function(path = "data/images2/",
                           pdata = NULL,
                           position.pattern = "Position\\d+",
+                          cellid.zero.pad = 4,
                           ...){
 
   if(F){  # TEST
@@ -174,17 +176,18 @@ cell.load.alt <- function(path = "data/images2/",
                            position.pattern = position.pattern)
 
   d.list$d <- d.list$d %>%
-    # Previously cells from positions like 10 and 1 could have the same UCID.
+    # By padding to the same number of digits, cells from positions as 90 and 9 could have the same UCID.
     #mutate(ucid = 10 - pos %>% as.character %>% nchar - cellID %>% as.character %>% nchar) %>% #glimpse()
-    # Next line fixes that bug, which would cells to not be filtered correctly, and be plotted anyways.
-    mutate(ucid = 10 - 1 - cellID %>% as.character %>% nchar) %>%
+    # The next lines fix that bug, which would cells to not be filtered correctly, and be plotted anyways, or other problems.
+    mutate(cellid.pad = cellid.zero.pad - nchar(as.character(cellID))) %>%
     mutate(
       ucid = paste0(
-        pos,
-        sapply(ucid, FUN = function(ucid) rep.int(x = 0, times = ucid) %>% paste0(collapse = "")),
-        cellID
+        as.character(pos),
+        sapply(cellid.pad, FUN = function(pad) rep.int(x = 0, times = max(0, pad)) %>% paste0(collapse = "")),
+        as.character(cellID)
       )) %>%
-    select(pos, cellID, ucid, everything()) #%>% glimpse()
+    mutate(ucid = as.integer(ucid)) %>% 
+    select(-cellid.pad) #%>% glimpse()
   # d$ucid %>% nchar() %>% unique()
 
   # ellipse.perim = perimeter of theoretical ellipse, calculated using each

@@ -8,6 +8,7 @@ cell.load.alt(
   path = "data/images2/",
   pdata = NULL,
   position.pattern = "Position\\\\d+",
+  cellid.zero.pad = 4,
   ...
 )
 }
@@ -17,6 +18,8 @@ cell.load.alt(
 \item{position.pattern}{Regex describing what the position string looks like (default 'Position\\d+')}
 
 \item{...}{pass "pdata" with the path to the pdata file to merge it internally}
+
+\item{ucid.zero.pad}{amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions)}
 }
 \value{
 a data frame
