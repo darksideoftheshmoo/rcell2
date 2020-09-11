@@ -28,7 +28,8 @@ tagCellServer <- function(input, output, session) {
   reactive_values <- shiny::reactiveValues(ith_cell = 1, ith_ucid = numeric(),
                                            i_line = 1,
                                            other_reactive_values = c(),
-                                           selected_cell_tags = list())
+                                           selected_cell_tags = list(),
+                                           click_vars = list())
   
   ### UI OBSERVERS   ----------------
   output$moreControls <- renderUI({
@@ -60,7 +61,17 @@ tagCellServer <- function(input, output, session) {
     })
   })
   
-  ### BUTTON OBSERVERS   ----------------
+  ### INPUT OBSERVERS   ----------------
+  # PLOT CLICK OBSERVER   ----------------
+  observeEvent(input$plot_click, handlerExpr = {
+    print("- Plot clicked")
+    .variables <- list(x = isolate(input$vertex1$x),
+                       y = isolate(input$vertex1$y),
+                       xvar = quo_name(tag_ggplot$layers[[1]]$mapping$x),
+                       yvar = quo_name(tag_ggplot$layers[[1]]$mapping$y))
+    
+    reactive_values$click_vars <- .variables
+  })
   # BUTTON 1.1: NEXT  ----------------
   shiny::observeEvent(
     eventExpr = input$next_cell,
@@ -70,6 +81,7 @@ tagCellServer <- function(input, output, session) {
       shinyjs::disable("prev_cell")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
+      shinyjs::disable("moreControls")
       
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid for that cell
@@ -100,6 +112,7 @@ tagCellServer <- function(input, output, session) {
       shinyjs::disable("next_cell")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
+      shinyjs::disable("moreControls")
       
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
@@ -129,6 +142,7 @@ tagCellServer <- function(input, output, session) {
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_cell")
       shinyjs::disable("prev_cell")
+      shinyjs::disable("moreControls")
       
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
@@ -164,6 +178,7 @@ tagCellServer <- function(input, output, session) {
       shinyjs::disable("next_ucid")
       shinyjs::disable("prev_cell")
       shinyjs::disable("next_cell")
+      shinyjs::disable("moreControls")
       
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
@@ -198,6 +213,7 @@ tagCellServer <- function(input, output, session) {
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_ucid")
     shinyjs::disable("next_ucid")
+    shinyjs::disable("moreControls")
     
     ith_cell <- reactive_values$ith_cell
     ith_ucid <- as.character(d$ucid_t.frame[ith_cell])
@@ -239,6 +255,8 @@ tagCellServer <- function(input, output, session) {
       shinyjs::enable("next_cell")
       shinyjs::enable("prev_ucid")
       shinyjs::enable("next_ucid")
+      shinyjs::enable("moreControls")
+      
     })
   })
   
@@ -375,8 +393,54 @@ tagCellServer <- function(input, output, session) {
     ucid_data <- filter(cdata, ucid == ith_ucid)
     
     if(!is.null(tag_ggplot)){
-      tag_ggplot <- tag_ggplot %+% ucid_data
-      tag_ggplot + geom_vline(xintercept = as.numeric(ith_t.frame), color = "red")
+      # Add data
+      tag_ggplot_render <- tag_ggplot %+% ucid_data
+      
+      # Add current t.frame
+      tag_ggplot_render <- tag_ggplot_render + geom_vline(xintercept = as.numeric(ith_t.frame), 
+                                                          color = "black")
+      
+      # Add annotations
+      table_output <- reactive_values$selected_cell_tags %>% 
+        bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
+      
+      if(nrow(table_output) > 0){
+        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
+          mutate(ucid = as.integer(ucid), 
+                 t.frame = as.integer(t.frame)) %>% 
+          left_join(d[, c("ucid", "pos", "cellID", reactive_values$click_vars$yvar)]) %>% 
+          filter(ucid == ith_ucid)
+        
+        table_output_longer <- table_output %>%
+          select(-ucid, -cellID, -pos) %>%
+          mutate_at(
+            vars(one_of(names(cell_tags))),
+            as.character
+          ) %>%
+          pivot_longer(-t.frame,
+                       names_to = "categoria",
+                       values_to = "valor",
+                       values_drop_na = TRUE)
+        
+        tag_ggplot_render <- tag_ggplot_render + geom_vline(data = table_output_longer,
+                                                            aes(xintercept = t.frame,
+                                                                color = categoria,
+                                                                text = valor
+                                                            ), size = 2, linetype = 2) +
+          theme(legend.position = "none")
+        
+        # table_output_longer_ith_ucid_yvals <- left_join(table_output_longer_ith_ucid,
+        #                                        ucid_data[,c("t.frame", reactive_values$click_vars$yvar)]) 
+          
+        # print("-- Adding annotations to plot")
+        # tag_ggplot_render <- tag_ggplot_render + 
+        #   ggrepel::geom_label_repel(data = table_output_longer_ith_ucid_yvals,
+        #                             aes(label = paste(categoria, valor, collapse = ": ")))
+      }
+      
+      # Render
+      print("-- Rendering plot")
+      tag_ggplot_render
     }
   })
 }
