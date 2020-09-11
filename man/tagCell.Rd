@@ -14,7 +14,7 @@ tagCell(
   tag_channels_select = c("BF"),
   n_max = 10,
   seed = 1,
-  tmp_csv_output = tempfile(tmpdir = "./", fileext = ".txt"),
+  tmp_output_file = NULL,
   tag_ggplot = NULL,
   ...
 )
@@ -38,7 +38,7 @@ tagCell(
 
 \item{seed}{seed for random sampling of images}
 
-\item{tmp_csv_output}{file path into which tagging information will be dumped progressively}
+\item{tmp_output_file}{file path into which tagging information will be dumped by user request}
 
 \item{tag_ggplot}{a ggplot object to display in the second tab, may be used for something someday.}
 }

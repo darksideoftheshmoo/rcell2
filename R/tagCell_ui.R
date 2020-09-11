@@ -3,6 +3,9 @@
 #' @import shiny shinyjs formattable shinydashboard
 #'
 tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
+                                         tags$head(
+                                           tags$style(HTML('#quit{background-color:orange}'))
+                                         ),
   fluidPage(shiny::fluidRow(
     # shiny::column(
     #   width = 3,
@@ -48,6 +51,8 @@ tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
                     # shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
                     shiny::actionButton(inputId = "prev_ucid", label = "Unskip", icon = shiny::icon("fast-backward")),
                     shiny::actionButton(inputId = "next_ucid", label = "Skip", icon = shiny::icon("fast-forward")),
+                    shiny::hr(),
+                    shiny::p(shiny::actionButton(inputId = "save", label = "Write progress")),
                     shiny::hr(),
                     shiny::p(shiny::actionButton(inputId = "quit", label = "Save & Quit"))
                   ))

@@ -18,7 +18,7 @@
 #' @param tag_channels_select a vector giving names for the image channels: c("BF", "YFP.out", etc....)
 #' @param n_max max number of boxes in the image
 #' @param seed seed for random sampling of images
-#' @param tmp_csv_output file path into which tagging information will be dumped progressively
+#' @param tmp_output_file file path into which tagging information will be dumped by user request
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
@@ -37,7 +37,7 @@ tagCell <- function(cdata,
                     tag_channels_select=c("BF"),
                     n_max=10,
                     seed = 1,
-                    tmp_csv_output=tempfile(tmpdir = "./", fileext = ".txt"),
+                    tmp_output_file=NULL,
                     tag_ggplot = NULL,
                     # plotType = "Hex",
                     # initial_facet = "",

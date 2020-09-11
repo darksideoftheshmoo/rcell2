@@ -7,9 +7,12 @@
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   
-  # print("Appending tags to tempfile:")
-  # print(tmp_csv_output)
-  # write("", file=tmp_csv_output,append=TRUE)
+  if(is.null(tmp_output_file)){
+    tmp_output_file <- tempfile(tmpdir = "./", fileext = ".txt")
+  }
+  print(paste("Appending tags to tempfile:", tmp_output_file))
+  dir.create(dirname(normalizePath(tmp_output_file)), recursive = T)
+  # write("", file=tmp_output_file)
   
   d <- cdata %>% dplyr::arrange(ucid, t.frame) %>% 
     mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_"))
@@ -77,7 +80,7 @@ tagCellServer <- function(input, output, session) {
       
       # Handle previous > total
       if(ith_cell == nrow(cdata)){
-        showNotification("There is no next cell, staying at the current one.")
+        showNotification("There is no next cell, staying at the current one.", type = "warning")
       } else {
         reactive_values$ith_cell <- ith_cell + 1                     # Update the ith_cell reactive value
       }
@@ -106,7 +109,7 @@ tagCellServer <- function(input, output, session) {
       
       # Handle previous < 1
       if(reactive_values$ith_cell < 1){
-        showNotification("There is no previous cell, staying at the current one.")
+        showNotification("There is no previous cell, staying at the current one.", type = "warning")
       } else {
         reactive_values$ith_cell <- ith_cell - 1                   # Update the ith_cell reactive value
       }
@@ -140,7 +143,7 @@ tagCellServer <- function(input, output, session) {
       ucid.next.index <- match(ucid.next, d$ucid)                 # Get the next ucid's row index
       # Handle next > total
       if(ucid.oi.index >= length(ucid.unique)){
-        showNotification("--- There is no next ucid, staying at the current one.")
+        showNotification("--- There is no next ucid, staying at the current one.", type = "warning")
       } else {
         showNotification("--- Moving to next ucid.", duration = 1)
         reactive_values$ith_cell <- ucid.next.index               # Update the ith_cell reactive value
@@ -176,7 +179,7 @@ tagCellServer <- function(input, output, session) {
       
       # Handle next > total
       if(ucid.oi.index == 1){
-        showNotification("--- There is no previous ucid, staying at the current one.")
+        showNotification("--- There is no previous ucid, staying at the current one.", type = "warning")
       } else {
         showNotification("--- Moving to previous ucid.", duration = 1)
         reactive_values$ith_cell <- ucid.next.index               # Update the ith_cell reactive value
@@ -234,21 +237,50 @@ tagCellServer <- function(input, output, session) {
     })
   })
   
-  # BUTTON OBSERVER 2: EXIT  ----------------
+  # BUTTON OBSERVER 3: EXIT  ----------------
   observeEvent(
     # Acción al apretar el botón de cerrar la app
     eventExpr = input$quit,
     handlerExpr = {
-      writeLines("\nQuit event fired!")
-      
+      writeLines("\n- Quit event fired")
+
+      print(paste("-- Saving progress to file:", tmp_output_file))
+      table_output <- reactive_values$selected_cell_tags %>% 
+        bind_rows(.id = "ucid_t.frame")
+      if(nrow(table_output) > 0)
+        separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
+          readr::write_csv(path = tmp_output_file)
+  
       output <- reactive_values$selected_cell_tags %>% 
         bind_rows(.id = "ucid_t.frame") %>% #%>% mutate(ucid = as.numeric(ucid_t.frame))
         separate(ucid_t.frame, c("ucid", "t.frame"))
 
-      
       # stopApp(list(tmp_csv_output, reactive_values$selected_cell_tags))
       # stopApp(tmp_csv_output)
       stopApp(output)
+    }
+  )
+  
+  # BUTTON OBSERVER 4: SAVE  ----------------
+  observeEvent(
+    # Acción al apretar el botón de cerrar la app
+    eventExpr = input$save,
+    handlerExpr = {
+      writeLines("\n- Save event fired")
+      
+      table_output <- reactive_values$selected_cell_tags %>% 
+        bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
+      
+      if(nrow(table_output) > 0){
+        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame"))
+        showNotification(paste("-- Saving progress to file:", tmp_output_file), duration = 4, type = "message")
+      } else {
+        table_output <- data.frame(message = "No annotations yet...")
+        showNotification(paste("-- No annotations yet, nothing was saved."), duration = 4, type = "message")
+      }
+      
+      readr::write_csv(table_output, path = tmp_output_file)
+      
     }
   )
   
