@@ -27,7 +27,10 @@ tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
                                       shiny::plotOutput(outputId = "plot"#, 
                                                         # height = "100%", width = "100%"
                                                         # height = "auto", width = "auto"
-                                    ))
+                                    )),
+                                    shiny::p(
+                                      shiny::tableOutput("saved_annotations")
+                                    )
                                     ),
                     shiny::tabPanel("My ggplot")
                     )

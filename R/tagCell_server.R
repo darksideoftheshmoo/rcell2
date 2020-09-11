@@ -253,6 +253,22 @@ tagCellServer <- function(input, output, session) {
   )
   
   ### OUTPUT OBSERVERS and RENDERERS  ----------------
+  # Reactive table 1   ----------------
+  output$saved_annotations <- shiny::renderTable({
+    print("- Rendering table 1")
+    
+    table_output <- reactive_values$selected_cell_tags %>% 
+      bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
+    
+    if(nrow(table_output) > 0){
+      table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame"))
+    } else {
+      table_output <- data.frame(message = "No annotations yet...")
+    }
+    
+    table_output
+  })
+  
   # Reactive text 1  ----------------
   output$cell_ith <- shiny::renderText({
     ith_ucid <- d$ucid[reactive_values$ith_cell]
