@@ -16,6 +16,7 @@ tagCell(
   seed = 1,
   tmp_output_file = NULL,
   tag_ggplot = NULL,
+  debug_messages = T,
   ...
 )
 }
@@ -41,6 +42,8 @@ tagCell(
 \item{tmp_output_file}{file path into which tagging information will be dumped by user request}
 
 \item{tag_ggplot}{a ggplot object to display in the second tab, may be used for something someday.}
+
+\item{debug_messages}{print debug messages}
 }
 \value{
 Lots of stuff.

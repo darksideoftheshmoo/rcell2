@@ -30,8 +30,12 @@ tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
                                       shiny::plotOutput(outputId = "plot", 
                                                         # height = "100%", width = "100%"
                                                         # height = "auto", width = "auto"
-                                                        click = "plot_click"
+                                                        click = "plot_click",
+                                                        hover = "plot_hover",
                                     )),
+                                    shiny::p(
+                                      verbatimTextOutput("hover_info")
+                                    ),
                                     shiny::p(
                                       shiny::tableOutput("saved_annotations")
                                     )

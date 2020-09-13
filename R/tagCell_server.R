@@ -3,14 +3,14 @@
 #' @param input provided by shiny
 #' @param output provided by shiny
 #' @param session provided by shiny
-#' @import shiny formattable dplyr tidyr hexbin magick
+#' @import shiny shinyjs formattable dplyr tidyr hexbin magick
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   
   if(is.null(tmp_output_file)){
     tmp_output_file <- tempfile(tmpdir = "./", fileext = ".txt")
   }
-  print(paste("Appending tags to tempfile:", tmp_output_file))
+  print(paste("Appending tags to tempfile:", tmp_output_file)) # find: ^([\s\t]+)print replace: \1if(debug_messages) print
   dir.create(dirname(normalizePath(tmp_output_file)), recursive = T)
   # write("", file=tmp_output_file)
   
@@ -65,14 +65,60 @@ tagCellServer <- function(input, output, session) {
   # PLOT CLICK OBSERVER   ----------------
   observeEvent(input$plot_click, handlerExpr = {
     print("- Plot clicked")
-    .variables <- list(x = isolate(input$vertex1$x),
-                       y = isolate(input$vertex1$y),
-                       xvar = quo_name(tag_ggplot$layers[[1]]$mapping$x),
-                       yvar = quo_name(tag_ggplot$layers[[1]]$mapping$y))
+    shinyjs::disable("next_cell")
+    shinyjs::disable("prev_cell")
+    shinyjs::disable("prev_ucid")
+    shinyjs::disable("next_ucid")
+    shinyjs::disable("moreControls")
     
-    reactive_values$click_vars <- .variables
+    closest_to <- function(closest_to, from_array){
+      if(debug_messages) print(paste(">> Closest to:", closest_to, "from array:", paste(from_array, collapse = ", ")))
+      index <- which.min(abs(from_array - closest_to))
+      return(from_array[index])
+    }
+    
+    # .variables <- list(x = isolate(input$vertex1$x),
+    #                    y = isolate(input$vertex1$y),
+    #                    xvar = quo_name(tag_ggplot$layers[[1]]$mapping$x),
+    #                    yvar = quo_name(tag_ggplot$layers[[1]]$mapping$y))
+    # 
+    # reactive_values$click_vars <- .variables
+    print(paste("-- Clicked point:", input$plot_click$x))
+    
+    ith_cell <- reactive_values$ith_cell                                        # Get the current reactive cell number
+    ith_ucid_t.frame <- as.character(d$ucid_t.frame[reactive_values$ith_cell])  # Get ucid_t.frame for that cell
+    ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])                  # Get ucid for that cell
+    ith_t.frame <- as.character(d$t.frame[reactive_values$ith_cell])            # Get t.frame for that cell
+    
+    click_t.frame <- closest_to(from_array = d[d$ucid == ith_ucid,]$t.frame,
+                                closest_to = input$plot_click$x)
+    
+    print(paste("-- Clicked t.frame:", click_t.frame))
+      
+    if(click_t.frame == ith_t.frame){
+      print("-- t.frame unchanged")
+      shinyjs::enable("next_cell")
+      shinyjs::enable("prev_cell")
+      shinyjs::enable("prev_ucid")
+      shinyjs::enable("next_ucid")
+      shinyjs::enable("moreControls")
+    } else {
+      print("-- t.frame changed, saving tag selection")
+      ith_cell_tags <- list()
+      for(tag_group in 1:length(names(cell_tags)))      # For each tag group
+        input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
+        ith_cell_tags[[names(cell_tags)[tag_group]]]    # Store it in a list element appropriately named 
+      
+      reactive_values$selected_cell_tags[[ith_ucid_t.frame]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
+      
+      next_ith_cell <- which(d$t.frame == click_t.frame & d$ucid == ith_ucid)  # Get the index row for the clicked t.frame
+      reactive_values$ith_cell <- next_ith_cell                                # Update the ith_cell reactive value
+    }
   })
+  
   # BUTTON 1.1: NEXT  ----------------
+  ## Input: input$next_cell
+  ## Output reactive_values: $selected_cell_tags $ith_cell
   shiny::observeEvent(
     eventExpr = input$next_cell,
     handlerExpr = {
@@ -86,7 +132,7 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid for that cell
       
-      print("-- Saving tag selection")
+      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -95,9 +141,18 @@ tagCellServer <- function(input, output, session) {
       # reactive_values$ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])  # Save the ucid
       reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags             # Save the tag list to a UCID name element in a reactive values list.
       
+      print(paste("-- Next cell row index:", ith_cell + 1))
+      
       # Handle previous > total
       if(ith_cell == nrow(cdata)){
         showNotification("There is no next cell, staying at the current one.", type = "warning")
+        shinyjs::delay(300, expr = {
+          shinyjs::enable("prev_cell")
+          shinyjs::enable("next_cell")
+          shinyjs::enable("prev_ucid")
+          shinyjs::enable("next_ucid")
+          shinyjs::enable("moreControls")
+        })
       } else {
         reactive_values$ith_cell <- ith_cell + 1                     # Update the ith_cell reactive value
       }
@@ -117,7 +172,7 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
       
-      print("-- Saving tag selection")
+      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -125,10 +180,21 @@ tagCellServer <- function(input, output, session) {
       
       reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
       
+      print(paste("-- Next cell row index:", ith_cell - 1))
+      
       # Handle previous < 1
-      if(reactive_values$ith_cell < 1){
+      if(ith_cell == 1){
+        print("-- There is no previous cell, staying at the current one.")
         showNotification("There is no previous cell, staying at the current one.", type = "warning")
+        shinyjs::delay(300, expr = {
+          shinyjs::enable("prev_cell")
+          shinyjs::enable("next_cell")
+          shinyjs::enable("prev_ucid")
+          shinyjs::enable("next_ucid")
+          shinyjs::enable("moreControls")
+        })
       } else {
+        print(paste("-- Moving on to cell with row index:", ith_cell - 1))
         reactive_values$ith_cell <- ith_cell - 1                   # Update the ith_cell reactive value
       }
     })
@@ -147,7 +213,7 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
       
-      print("-- Saving tag selection")
+      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -160,9 +226,18 @@ tagCellServer <- function(input, output, session) {
       ucid.oi.index <- match(ucid.oi, ucid.unique)
       ucid.next <- ucid.unique[ucid.oi.index + 1]                 # Get the next ucid
       ucid.next.index <- match(ucid.next, d$ucid)                 # Get the next ucid's row index
+      print(paste("-- Next cell row index:", ucid.next.index))
+      
       # Handle next > total
       if(ucid.oi.index >= length(ucid.unique)){
         showNotification("--- There is no next ucid, staying at the current one.", type = "warning")
+        shinyjs::delay(300, expr = {
+          shinyjs::enable("prev_cell")
+          shinyjs::enable("next_cell")
+          shinyjs::enable("prev_ucid")
+          shinyjs::enable("next_ucid")
+          shinyjs::enable("moreControls")
+        })
       } else {
         showNotification("--- Moving to next ucid.", duration = 1)
         reactive_values$ith_cell <- ucid.next.index               # Update the ith_cell reactive value
@@ -182,8 +257,8 @@ tagCellServer <- function(input, output, session) {
       
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
+      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       
-      print("-- Saving tag selection")
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -193,13 +268,21 @@ tagCellServer <- function(input, output, session) {
       
       # Skip to the previous UCID
       ucid.oi <- as.character(d$ucid[reactive_values$ith_cell])   # Get bare ucid for the current cell
-      ucid.oi.index <- match(ucid.oi, ucid.unique)
-      ucid.next <- ucid.unique[ucid.oi.index - 1]                 # Get the previous ucid
+      ucid.oi.index <- match(ucid.oi, ucid.unique)                # Get it's index in the distinct ucid list 
+      ucid.next <- ucid.unique[ucid.oi.index - 1]                 # Get the previous unique ucid
       ucid.next.index <- match(ucid.next, d$ucid)                 # Get the previous ucid's row index
+      print(paste("-- Next cell row index:", ucid.next.index))
       
       # Handle next > total
       if(ucid.oi.index == 1){
         showNotification("--- There is no previous ucid, staying at the current one.", type = "warning")
+        shinyjs::delay(300, expr = {
+          shinyjs::enable("prev_cell")
+          shinyjs::enable("next_cell")
+          shinyjs::enable("prev_ucid")
+          shinyjs::enable("next_ucid")
+          shinyjs::enable("moreControls")
+        })
       } else {
         showNotification("--- Moving to previous ucid.", duration = 1)
         reactive_values$ith_cell <- ucid.next.index               # Update the ith_cell reactive value
@@ -207,8 +290,10 @@ tagCellServer <- function(input, output, session) {
     })
   
   # SIDE EFFECTS FOR PREV/NEXT BUTTON  ----------------
+  ## Input reactive_values: $ith_cell
+  ## Output reactive_values: 
+  ## Isolated reactive_values: $selected_cell_tags
   shiny::observe({
-    print("-- Updating tag selection for next or previous cell")
     shinyjs::disable("prev_cell")
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_ucid")
@@ -218,10 +303,10 @@ tagCellServer <- function(input, output, session) {
     ith_cell <- reactive_values$ith_cell
     ith_ucid <- as.character(d$ucid_t.frame[ith_cell])
     selected_cell_tags <- isolate(reactive_values$selected_cell_tags)
+    print(paste("-- Updating tag selection for next or previous cell with row index:", ith_cell))
     
     if(ith_ucid %in% names(selected_cell_tags)){
       print("--- UCID tag found")
-      # selected_cell_tags[[ith_ucid]]
       selected_cell_tags <- selected_cell_tags[[ith_ucid]]
       for(tag_group in names(cell_tags)){
         if(tag_group %in% names(selected_cell_tags)){
@@ -270,18 +355,22 @@ tagCellServer <- function(input, output, session) {
       print(paste("-- Saving progress to file:", tmp_output_file))
       
       table_output <- reactive_values$selected_cell_tags %>% bind_rows(.id = "ucid_t.frame")
+      
       if(nrow(table_output) > 0){
+        
         table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
           mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
-          left_join(select(d, ucid, pos, cellID))
+          left_join(unique(select(d, ucid, pos, cellID)))
+        
         table_output %>% readr::write_csv(path = tmp_output_file)
+        
       } else {
+        
         table_output <- data.frame()
+        
       }
       
       print("-- Returning progress to output:")
-      # stopApp(list(tmp_csv_output, reactive_values$selected_cell_tags))
-      # stopApp(tmp_csv_output)
       stopApp(table_output)
     }
   )
@@ -312,7 +401,10 @@ tagCellServer <- function(input, output, session) {
   )
   
   ### OUTPUT OBSERVERS and RENDERERS  ----------------
-  # Reactive table 1: PROGRESS  ----------------
+  # Reactive TABLE 1: annotation progress  ----------------
+  ## Input reactive_values: $selected_cell_tags
+  ## Output reactive_values: 
+  ## Isolated reactive_values: $selected_cell_tags
   output$saved_annotations <- shiny::renderTable({
     print("- Rendering table 1")
     
@@ -322,7 +414,7 @@ tagCellServer <- function(input, output, session) {
     if(nrow(table_output) > 0){
       table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
         mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
-        left_join(select(d, ucid, pos, cellID))
+        left_join(unique(select(d, ucid, pos, cellID)))
     } else {
       table_output <- data.frame(message = "No annotations yet...")
     }
@@ -330,7 +422,7 @@ tagCellServer <- function(input, output, session) {
     table_output
   })
   
-  # Reactive text 1: current UCID and t.frame  ----------------
+  # Reactive TEXT 1: current UCID and t.frame  ----------------
   output$cell_ith <- shiny::renderText({
     ith_ucid <- d$ucid[reactive_values$ith_cell]
     
@@ -349,7 +441,17 @@ tagCellServer <- function(input, output, session) {
     )
   })
   
-  # Reactive image 1: magickCell  ----------------
+  # Reactive TEXT 2: hover info  ----------------
+  output$hover_info <- renderText({
+    tryCatch(
+      expr = {
+        paste0("x=", signif(input$plot_hover$x, 3), "\t y=", signif(input$plot_hover$y, 3))
+      },
+      error = function(cond) return("Waiting for valid mouse hover...")
+    )
+  })
+  
+  # Reactive IMAGE 1: magickCell  ----------------
   output$pics <- shiny::renderImage({
     print("- Rendering image 1")
     
@@ -381,7 +483,7 @@ tagCellServer <- function(input, output, session) {
          contentType = "image/jpeg")
   }, deleteFile=TRUE)
   
-  # Reactive plot 1: user plot  ----------------
+  # Reactive PLOT 1: user plot  ----------------
   output$plot <- shiny::renderPlot({
     print("- Rendering plot 1")
     
@@ -424,10 +526,12 @@ tagCellServer <- function(input, output, session) {
         
         tag_ggplot_render <- tag_ggplot_render + geom_vline(data = table_output_longer,
                                                             aes(xintercept = t.frame,
-                                                                color = categoria,
-                                                                text = valor
-                                                            ), size = 2, linetype = 2) +
-          theme(legend.position = "none")
+                                                                color = interaction(categoria, valor, sep = ": "),
+                                                                # linetype = valor,
+                                                                text = paste(categoria, valor, sep = ": ")),
+                                                            size = 2, linetype = 2) +
+          # ggplot2::guides(text = FALSE) +  # http://www.sthda.com/english/wiki/ggplot2-legend-easy-steps-to-change-the-position-and-the-appearance-of-a-graph-legend-in-r-software
+          theme(legend.position = "bottom", legend.title = element_blank())
         
         # table_output_longer_ith_ucid_yvals <- left_join(table_output_longer_ith_ucid,
         #                                        ucid_data[,c("t.frame", reactive_values$click_vars$yvar)]) 

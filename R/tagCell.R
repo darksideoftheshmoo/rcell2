@@ -20,6 +20,7 @@
 #' @param seed seed for random sampling of images
 #' @param tmp_output_file file path into which tagging information will be dumped by user request
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
+#' @param debug_messages print debug messages
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 # @examples
@@ -43,6 +44,7 @@ tagCell <- function(cdata,
                     # initial_facet = "",
                     # facet_grid_option = TRUE,
                     # facets_scale_free = NULL,
+                    debug_messages = T,
                     ...){
   
   # To-do
