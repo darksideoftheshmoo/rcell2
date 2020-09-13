@@ -10,7 +10,7 @@ tagCellServer <- function(input, output, session) {
   if(is.null(tmp_output_file)){
     tmp_output_file <- tempfile(tmpdir = "./", fileext = ".txt")
   }
-  print(paste("Appending tags to tempfile:", tmp_output_file)) # find: ^([\s\t]+)print replace: \1if(debug_messages) print
+  if(debug_messages) print(paste("Appending tags to tempfile:", tmp_output_file)) # find: ^([\s\t]+)print replace: \1if(debug_messages) print
   dir.create(dirname(normalizePath(tmp_output_file)), recursive = T)
   # write("", file=tmp_output_file)
   
@@ -64,7 +64,7 @@ tagCellServer <- function(input, output, session) {
   ### INPUT OBSERVERS   ----------------
   # PLOT CLICK OBSERVER   ----------------
   observeEvent(input$plot_click, handlerExpr = {
-    print("- Plot clicked")
+    if(debug_messages) print("- Plot clicked")
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_cell")
     shinyjs::disable("prev_ucid")
@@ -83,7 +83,7 @@ tagCellServer <- function(input, output, session) {
     #                    yvar = quo_name(tag_ggplot$layers[[1]]$mapping$y))
     # 
     # reactive_values$click_vars <- .variables
-    print(paste("-- Clicked point:", input$plot_click$x))
+    if(debug_messages) print(paste("-- Clicked point:", input$plot_click$x))
     
     ith_cell <- reactive_values$ith_cell                                        # Get the current reactive cell number
     ith_ucid_t.frame <- as.character(d$ucid_t.frame[reactive_values$ith_cell])  # Get ucid_t.frame for that cell
@@ -93,17 +93,17 @@ tagCellServer <- function(input, output, session) {
     click_t.frame <- closest_to(from_array = d[d$ucid == ith_ucid,]$t.frame,
                                 closest_to = input$plot_click$x)
     
-    print(paste("-- Clicked t.frame:", click_t.frame))
+    if(debug_messages) print(paste("-- Clicked t.frame:", click_t.frame))
       
     if(click_t.frame == ith_t.frame){
-      print("-- t.frame unchanged")
+      if(debug_messages) print("-- t.frame unchanged")
       shinyjs::enable("next_cell")
       shinyjs::enable("prev_cell")
       shinyjs::enable("prev_ucid")
       shinyjs::enable("next_ucid")
       shinyjs::enable("moreControls")
     } else {
-      print("-- t.frame changed, saving tag selection")
+      if(debug_messages) print("-- t.frame changed, saving tag selection")
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -122,7 +122,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$next_cell,
     handlerExpr = {
-      print("- Next cell requested, saving current tags...")
+      if(debug_messages) print("- Next cell requested, saving current tags...")
       shinyjs::disable("next_cell")
       shinyjs::disable("prev_cell")
       shinyjs::disable("prev_ucid")
@@ -132,7 +132,7 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid for that cell
       
-      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
+      if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -141,7 +141,7 @@ tagCellServer <- function(input, output, session) {
       # reactive_values$ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])  # Save the ucid
       reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags             # Save the tag list to a UCID name element in a reactive values list.
       
-      print(paste("-- Next cell row index:", ith_cell + 1))
+      if(debug_messages) print(paste("-- Next cell row index:", ith_cell + 1))
       
       # Handle previous > total
       if(ith_cell == nrow(cdata)){
@@ -162,7 +162,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$prev_cell,
     handlerExpr = {
-      print("- Previous cell requested...")
+      if(debug_messages) print("- Previous cell requested...")
       shinyjs::disable("prev_cell")
       shinyjs::disable("next_cell")
       shinyjs::disable("prev_ucid")
@@ -172,7 +172,7 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
       
-      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
+      if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -180,11 +180,11 @@ tagCellServer <- function(input, output, session) {
       
       reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
       
-      print(paste("-- Next cell row index:", ith_cell - 1))
+      if(debug_messages) print(paste("-- Next cell row index:", ith_cell - 1))
       
       # Handle previous < 1
       if(ith_cell == 1){
-        print("-- There is no previous cell, staying at the current one.")
+        if(debug_messages) print("-- There is no previous cell, staying at the current one.")
         showNotification("There is no previous cell, staying at the current one.", type = "warning")
         shinyjs::delay(300, expr = {
           shinyjs::enable("prev_cell")
@@ -194,7 +194,7 @@ tagCellServer <- function(input, output, session) {
           shinyjs::enable("moreControls")
         })
       } else {
-        print(paste("-- Moving on to cell with row index:", ith_cell - 1))
+        if(debug_messages) print(paste("-- Moving on to cell with row index:", ith_cell - 1))
         reactive_values$ith_cell <- ith_cell - 1                   # Update the ith_cell reactive value
       }
     })
@@ -203,7 +203,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$next_ucid,
     handlerExpr = {
-      print("- Next ucid requested, saving current tags...")
+      if(debug_messages) print("- Next ucid requested, saving current tags...")
       shinyjs::disable("next_ucid")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_cell")
@@ -213,7 +213,7 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
       
-      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
+      if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
@@ -226,7 +226,7 @@ tagCellServer <- function(input, output, session) {
       ucid.oi.index <- match(ucid.oi, ucid.unique)
       ucid.next <- ucid.unique[ucid.oi.index + 1]                 # Get the next ucid
       ucid.next.index <- match(ucid.next, d$ucid)                 # Get the next ucid's row index
-      print(paste("-- Next cell row index:", ucid.next.index))
+      if(debug_messages) print(paste("-- Next cell row index:", ucid.next.index))
       
       # Handle next > total
       if(ucid.oi.index >= length(ucid.unique)){
@@ -248,7 +248,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$prev_ucid,
     handlerExpr = {
-      print("- Previous ucid requested...")
+      if(debug_messages) print("- Previous ucid requested...")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
       shinyjs::disable("prev_cell")
@@ -257,7 +257,7 @@ tagCellServer <- function(input, output, session) {
       
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
-      print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
+      if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
@@ -271,7 +271,7 @@ tagCellServer <- function(input, output, session) {
       ucid.oi.index <- match(ucid.oi, ucid.unique)                # Get it's index in the distinct ucid list 
       ucid.next <- ucid.unique[ucid.oi.index - 1]                 # Get the previous unique ucid
       ucid.next.index <- match(ucid.next, d$ucid)                 # Get the previous ucid's row index
-      print(paste("-- Next cell row index:", ucid.next.index))
+      if(debug_messages) print(paste("-- Next cell row index:", ucid.next.index))
       
       # Handle next > total
       if(ucid.oi.index == 1){
@@ -303,10 +303,10 @@ tagCellServer <- function(input, output, session) {
     ith_cell <- reactive_values$ith_cell
     ith_ucid <- as.character(d$ucid_t.frame[ith_cell])
     selected_cell_tags <- isolate(reactive_values$selected_cell_tags)
-    print(paste("-- Updating tag selection for next or previous cell with row index:", ith_cell))
+    if(debug_messages) print(paste("-- Updating tag selection for next or previous cell with row index:", ith_cell))
     
     if(ith_ucid %in% names(selected_cell_tags)){
-      print("--- UCID tag found")
+      if(debug_messages) print("--- UCID tag found")
       selected_cell_tags <- selected_cell_tags[[ith_ucid]]
       for(tag_group in names(cell_tags)){
         if(tag_group %in% names(selected_cell_tags)){
@@ -324,7 +324,7 @@ tagCellServer <- function(input, output, session) {
         }
       }
     } else {
-      print("--- UCID not yet tagged")
+      if(debug_messages) print("--- UCID not yet tagged")
       for(tag_group in names(cell_tags)){
         # shiny::updateSelectInput(session,
         # shiny::updateSelectInput(session,
@@ -352,7 +352,7 @@ tagCellServer <- function(input, output, session) {
     handlerExpr = {
       writeLines("\n- Quit event fired")
 
-      print(paste("-- Saving progress to file:", tmp_output_file))
+      if(debug_messages) print(paste("-- Saving progress to file:", tmp_output_file))
       
       table_output <- reactive_values$selected_cell_tags %>% bind_rows(.id = "ucid_t.frame")
       
@@ -370,7 +370,7 @@ tagCellServer <- function(input, output, session) {
         
       }
       
-      print("-- Returning progress to output:")
+      if(debug_messages) print("-- Returning progress to output:")
       stopApp(table_output)
     }
   )
@@ -406,7 +406,7 @@ tagCellServer <- function(input, output, session) {
   ## Output reactive_values: 
   ## Isolated reactive_values: $selected_cell_tags
   output$saved_annotations <- shiny::renderTable({
-    print("- Rendering table 1")
+    if(debug_messages) print("- Rendering table 1")
     
     table_output <- reactive_values$selected_cell_tags %>% 
       bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
@@ -453,10 +453,10 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive IMAGE 1: magickCell  ----------------
   output$pics <- shiny::renderImage({
-    print("- Rendering image 1")
+    if(debug_messages) print("- Rendering image 1")
     
     if(nrow(d) > 0) {
-      print("-- Selection not empty: magick!")
+      if(debug_messages) print("-- Selection not empty: magick!")
       # cdata.selected <- d[d$ucid == d$ucid[reactive_values$ith_cell],]
       cdata.selected <- d[reactive_values$ith_cell,]
       magick.cell <-  magickCell(cdata = cdata.selected, 
@@ -470,10 +470,10 @@ tagCellServer <- function(input, output, session) {
                                  boxSize = tag_box_size, 
                                  return_single_imgs = T)
       tmpimage <- magick.cell$img
-      print(paste("--", magick.cell$ucids))
+      if(debug_messages) print(paste("--", magick.cell$ucids))
     } else {
       # Output white if selection is empty
-      print("-- Selection is empty")
+      if(debug_messages) print("-- Selection is empty")
       tmpimage <- magick::image_blank(100,10,color = "white") %>% image_annotate(text = "Empty set")
     }
     
@@ -485,12 +485,12 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive PLOT 1: user plot  ----------------
   output$plot <- shiny::renderPlot({
-    print("- Rendering plot 1")
+    if(debug_messages) print("- Rendering plot 1")
     
     ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
     ith_t.frame <- as.character(d$t.frame[reactive_values$ith_cell])
     
-    print(paste("--", ith_ucid))
+    if(debug_messages) print(paste("--", ith_ucid))
     
     ucid_data <- filter(cdata, ucid == ith_ucid)
     
@@ -543,7 +543,7 @@ tagCellServer <- function(input, output, session) {
       }
       
       # Render
-      print("-- Rendering plot")
+      if(debug_messages) print("-- Rendering plot")
       tag_ggplot_render
     }
   })
