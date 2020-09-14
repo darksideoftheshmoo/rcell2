@@ -2,3 +2,15 @@
 .RData
 .Rproj.user
 rcell2.Rproj
+/src/*.o
+/data/image_samples/*.out.tif
+/testings/time_of_t0.txt
+src/rcell2.so
+data/time_series_image_samples/*.out.tif
+data/time_series_image_samples/Position*/out/
+/data/image_samples/Position*/out/pos*.txt
+/data/image_samples_x/Position*/out/pos*.txt
+/data/image_samples_x/*out.tif
+/data/image_samples_x/v*/*out.tif
+/testings/XFP_files.nb.html
+/data/image_samples_x/Position*/out*

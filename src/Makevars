@@ -1,0 +1,17 @@
+CC=ccache clang -Qunused-arguments
+CXX=ccache clang++ -Qunused-arguments
+CCACHE_CPP2=yes
+
+PKG_CPPFLAGS= -I./tiff410/include
+PKG_LIBS= -L./tiff410/libtiff -ltiff -ljpeg -llzma -lz
+
+MAKEFLAGS = -j4
+
+.PHONY: all tiflibs
+
+all: $(SHLIB)
+
+$(SHLIB): tiflibs
+
+tiflibs:
+	cd tiff410 && cmake --clean-first . && make all -j4 -B && cmake --target clean . && cd ..
