@@ -2,22 +2,22 @@
 % Please edit documentation in R/cellid_wrapper.R
 \name{cellid}
 \alias{cellid}
-\title{Correr cellid desde C}
+\title{Correr Cell-ID desde R usando .C()}
 \usage{
-cellid(args, label_cells = 1, bf_out_null_bg = 1, debug_flag = 0)
+cellid(args, label_cells = 1, bf_out_mask_only = 1, debug_flag = 0)
 }
 \arguments{
 \item{args}{el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."}
 
-\item{label_cells}{Set to 0 to disable labeling cells with their number.}
+\item{label_cells}{Set to 0 to disable labeling cells with their number on the ".out" files.}
 
-\item{bf_out_null_bg}{Set to 1 blank the BF out background.}
+\item{bf_out_mask_only}{Setting to 1 will replace normal BF.out images with mask-only images. Their pixel intensities are related to the cellID (16 bit - pixel ~ cellID).}
 
 \item{debug_flag}{Set to 0 to disable printf messages.}
 }
 \value{
-Nada, el output está en los directorios.
+Exit code from CellID
 }
 \description{
-Correr cellid desde C
+Correr Cell-ID desde R usando .C()
 }

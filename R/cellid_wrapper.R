@@ -1,39 +1,31 @@
-# Previously named cell3.R
-#
-# library(tidyverse)
-# library(foreach)
-# library(doParallel)
-
-##### DEFINITIONS ####
-
-#' Correr cellid desde C
+#' Correr Cell-ID desde R usando .C()
 #'
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
-#' @param label_cells Set to 0 to disable labeling cells with their number.
-#' @param bf_out_null_bg Set to 1 blank the BF out background.
+#' @param label_cells Set to 0 to disable labeling cells with their number on the ".out" files.
+#' @param bf_out_mask_only Setting to 1 will replace normal BF.out images with mask-only images. Their pixel intensities are related to the cellID (16 bit - pixel ~ cellID).
 #' @param debug_flag Set to 0 to disable printf messages.
 #' @useDynLib rcell2 CellID
 #' @export
-#' @return Nada, el output está en los directorios.
-cellid <- function(args, label_cells=1, bf_out_null_bg=1, debug_flag=0){
+#' @return Exit code from CellID
+cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
 
   # args <- "~/Software/cellID-linux/cell -p /home/nicomic/Projects/Colman/HD/scripts/cellMagick/data/images/parameters.txt -b /tmp/Rtmp7fjlFo/file2b401093d715 -f /tmp/Rtmp7fjlFo/file2b402742f6ef -o /home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/Position001/out"
   argv <- strsplit(args, " ")[[1]]
   argc <- length(argv)
 
-  # print(argv)
-  # print(argc)
+  if(debug_flag != 1) print(argv)
+  if(debug_flag != 1) print(argc)
 
   exit_code = .C(CellID, 
-                 as.integer(argc),           # Argument count
-                 as.character(argv),         # Argument character vector
-                 integer(1),                 # Return variable
-                 as.integer(label_cells),    # Option to disable cell labeling on .out.tif files
-                 as.integer(bf_out_null_bg), # Option to put blank backgound on BF out.tif
+                 as.integer(argc),             # Argument count
+                 as.character(argv),           # Argument character vector
+                 integer(1),                   # Return variable
+                 as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
+                 as.integer(bf_out_mask_only), # Option to put blank backgound on BF out.tif
                  as.integer(debug_flag)
                  )[[3]]
   
-  exit_code
+  return(exit_code)
 }
 
 
