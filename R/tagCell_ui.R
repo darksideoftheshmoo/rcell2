@@ -27,7 +27,7 @@ tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
                                                         height = "100%",
                                                         width = "100%"
                                                         # height = "auto", width = "auto")
-                                    ),
+                                    )),
                                     shiny::p(
                                       shiny::plotOutput(outputId = "plot", 
                                                         # height = "100%", width = "100%"

@@ -465,8 +465,8 @@ tagCellServer <- function(input, output, session) {
                                  cell_resize=cell_resize,
                                  ch=tag_channels_select, 
                                  n = n_max, 
-                                 .equalize = F,
-                                 .normalize = T,
+                                 .equalize = .equalize,
+                                 .normalize = .normalize,
                                  boxSize = tag_box_size, 
                                  return_single_imgs = T)
       tmpimage <- magick.cell$img

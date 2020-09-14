@@ -16,6 +16,8 @@ tagCell(
   seed = 1,
   tmp_output_file = NULL,
   tag_ggplot = NULL,
+  .equalize = F,
+  .normalize = T,
   debug_messages = T,
   ...
 )
@@ -42,6 +44,10 @@ tagCell(
 \item{tmp_output_file}{file path into which tagging information will be dumped by user request}
 
 \item{tag_ggplot}{a ggplot object to display in the second tab, may be used for something someday.}
+
+\item{.equalize}{Use magick's function to "equalize" the images.}
+
+\item{.normalize}{Use magick's function to "normalize" the images.}
 
 \item{debug_messages}{print debug messages}
 }
