@@ -1,14 +1,16 @@
 # rcell2
-functions to analyze Cell-ID data in a tidy framework
 
+Functions to analyze Cell-ID single-cell cytometry data in a tidy and shiny framework.
+
+It also magically builds and wraps the original CellID program into the package!
 
 # Installation
 
-## dependencies
+## Dependencies
+
+Most of the dependencies are listed in the `DESCRIPTION` file, and should install automatically.
 
 Install the [```tidyverse```][1] meta-package (and use it, you'll not regret it) and [```devtools```][2]. In addition, install [```EBImage```][3] package (required to look at cells) by copying and running the following script. 
-
-
 
 ```
 install.packages(c("tidyverse", "devtools"))
@@ -19,56 +21,51 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("EBImage")
 ```
 
-## installing the package
+Also install `imagemagick` on your system; this is required by R's `magick` package. All the major operating systems are supported by ImageMagick: https://imagemagick.org/script/download.php
 
-Install using devtools, from github repo:
+The `cmake` compiler is also required.
+
+For Ubuntu, Arch and Brew (macOS) these commands may come in handy:
+
+```
+# Aptitude
+sudo apt install cmake imagemagick
+
+# Pacman
+sudo pacman -S cmake imagemagick
+
+# macOS Brew
+# https://stackoverflow.com/a/33628202/11524079
+brew install cmake
+
+# macOS .dmg
+# https://cmake.org/download/
+# https://imagemagick.org/script/download.php
+```
+
+## Installing the package
+
+Install using `devtools`, directly from github repo:
 
 ```
 devtools::install_github("darksideoftheshmoo/rcell2")
 
 ```
 
-# rcellid & cellMagick
+# Cell-ID & new R-Shiny tools for cytometry data
 
-This package bundles the CellID image segmentation program, and has utility functions to generate single-cell data from microscopy images.
+This package also bundles the CellID image segmentation and analysis program, for microscopy of yeast cells. Utility functions are provided to generate single-cell data from microscopy images and import it directly into R. Optionally, you may specify a path to a Cell-ID binary already installed on your system.
 
-After importing data with Rcell2, an R-Shiny app will help users filter data graphically, with live image previews.
-
+An R-Shiny app will help users filter data graphically, with live image previews.
 While the image part may be tailored for data from fluorescence microscopy experiments, the graphical filter in this app is general purpose (i.e. useful in standard cell cytometry).
+
+There is also another small app to "tag" single cells in the dataset with user defined options.
 
 ## Todo
 
-* Plot of a 2D grid of "representative" single cell images in a scatterplot.
-* Generic shiny function for filtering points in a custom ggplot.
-* 1D / histogram filtering support.
-
-## Installation
-
-1. Download this pacakge.
-2. Install libtiff build dependencies (get `cmake` from https://cmake.org/download/).
-3. Install the package from source: `devtools::install_github("gerbeldo/rcell2", ref = "master")`
-
-### Installing dependencies
-
-For Ubuntu, Arch and Brew (macOS):
-
-```
-# Aptitude
-sudo apt install cmake
-
-# Pacman
-sudo pacman -S cmake
-
-# macOS Brew https://stackoverflow.com/a/33628202/11524079
-brew install cmake
-
-# macOS .dmg
-# https://cmake.org/download/
-```
-
-## Future work
-
-This package will include the CellID program source, and wrap it in a single R function. For now it can only call a CellID executable provided by you, dear user.
+* Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage).
+* Generic shiny function for filtering points in a custom ggplot (done!).
+* 1D / histogram filtering support in the filtering app.
 
 [1]:https://www.tidyverse.org/
 [2]:https://github.com/r-lib/devtools
