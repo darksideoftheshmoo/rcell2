@@ -3,7 +3,7 @@
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
 #' @param label_cells Set to 0 to disable labeling cells with their number on the ".out" files.
 #' @param bf_out_mask_only Setting to 1 will replace normal BF.out images with mask-only images. Their pixel intensities are related to the cellID (16 bit - pixel ~ cellID).
-#' @param debug_flag Set to 0 to disable printf messages.
+#' @param debug_flag Set to 0 to disable CellID printf messages.
 #' @useDynLib rcell2 CellID
 #' @export
 #' @return Exit code from CellID
@@ -22,7 +22,7 @@ cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
                  as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
                  as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
                  as.integer(bf_out_mask_only), # Option to put blank backgound on BF out.tif
-                 as.integer(debug_flag)
+                 as.integer(debug_flag)        # Option to print more messages from CellID. Set to 1 to print.
                  )[[3]]
   
   if(exit_code != 1) stop(paste("CellID exited with code", exit_code))
@@ -409,6 +409,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' @param dry Do everything without actually running CellID.
 #' @param label_cells Set to 0 to disable labeling cells with their number.
 #' @param bf_out_mask_only Set to 1 blank the BF out background.
+#' @param debug_flag Set to 0 to disable CellID printf messages.
 #' @return Nothing.
 # @examples
 # cell(cell.args, path = path)
@@ -426,7 +427,7 @@ cell <- function(cell.args,
                  channels = c("b", "f"),
                  old_dirs_path = NULL, old_dirs_pattern = "^Position\\d\\d\\d$",
                  no_cores = NULL, 
-                 label_cells = 1, bf_out_mask_only=1,
+                 label_cells = 1, bf_out_mask_only=1, debug_flag=0,
                  dry = F){
   
   # Optional: remove old dirs
@@ -542,7 +543,7 @@ cell <- function(cell.args,
       print("---- Command info")
       print(command)
       if(!dry){
-        exit_code <- cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only)
+        exit_code <- cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only, debug_flag = debug_flag)
         print(paste("CellID exit code was:", exit_code))
       }
     } else {
