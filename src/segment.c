@@ -4795,12 +4795,17 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	    continue; //No need to compare to id's above fret_offset
 	  }
 	  if (cs[j]->x<0) continue; //A flag for removing cells
-	  for(b=cs[j];(b!=NULL)&&(b->i_time==i_t);b=b->prev);
+	  
+	  for(b=cs[j]; (b!=NULL)&&(b->i_time==i_t); b=b->prev);
+	  
 	  if(b==NULL){ //Should never happen
+	    // Definition:  struct blob *b;
+	    // Declaration: b=cs[j];  //cs[j] is the previous time point found for cell j
 	    printf("Chose a list that had no previous elements!!!\n");
 	    printf("!!!!!!!!!! (%i, %i) !!!!!!!!!\n",i_t,j);
 	    break;
 	  }
+	  
 	  isection=overlap(b->interior,offset_i,offset_j);
 	  uon=((b->n)+n_p) - isection; //union of points
 	  I_over_U=((float)isection)/((float)uon);
