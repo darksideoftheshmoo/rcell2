@@ -18,7 +18,7 @@ cellid <- function(args, debug_flag=0){
   exit_code <- .C(CellID, 
                   as.integer(argc),             # Argument count
                   as.character(argv),           # Argument character vector
-                  as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
+                  as.integer(0)                 # Return variable: "out[0] = 1;" is set at the end of cell.c
                   )[[3]]  # get the value of the third argument "out" as a return value
   
   if(exit_code != 1) stop(paste("CellID exited with code", exit_code))

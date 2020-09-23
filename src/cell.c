@@ -85,7 +85,6 @@ End-copyright-notice-for-Libtiff
 
 //V1.2a
 #include "file_type.h"
-#include <glib.h>
 
 //V1.2a TEST
 #include "oif.h"
@@ -354,13 +353,13 @@ void CellID(int * argc0, char *argv[], int* out){
 
   // rcell2 chunk
   // Print the final value of  parsed arguments
-  if(*debug_flag==1) printf("bright_list_file: %s\n", bright_list_file);
-  if(*debug_flag==1) printf("fluor_list_file: %s\n", fluor_list_file);
-  if(*debug_flag==1) printf("third_list_file: %s\n", third_list_file);
-  if(*debug_flag==1) printf("dark_list_file: %s\n", dark_list_file);
-  if(*debug_flag==1) printf("flat_list_file: %s\n", flat_list_file);
-  if(*debug_flag==1) printf("param_file: %s\n", param_file);
-  if(*debug_flag==1) printf("output_basename: %s\n", output_basename);
+  printf("bright_list_file: %s\n", bright_list_file);
+  printf("fluor_list_file: %s\n", fluor_list_file);
+  printf("third_list_file: %s\n", third_list_file);
+  printf("dark_list_file: %s\n", dark_list_file);
+  printf("flat_list_file: %s\n", flat_list_file);
+  printf("param_file: %s\n", param_file);
+  printf("output_basename: %s\n", output_basename);
 
   // CellID chunk
   //Checking for parameters file option in command line manually

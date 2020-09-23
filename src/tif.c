@@ -234,7 +234,7 @@ int output_data_to_tif_file(char *file,
                             int *labels,
                             int type,             //type determines what set of labels to write out
                             int bit_size,
-			    int invert){
+                            int invert){
 
 
   //Output array output_data to a file.

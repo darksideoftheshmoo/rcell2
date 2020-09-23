@@ -13,5 +13,5 @@ qc_reset(X)
 cell.data object
 }
 \description{
-resets the \code{QC} variable to \code{TRUE}, removing all applied \code{qc_filters}.
+resets the \code{qc} variable to \code{TRUE}, removing all applied \code{qc_filters}.
 }

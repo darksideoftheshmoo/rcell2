@@ -13,5 +13,5 @@ qc_execute(X)
 cell.data
 }
 \description{
-removes cells with \code{QC == False}.
+removes cells with \code{qc == False}.
 }

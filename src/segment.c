@@ -3840,8 +3840,7 @@ int output_individual_cells_to_file(int i_t,
                                    output_labels,
                                    type,
                                    bit_size,
-                                   invert,
-                                   0)==0){
+                                   invert)==0){
       	  printf("Couldn't output cell %i to %s.\n",b->index,file);
       	}
       }
@@ -5045,7 +5044,7 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
   if((fp=fopen(file,wa))==NULL){
     printf("Couldn't open single output file %s\n",file);
     fflush(stdout);
-    perror("Error in segment.c!")
+    perror("Error in segment.c!");
     return;
   }
 
