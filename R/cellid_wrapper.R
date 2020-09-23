@@ -19,11 +19,13 @@ cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
   exit_code = .C(CellID, 
                  as.integer(argc),             # Argument count
                  as.character(argv),           # Argument character vector
-                 integer(1),                   # Return variable
+                 as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
                  as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
                  as.integer(bf_out_mask_only), # Option to put blank backgound on BF out.tif
                  as.integer(debug_flag)
                  )[[3]]
+  
+  if(exit_code != 1) stop(paste("CellID exited with code", exit_code))
   
   return(exit_code)
 }
@@ -533,7 +535,10 @@ cell <- function(cell.args,
 
     if(cell.command == "cellBUILTIN") {
       print(command)
-      if(!dry) cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only)
+      if(!dry){
+        exit_code <- cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only)
+        print(paste("CellID exit code was:", exit_code))
+      }
     } else {
       if(!dry) system(command = command, wait = T)
     }
