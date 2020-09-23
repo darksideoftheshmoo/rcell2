@@ -442,9 +442,12 @@ cell <- function(cell.args,
     BF.positions <- str_extract(cell.args$b, position.pattern)  # Grab their position identifier
 
     n_times <- 1
-    if(!is.null(position.time.pattern)) n_times <- str_extract(basename(cell.args$b),
-                                                               position.time.pattern) %>%
+    if(!is.null(position.time.pattern)){
+      n_times <- str_extract(basename(cell.args$b),
+                             position.time.pattern) %>%
       unique() %>% length() # Count number of times
+    }
+    
     u_positions <- unique(BF.positions)
     n_positions <- length(u_positions) # Count number of positions
 
@@ -480,6 +483,7 @@ cell <- function(cell.args,
     # Repeat BFs as many times as needed for FP.images
     # cell.args$b <- cell.args$b[names(cell.args$f)]
     # cell.args$b <- rep(cell.args$b, each = n_channels)
+    # identical(cell.args$b, rep(cell.args$b, times = n_channels))
     cell.args$b <- rep(cell.args$b, times = n_channels)
 
     if(!all(names(cell.args$b) == names(cell.args$f))) stop("BF list and ?FP list have a problem...")
@@ -488,22 +492,25 @@ cell <- function(cell.args,
   # Run CellID
   if(is.null(no_cores)) no_cores <- min(round(detectCores()/2), 1)  # Problema rarísimo: se repiten rows cada "no_cores" posiciones
   # cl <- makeCluster(no_cores, outfile="tests/foreach.log")
-  cl <- makeCluster(
+  cl <- parallel::makeCluster(
                     min(n_positions,
-                        no_cores)
+                        no_cores), 
+                    outfile = "/tmp/dopar.txt"
                    )
   # cl <- makeForkCluster()
   # cl <- makeCluster(no_cores, type = "FORK")
-  registerDoParallel(cl)
+  
+  doParallel::registerDoParallel(cl)
 
   # registerDoParallel(no_cores)
-  commands <- foreach(pos=1:n_positions) %dopar% {
-  # for(i in 1:n_positions){
+  commands <- foreach::foreach(pos=1:n_positions) %dopar% {
+    print(pos)
 
     cell.args.tmp <- c("p" = unname(parameters),  # there is a "feature" here worthy of the R Inferno
-                       "o" = unname(cell.args$o[pos*n_times])) # unnaming is necesary or the elements name is joined to the assigned name
+                       "o" = unname(cell.args$o[pos*n_times])) # unnaming is necesary or the element's name is joined to the assigned name
 
     for(channel in channels) {
+      print(channel)
       tmp <- tempfile(tmpdir = cell.args.tmp["o"],
                       fileext = ".txt",
                       pattern = paste("pos", pos,
@@ -513,6 +520,8 @@ cell <- function(cell.args,
       # paths <- cell.args[[channel]][str_detect(names(cell.args[[channel]]), u_positions[pos])]
       paths <- cell.args[[channel]][ grepl(pattern = u_positions[pos],
                                            x = names(cell.args[[channel]])) ]
+      print(paths)
+      
       write(x = paths, file = tmp)  # readLines(tmp)
       cell.args.tmp[channel] <- normalizePath(tmp)
     }
@@ -523,6 +532,7 @@ cell <- function(cell.args,
     )
 
     if(cell.command == "cellBUILTIN") {
+      print(command)
       if(!dry) cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only)
     } else {
       if(!dry) system(command = command, wait = T)
@@ -531,7 +541,7 @@ cell <- function(cell.args,
     return(command)
   }
 
-  stopCluster(cl)
+  parallel::stopCluster(cl)
   print("Done, please examine logs above if anything seems strange :)")
   return(commands)
 }
