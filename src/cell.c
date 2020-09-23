@@ -76,6 +76,7 @@
 
 // Original CellID includes
 #include <stdio.h>  // Receive input arguments from commandline call
+#include <getopt.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -115,9 +116,156 @@ float *flat_cors=NULL;
 //against the known cells or just to use the previous values.
 int new_phase=0;
 
+// https://stackoverflow.com/a/24331449/11524079
+extern int opterr;
+extern int optind;
+int opt;
+
+void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
+  // char *argv[]
+  // declare argv as array of pointers to char
+  
+  printf("\nStarting CellID C call with arguments:\n");
+  //printf("argv[1] is: %s\n", argv[1]);
+  //printf("argv[2] is: %s\n", argv[2]);
+  //printf("argv[3] is: %s\n", argv[3]);
+  //printf("argv[4] is: %s\n", argv[4]);
+  //printf("argv[5] is: %s\n", argv[5]);
+  //printf("argv[6] is: %s\n", argv[6]);
+  //printf("argv[7] is: %s\n", argv[7]);
+  //printf("argv[8] is: %s\n", argv[8]);
+  int argc = *argc0;
+  printf("argc is: %i\n", argc);
+  
+  // https://azrael.digipen.edu/~mmead/www/Courses/CS180/getopt.html
+  int i;
+  for (i = 0; i < argc; i++){
+    printf("arg%i = %s\n", i, argv[i]);
+  }
+  
+  printf("\nSetting up CellID variable\n");
+  char *equal_sign = NULL;
+  int help_flag = 0;
+  
+  char *param_file = "parameters.txt";
+  char *dark_list_file = "dark.txt";
+  char *flat_list_file = "flat.txt";
+  
+  char *bright_list_file = NULL;
+  char *fluor_list_file = NULL;
+  char *third_list_file = NULL;
+  char *output_basename = NULL;
+  
+  char *fret_bf = NULL;
+  char *fret_nuclear = NULL;
+  char *str_align_fl = NULL;
+  
+  char *file_basename = NULL; //for getting correct channel identification
+  
+  char str_third_img_label[500];
+  char *pnt_third_img_label = NULL;
+  char str_image_type[500];
+  char *pnt_image_type = NULL;
+  
+  if(*debug_flag==1) printf("\nNico's simple option parser - 1\n");
+  
+  // b bright_list_file "Text file list of brightfield tif images"
+  // f fluor_list_file "Text file of fluorescent tif images"
+  // 3 third_list_file "List of third images to be used"
+  // d dark_list_file "List of dark images to be used","dark.txt"
+  // t flat_list_file "List of flat images to be used","flat.txt"
+  // p param_file "Parameters file ", "parameters.txt"
+  // o output_basename "Basename of output files (including dirs)"
+  
+  // put ':' in the starting of the string so that program can distinguish between '?' and ':'
+  //opt = getopt(argc, argv, ":if:lrx");
+  //printf("%c\n", opt);
+  //
+
+  opterr = 0;  // https://stackoverflow.com/a/24331449/11524079
+  optind = 1;  // https://stackoverflow.com/a/25937743/11524079
+  
+  // int getopt(int argc, char * const argv[],
+  //            const char *optstring);
+  // extern char *optarg;
+  // extern int optind, opterr, optopt;
+  // int opt;
+  
+  while((opt = getopt(argc, argv, "p:b:f:o:")) != -1) {
+    printf("Parsing getopt options\n");
+    switch(opt) {
+    case 'p':
+      if(*debug_flag==1) printf("parameters: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
+      param_file=optarg;
+      break;
+        
+    case 'b':
+      if(*debug_flag==1) printf("brightfield: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
+      bright_list_file=optarg;
+      break;
+      
+    case 'f':
+      if(*debug_flag==1) printf("fluorescence: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
+      fluor_list_file=optarg;
+      break;
+      
+    case 'o':
+      if(*debug_flag==1) printf("output_prefix: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
+      output_basename=optarg;
+      break;
+      
+    case ':':
+      if(*debug_flag==1) printf("option needs a value\n");
+      break;
+      
+    case '?':
+      if(*debug_flag==1) printf("unknown option: ");
+      if(*debug_flag==1) printf("%c\n", optopt);
+      break;
+    }
+  }
+  
+  if(*debug_flag==1) printf("\nNico's simple option parser - 2\n");
+  
+  // optind is for the extra arguments
+  // which are not parsed
+  //for(; optind < argc; optind++){
+  //  if(*debug_flag==1) printf("extra arguments: %s\n", argv[optind]);
+  //}
+
+  //https://azrael.digipen.edu/~mmead/www/Courses/CS180/getopt.html
+  /* Get all of the non-option arguments */
+  if (optind < argc) {
+    if(*debug_flag==1) printf("Non-option args: ");
+    while (optind < argc)
+      if(*debug_flag==1) printf("%s ", argv[optind++]);
+    if(*debug_flag==1) printf("\n");
+  }
+  
+  if(*debug_flag==1) printf("\nNico's simple option parser - 3\n");
+  
+  if(*debug_flag==1) printf("bright_list_file: %s\n", bright_list_file);
+  if(*debug_flag==1) printf("fluor_list_file: %s\n", fluor_list_file);
+  if(*debug_flag==1) printf("third_list_file: %s\n", third_list_file);
+  if(*debug_flag==1) printf("dark_list_file: %s\n", dark_list_file);
+  if(*debug_flag==1) printf("flat_list_file: %s\n", flat_list_file);
+  if(*debug_flag==1) printf("param_file: %s\n", param_file);
+  if(*debug_flag==1) printf("output_basename: %s\n", output_basename);
+  
+  if(*debug_flag==1) printf("CellID C call is done!");
+  
+  out[0] = 1;
+  
+  return;
+}
+
 // LA POSTA, importado en cellid_wrapper.R
 //int main_(int argc, char* argv[], int* out){
-void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
+void CellID2(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
@@ -409,7 +557,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
         }else{
           printf("Filename requiered after -p or --param option");
           perror("Error! 1");
-          //return out[0];
+          return;
         }
       } else {
         param_file=++equal_sign;
@@ -769,7 +917,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
     printf("For help type 'cell --help'\n");
     printf("Required options: --bright brightfile.txt --fluor fluorfile.txt");
     perror("Error! 2");
-    //return out[0];
+    return;
   }
 
   if(*debug_flag==1) printf("\nNico's simple option parser - 5\n");
@@ -899,8 +1047,6 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
 
   if(*debug_flag==1) printf("\nNico's simple option parser - 6\n");
 
-  //return out[0];
-
   if (overall_id_offset>=0){
 
     strcpy(append,"a");
@@ -934,7 +1080,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
     if( (fp_in=fopen(third_list_file,"r"))==NULL ){
       printf("Couldnt open third_list_file file %s.\n",third_list_file);
       perror("Error! 4");
-      //return out[0];
+      return;
     }
     //Read in names of the third-files to be read in
     i=0;
@@ -974,8 +1120,6 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
 
   if(*debug_flag==1) printf("\nNico's simple option parser - 7\n");
 
-  //return out[0];
-
   //Read in the names of the phase and fluorescence files.
 
   //loading brightfield file names into array phase_files
@@ -983,7 +1127,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   if( (fp_in=fopen(bright_list_file,"r"))==NULL ){
     printf("Error! 5: Couldnt open bright_list_file file %s.\n",bright_list_file);
     perror("Error! 5");
-    //return out[0];
+    return;
   }
   i=0;
   while(fscanf(fp_in,"%s",line)==1){ //the 1 means it filled the "%s" part
@@ -998,7 +1142,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   if( (fp_in=fopen(fluor_list_file,"r"))==NULL ){
     printf("Couldnt open fluor_list_file file %s.\n",fluor_list_file);
     perror("Error! 6");
-    //return out[0];
+    return;
   }
   i=0;
   while(fscanf(fp_in,"%s",line)==1){ //the 1 means it filled the "%s" part
@@ -1164,7 +1308,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
       if(get_date_and_time(flat_files[i],&dtmp,&t,&xstage,&ystage)==0){
         printf("Couldn't get date and time for %s.\n",flat_files[i]);
         perror("Error! 7");
-        //return out[0];
+        return;
       }else{
         t=t/1000; //Convert to seconds
         flat_t[i]=t;
@@ -1231,7 +1375,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
       printf("The number of elements in %s (%i) and %s (%i) \n",bright_list_file,n_phase,fluor_list_file,n_fluor);
       printf("must be equal. Make sure not lo leave any blank spaces at the end of the files");
       perror("Error! 8");
-      //return out[0];
+      return;
     }
 
     //Assining null time values
@@ -1262,7 +1406,6 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   void free(void *ptr);
   //printf("basename: %s\n", fluor_files[i]);
   //printf("basename: %s\n", basename(fluor_files[i]));
-  //return out[0];
 
   //Do a comparison of names to see if we should give the different
   //fluorescence files different flags.
@@ -1296,7 +1439,6 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   }
 
   if(*debug_flag==1) printf("\nNico's simple option parser - 8.1\n");
-  //return out[0];
 
   //Print out message if we have different flags set.
   j=0;
@@ -1314,7 +1456,6 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   }
 
   if(*debug_flag==1) printf("\nNico's simple option parser - 8.2\n");
-  //return out[0];
 
   //Write out the absolute time of the first file.  This is so later
   //we can correct for the differences in t0 from position to position.
@@ -1327,7 +1468,6 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   }
 
   if(*debug_flag==1) printf("\nNico's simple option parser - 9\n");
-  //return out[0];
 
   //Loop over each of the fluorescence files to calculate the
   //fluorescence.  We'll search for cells using the phase file that
@@ -1356,7 +1496,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
                                   &xmax_new,&ymax_new))==NULL){
       printf("Couldn't open tif file %s.\n",fluor_files[i]);
       perror("Error! 9");
-      //return out[0];
+      return;
     }
     if (((xmax>0)&&(xmax!=xmax_new))||((ymax>0)&&(ymax!=ymax_new))){
       printf("New file has different dimensions that others\n");
@@ -1364,13 +1504,13 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
              xmax,ymax,xmax_new,ymax_new);
       free(fl);
       perror("Error! 10");
-      //return out[0];
+      return;
     }
     if ((xmax_new<=0)||(ymax_new<=0)){
       printf("Couldn't get data from tif file %s\n",fluor_files[i]);
       free(fl);
       perror("Error! 11");
-      //return out[0];
+      return;
     }
     xmax=xmax_new; //xmax<0 means haven't done yet, so just redefine
     ymax=ymax_new;//here even though usually the same
@@ -1541,7 +1681,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
                                                &xmax_new,&ymax_new))==NULL){
           printf("Couldn't open tif file %s.\n",third_files[third_cur]);
           perror("Error! 12");
-          //return out[0];
+          return;
         }
         if ((xmax!=xmax_new)||(ymax!=ymax_new)){
           printf("Third file has different dimensions than others\n");
@@ -1549,7 +1689,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
                  xmax,ymax,xmax_new,ymax_new);
           free(third_image);
           perror("Error! 13");
-          //return out[0];
+          return;
         }
         //Subtract fluorescence image as a test--for vacuole type
         if(third_image_type==vacuole_label){
@@ -1693,7 +1833,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
         printf("Couldn't open tif file %s.\n",phase_files[j_cur]);
         free(bf);
         perror("Error! 14");
-        //return out[0];
+        return;
       }
       if ((xmax!=xmax_new)||(ymax!=ymax_new)){
         printf("BF file has different dimensions than others\n");
@@ -1701,7 +1841,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
                xmax,ymax,xmax_new,ymax_new);
         free(bf);
         perror("Error! 15");
-        //return out[0];
+        return;
       }
 
       //Make sure to add new array to global variables in segment.
@@ -2071,7 +2211,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
     printf("Couldn't open bf_fl_file file %s\n",bf_fl_file_name);
     fflush(stdout);
     perror("Error! 18");
-    //return out[0];
+    return;
   }
 
   fprintf(bf_fl_file,"fluor\tflag\tt.frame\tbright\tbf.as.fl\n");
@@ -2109,6 +2249,8 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   if(*debug_flag==1) printf("\nLast argc2 value is: %d \n",argc2);
   
   if(*debug_flag==1) printf("\nCellID is done! :)\n");
+  
+  return;
 }
 
 
