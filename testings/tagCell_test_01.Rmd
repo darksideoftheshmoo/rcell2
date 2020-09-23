@@ -37,7 +37,7 @@ difference <- function(lista) abs(lista[1] - lista[2])
 ## Reinstall
 
 ```{r, eval=F}
-devtools::install(reload = T, build = F,
+devtools::install(reload = T, build = T,
                   quiet = T,
                   upgrade = "never", keep_source = T)
 ```
