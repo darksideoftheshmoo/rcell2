@@ -1,13 +1,11 @@
 #' Correr Cell-ID desde R usando .C()
 #'
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
-#' @param label_cells Set to 0 to disable labeling cells with their number on the ".out" files.
-#' @param bf_out_mask_only Setting to 1 will replace normal BF.out images with mask-only images. Their pixel intensities are related to the cellID (16 bit - pixel ~ cellID).
 #' @param debug_flag Set to 0 to disable CellID printf messages.
 #' @useDynLib rcell2 CellID
 #' @export
 #' @return Exit code from CellID
-cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
+cellid <- function(args, debug_flag=0){
 
   # args <- "~/Software/cellID-linux/cell -p /home/nicomic/Projects/Colman/HD/scripts/cellMagick/data/images/parameters.txt -b /tmp/Rtmp7fjlFo/file2b401093d715 -f /tmp/Rtmp7fjlFo/file2b402742f6ef -o /home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/Position001/out"
   argv <- strsplit(args, " ")[[1]]
@@ -21,9 +19,6 @@ cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
                   as.integer(argc),             # Argument count
                   as.character(argv),           # Argument character vector
                   as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
-                  as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
-                  as.integer(bf_out_mask_only), # Option to put blank background on BF out.tif (only masks will be written).
-                  as.integer(debug_flag)        # Option to print more messages from CellID. Set to 1 to print.
                   )[[3]]  # get the value of the third argument "out" as a return value
   
   if(exit_code != 1) stop(paste("CellID exited with code", exit_code))
@@ -428,7 +423,7 @@ cell <- function(cell.args,
                  channels = c("b", "f"),
                  old_dirs_path = NULL, old_dirs_pattern = "^Position\\d\\d\\d$",
                  no_cores = NULL, 
-                 label_cells = 1, bf_out_mask_only=1, debug_flag=0,
+                 debug_flag=0,
                  dry = F){
   
   # Optional: remove old dirs
@@ -541,7 +536,7 @@ cell <- function(cell.args,
       print(command)
       if(!dry){
         # Run builtin CellID
-        exit_code <- cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only, debug_flag = debug_flag)
+        exit_code <- cellid(args = command, debug_flag = debug_flag)
         print(paste("CellID finished and its exit code was:", exit_code))
       }
     } else {
