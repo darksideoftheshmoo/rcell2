@@ -12,16 +12,17 @@ cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
   # args <- "~/Software/cellID-linux/cell -p /home/nicomic/Projects/Colman/HD/scripts/cellMagick/data/images/parameters.txt -b /tmp/Rtmp7fjlFo/file2b401093d715 -f /tmp/Rtmp7fjlFo/file2b402742f6ef -o /home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/Position001/out"
   argv <- strsplit(args, " ")[[1]]
   argc <- length(argv)
-
-  if(debug_flag != 1) print(argv)
-  if(debug_flag != 1) print(argc)
+  
+  if(debug_flag != 0) print("Printing argv and argc before .C() call to CellID.")
+  if(debug_flag != 0) print(argv)
+  if(debug_flag != 0) print(argc)
 
   exit_code <- .C(CellID, 
                   as.integer(argc),             # Argument count
                   as.character(argv),           # Argument character vector
                   as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
                   as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
-                  as.integer(bf_out_mask_only), # Option to put blank backgound on BF out.tif
+                  as.integer(bf_out_mask_only), # Option to put blank background on BF out.tif (only masks will be written).
                   as.integer(debug_flag)        # Option to print more messages from CellID. Set to 1 to print.
                   )[[3]]  # get the value of the third argument "out" as a return value
   
@@ -494,19 +495,17 @@ cell <- function(cell.args,
 
   # Run CellID
   if(is.null(no_cores)) no_cores <- min(round(detectCores()/2), 1)  # Problema rarísimo: se repiten rows cada "no_cores" posiciones
-  # cl <- makeCluster(no_cores, outfile="tests/foreach.log")
   cl <- parallel::makeCluster(
                     min(n_positions,
                         no_cores), 
                     outfile = "/tmp/dopar.txt"
                    )
-  # cl <- makeForkCluster()
-  # cl <- makeCluster(no_cores, type = "FORK")
   
-  doParallel::registerDoParallel(cl)
+  # doParallel::registerDoParallel(cl)
 
-  # registerDoParallel(no_cores)
-  commands <- foreach::foreach(pos=1:n_positions) %dopar% {
+  # commands <- foreach::foreach(pos=1:n_positions) %dopar% {
+  commands <- list()
+  for(pos in 1:n_positions) {
     print("---- Position info")
     print(pos)
 
@@ -519,8 +518,6 @@ cell <- function(cell.args,
                       pattern = paste("pos", pos,
                                       "ch", channel,
                                       "param_", sep = "_"))
-      # paths <- cell.args[[j]][names(cell.args[[j]]) %in% BF.positions[i]]
-      # paths <- cell.args[[channel]][str_detect(names(cell.args[[channel]]), u_positions[pos])]
       paths <- cell.args[[channel]][ grepl(pattern = u_positions[pos],
                                            x = names(cell.args[[channel]])) ]
       
@@ -543,17 +540,24 @@ cell <- function(cell.args,
       print("---- Command info")
       print(command)
       if(!dry){
+        # Run builtin CellID
         exit_code <- cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only, debug_flag = debug_flag)
-        print(paste("CellID exit code was:", exit_code))
+        print(paste("CellID finished and its exit code was:", exit_code))
       }
     } else {
-      if(!dry) system(command = command, wait = T)
+      if(!dry) {
+        # Run external CellID
+        system(command = command, wait = T)
+      }
     }
 
-    return(command)
+    # return(command)  # foreach return
+    print(command)
+    
+    print("---- Done with this position.")
   }
 
-  parallel::stopCluster(cl)
+  # parallel::stopCluster(cl)
   print("Done, please examine logs above if anything seems strange :)")
   return(commands)
 }
