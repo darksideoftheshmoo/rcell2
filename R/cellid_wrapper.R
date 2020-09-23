@@ -501,11 +501,11 @@ cell <- function(cell.args,
                     outfile = "/tmp/dopar.txt"
                    )
   
-  # doParallel::registerDoParallel(cl)
+  doParallel::registerDoParallel(cl)
 
-  # commands <- foreach::foreach(pos=1:n_positions) %dopar% {
-  commands <- list()
-  for(pos in 1:n_positions) {
+  commands <- foreach::foreach(pos=1:n_positions) %dopar% {
+  # commands <- list()
+  # for(pos in 1:n_positions) {
     print("---- Position info")
     print(pos)
 
@@ -552,12 +552,13 @@ cell <- function(cell.args,
     }
 
     # return(command)  # foreach return
-    print(command)
+    command  # foreach return
+    # print(command)
     
     print("---- Done with this position.")
   }
 
-  # parallel::stopCluster(cl)
+  parallel::stopCluster(cl)
   print("Done, please examine logs above if anything seems strange :)")
   return(commands)
 }
