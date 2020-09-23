@@ -117,8 +117,10 @@ float *flat_cors=NULL;
 int new_phase=0;
 
 // https://stackoverflow.com/a/24331449/11524079
-extern int opterr;
-extern int optind;
+int getopt(int argc, char * const argv[],
+                         const char *optstring);
+extern char *optarg;
+extern int optind, opterr, optopt;
 int opt;
 
 void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
