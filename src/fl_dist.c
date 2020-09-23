@@ -36,23 +36,23 @@ contains the following copyright notice:
    "Copyright (c) 1988-1997 Sam Leffler
     Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
-    Permission to use, copy, modify, distribute, and sell this software and 
+    Permission to use, copy, modify, distribute, and sell this software and
     its documentation for any purpose is hereby granted without fee, provided
     that (i) the above copyright notices and this permission notice appear in
     all copies of the software and related documentation, and (ii) the names
     of Sam Leffler and Silicon Graphics may not be used in any advertising or
     publicity relating to the software without the specific, prior written
-    permission of Sam Leffler and Silicon Graphics.  
+    permission of Sam Leffler and Silicon Graphics.
 
-    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
     IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
     ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
     OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
-    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
+    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
     OF THIS SOFTWARE."
 
 End-copyright-notice-for-Libtiff
@@ -76,7 +76,7 @@ struct radius_offsets {
   int *off_y;
   int n_off;
   struct radius_offsets *prev;
-  struct radius_offsets *next; 
+  struct radius_offsets *next;
 };
 
 struct radius_offsets *radius_list_start=NULL;
@@ -94,7 +94,7 @@ int label_cur=0;
 
 /****************************************************************/
 void maximum_pixels_within_fixed_radius(float *array,
-					int xmax, 
+					int xmax,
 					int ymax,
 					struct point *p_in,
 					float radius,
@@ -164,7 +164,7 @@ void maximum_pixels_within_fixed_radius(float *array,
   }
 
   //If radius is positive, then continue with normal stuff.
-  
+
   label_cur++; //To label the current set of pixels.
   if (label_cur>max_label){
     if (work!=NULL){
@@ -172,10 +172,10 @@ void maximum_pixels_within_fixed_radius(float *array,
       label_cur=1;
     }else{
       printf("Too many cell labels (%i), but no work array!!!\n",label_cur);
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
-  } 
-    
+  }
+
   //First check if we have already made a set of pixel offsets of the
   //current radius (which we'll use to loop in circle of size radius quickly)
   for(r_use=radius_list_start;r_use!=NULL;r_use=(r_use->next)){
@@ -267,7 +267,7 @@ void maximum_pixels_within_fixed_radius(float *array,
   }
 
   if ((*p_center)==NULL){ //Search for new center
-    //Begin searching for center of cell which has maximum for the offsets  
+    //Begin searching for center of cell which has maximum for the offsets
     p_max=NULL;
     array_max=-999.0;
     for (p=pstart;(p!=NULL);p=p->next){
@@ -338,7 +338,7 @@ void maximum_pixels_within_fixed_radius(float *array,
 
 /************************************************************/
 void maximum_contiguous_pixels(float *array,
-			       int xmax, 
+			       int xmax,
 			       int ymax,
 			       struct point *p_in,
 			       int **list_x_out,
@@ -377,7 +377,7 @@ void maximum_contiguous_pixels(float *array,
       label_cur=1;
     }else{
       printf("Too many cell labels (%i), but no work array!!!\n",label_cur);
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 
@@ -429,7 +429,7 @@ void maximum_contiguous_pixels(float *array,
   (csearch->p)=pstart; //Will only check these points
   (csearch->label_array)=work;
   (csearch->label_value)=label_cur;
- 
+
   //Vary cut and find how many contiguous regions we have above the
   //current cut value. (We're going to find the cut that maximizes the
   //_number_ of contiguous regions below the cut).
@@ -493,7 +493,7 @@ void maximum_contiguous_pixels(float *array,
   }
   (*n_points_out)=n_contiguous_max;
   printf("%i\n",n_contiguous_max);
-  
+
   return;
 }
 
@@ -641,7 +641,7 @@ void get_gauss_2d_parameters(float *array,int xmax,int ymax,
     sig2_y=sqrt(sig2_y);
     sig2_r=(sig2_x+sig2_y)/2.0;
   }
-  
+
 
   //Finally, scale by 1.5 to get 67% probability roughly
   sig2_r*=1.5;
@@ -671,7 +671,7 @@ void get_gauss_2d_parameters(float *array,int xmax,int ymax,
 	n++;
       }
     }
-  }  
+  }
   (*n_points_out)=n;
 
 
@@ -702,7 +702,7 @@ void find_vacuole(struct point *p_in,
   float val1,val2;
   float cut_min;
   struct point *pmin;
-  
+
   int ix,iy,u;
   int imax,offset;
   int istep;
@@ -710,7 +710,7 @@ void find_vacuole(struct point *p_in,
   int i,j,n_contiguous,nmax,n_total;
   int nmax1,nmax2;
   float frac,frac_min;
-  
+
   csearch=&(c_contiguous);
 
   (csearch->data_array)=data;
@@ -737,9 +737,9 @@ void find_vacuole(struct point *p_in,
       label_cur=1;
     }else{
       printf("Too many cell labels (%i), but no work array!!!\n",label_cur);
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
-  } 
+  }
   //Label work array with the current points
   n_total=0;
   for(p=p_in;(p!=NULL);p=p->next){
@@ -781,7 +781,7 @@ void find_vacuole(struct point *p_in,
   (csearch->p)=p_in; //Will only check these points
   (csearch->label_array)=work;
   (csearch->label_value)=label_cur;
-  
+
   cut_min=1.0e30;
   frac_min=1.0e30;
   //Vary each cut and find max size contiguous above and below cut
@@ -830,7 +830,7 @@ void find_vacuole(struct point *p_in,
       }
     }
     nmax2=nmax;
-    
+
     if ((nmax1<0)||(nmax2<0)) goto next_p;
     frac=((float)(nmax1+nmax2))/((float)(n_total));
     if (frac<frac_min){
@@ -871,9 +871,9 @@ void find_vacuole(struct point *p_in,
 	break;
       }
     }
-    
+
   }
-  
+
  done:
   //Find point list for best case
   ix=pmin->i;
@@ -893,7 +893,7 @@ void find_vacuole(struct point *p_in,
       nmax=n_contiguous;
     }
   }
-  
+
   offset=(csearch->list_start)[imax];
   for(i=0;i<nmax;i++){
     list_x[i]=*((csearch->list_found_x)+offset+i);

@@ -36,30 +36,30 @@ contains the following copyright notice:
    "Copyright (c) 1988-1997 Sam Leffler
     Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
-    Permission to use, copy, modify, distribute, and sell this software and 
+    Permission to use, copy, modify, distribute, and sell this software and
     its documentation for any purpose is hereby granted without fee, provided
     that (i) the above copyright notices and this permission notice appear in
     all copies of the software and related documentation, and (ii) the names
     of Sam Leffler and Silicon Graphics may not be used in any advertising or
     publicity relating to the software without the specific, prior written
-    permission of Sam Leffler and Silicon Graphics.  
+    permission of Sam Leffler and Silicon Graphics.
 
-    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
     IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
     ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
     OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
-    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
+    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
     OF THIS SOFTWARE."
 
 End-copyright-notice-for-Libtiff
 *********************************************
 
 
- 
+
 
 */
 #include <stdio.h>
@@ -93,7 +93,19 @@ End-copyright-notice-for-Libtiff
 int xmax,ymax;
 int xmax_ymax;
 
-
+// declare locally thsese "extern" variables from header files, because the compiler failed
+int nucleus_radii[6];              // will this help with: cellMagick.so: undefined symbol: nucleus_radii ??
+int image_type;                    // it seems to help and be harmless: https://stackoverflow.com/questions/36040861/multiple-definitions-of-a-global-variable
+double max_d_over_s_cut;
+int max_pixels_per_cell;
+int min_pixels_per_cell;
+double max_split_d_over_minor;
+double background_reject_factor;
+int recalculate_internal;
+double I_over_U_for_match;
+int overall_id_offset;
+int third_image_type;
+// end declare locally
 
 //Global Arrays
 float *c=NULL;    //Bright field image array
@@ -180,7 +192,7 @@ unsigned char overlap_value=0;
 //We define a "cell" as a closed set of segments.
 #define max_cells 200000
 //struct point *vacuole[max_cells];
-struct point *boundary[max_cells];
+struct point *boundary[max_cells];  // "declare boundary as array 20000 of pointer to struct point" https://cdecl.org/?q=struct+point+*boundary%5B20000%5D%3B
 struct point *interior[max_cells];
 struct point *boundary_p1[max_cells];
 struct point *interior_p1[max_cells];
@@ -416,7 +428,7 @@ int next_block=0;
 int find_cells(struct point ***boundary_out,struct point ***interior_out){
 
   int i,j,k,l;
-  
+
   float minor_s0,major_s0,minor_s1,major_s1;
   int di_split,dj_split;
   float tmp1,tmp2,r,r_max;
@@ -426,7 +438,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
   //double theta,ctheta,stheta;
   int n_small,n_norm,n_small_max;
   //int n_norm_max;
-  
+
   int n_p;
   float tmp_x,tmp_y,tmp;
   float sum1_xy,sum_xx,sum_x,sum1_y,sum_n;
@@ -457,14 +469,14 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 
   int smallest_white_area=75;
 
-  struct contiguous_search *csearch;
-  struct contiguous_search csearch_memory;
+  struct contiguous_search *csearch;        /* Declare csearch pointer of type contiguous_search */
+  struct contiguous_search csearch_memory;  /* Declare csearch_memory of type contiguous_search */
   //Some arrays for contiguous searches
   int *clist_x;
   int *clist_y;
   int n_contiguous=0;
   int list_cur=0;
-  
+
   //For connection between bottom and top of split images
   int fret_offx,fret_offy;
 
@@ -514,14 +526,14 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
   }
 
   *boundary_out=NULL; //to default to
-  *interior_out=NULL; 
+  *interior_out=NULL;
 
-  csearch=(&csearch_memory);
+  csearch=(&csearch_memory);  // csearch now points to csearch_memory, this coding is weird...
   //Define some arrays for the contiguous searching.
   (csearch->data_array)=c;
   (csearch->label_array)=d;
-  (csearch->xmax)=xmax;
-  (csearch->ymax)=ymax;
+  (csearch->xmax)=xmax;      // assign xmax value to xmas property of the csearch struct
+  (csearch->ymax)=ymax;      // assign ymax value to xmas property of the csearch struct
 
   n_pixels_for_background=0;
 
@@ -532,7 +544,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
   if ((image_type==fret_bf_bottom_only)||
       (image_type==fret_bf_top_only)||
       (image_type==fret_bf_bottom_and_top)){
-    
+
     have_fret_image=1;
     //x-projection only
     flatten_image(c,xmax,ymax,overwrite_image,x_only,nonlinear);
@@ -552,7 +564,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       printf("Haven't calculated upper and lower regions from");
       printf("fluorescence image (while removing edge points).\n");
       fflush(stdout);
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
     //Calculate offset from bottom to top of image
     fret_mx=0.0; //Starting values passed in
@@ -596,8 +608,8 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 
   //Set a marker for doing fret_region_use=lower_ and then higher_fret_region
   //(Note n_found will continue to be incremented on second pass.
- fret_loop: 
-  
+ fret_loop:
+
   if (have_fret_image==1){
     if (fret_region_use==lower_fret_region){
       printf("Searching lower part of split BF image for cells.\n");
@@ -613,7 +625,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     smallest_white_area=75;
     smallest_circumference=(float)sqrt(((double)smallest_white_area)/3.14159)
       *2.0*3.14159;
-  }else if(image_type==metamorph_deconvolution){ 
+  }else if(image_type==metamorph_deconvolution){
     //Deconvolution case, calculate cut differently
     //We're going to vary the low cut and keep track of the number of very
     //small contiguous regions and the number of normal ones.  We're going to
@@ -631,7 +643,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     (csearch->p)=NULL; //No point list means loop over entire array
 
   decon_start:
-    
+
     csearch->cut_low=cut_low;
     csearch->cut_high=cut_high;
     do_contiguous_search(csearch);
@@ -684,7 +696,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     smallest_white_area=75;
     smallest_circumference=(float)sqrt(((double)smallest_white_area)/3.14159)
       *2.0*3.14159;
-    
+
   }else if(image_type==hexagonal_grid){
     //We have a giant hexagonal grid.  Use a fourier transform to pick
     //it out.
@@ -771,7 +783,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     max_d_over_s_cut=6.0e30; //Remove cut basically
     printf("Cut=%e\n",cut_high);
 
-  }else if(image_type==membrane_tagged_fl){ 
+  }else if(image_type==membrane_tagged_fl){
     //Nothing yet....
     //TODO
   } //end of cut calculation for different image types
@@ -789,7 +801,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       d[i]=cell_border;
     }
   }
-  
+
   //Change the behavior of the contiguous search to use the
   //integer array d[]
 
@@ -805,7 +817,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
   //all of those from the image.  This will pick up the cells that are partly
   //in the border region and then remove them.
   if((image_type==bright_field)||(image_type==confocal_transmission)
-                               ||(have_fret_image==1)){ 
+                               ||(have_fret_image==1)){
     //V1.2a TODO hard coded!
     max_size=1000; //Normal case, inside cells has some noise, use this
     //to set some noise regions to be "inside cells"
@@ -845,7 +857,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	      }
       }
     }
-    
+
     done_square_loop:
 
     if (k>0) {
@@ -871,7 +883,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       }
       point_free(csearch->p);
     }
-    
+
   }else{
     max_size=100000;
   }
@@ -880,7 +892,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
   if ((image_type==bright_field)||(image_type==confocal_transmission)
                                 ||(have_fret_image==1)){
     //Change background groups that are too small to cell_in
-    
+
     (csearch->p)=NULL; //Use entire array
     (csearch->cut_behavior)=equal_to_labels;
     (csearch->label_array)=d;
@@ -1046,7 +1058,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     }
 
   }
-  
+
   //Calculate maximum of s/d where s is length along circumference
   //and d is distance between any two points.  If this is very high, it
   //means cell is pinched and we probably should split it into two cells.
@@ -1067,9 +1079,9 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       for(p=boundary[i];(p->next)!=NULL;p=p->next) ;
       p->next=boundary[i]; //p is end of the list
       boundary[i]->prev=p; //boundary[i] is beginning
- 
-      //Put NULL's at the end of the new lists      
-      (s0->prev)->next=NULL; 
+
+      //Put NULL's at the end of the new lists
+      (s0->prev)->next=NULL;
       (s1->prev)->next=NULL;
       //And the beginnings also
       s0->prev=NULL;
@@ -1090,7 +1102,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       if (
 	      ((tmp/minor_s0)<max_split_d_over_minor)&&
 	      ((tmp/minor_s1)<max_split_d_over_minor)){
-	
+
         //Go ahead with split
 	      boundary[i]=s0; //Overwrite current position with first cell
 	      boundary[n_found]=s1; //Put second at the end of the list
@@ -1104,10 +1116,10 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	      (p->next)=s1;
 	      (s1->prev)=p;
 	      boundary[i]=s0; //Doesn't matter where we start it
-      }      
+      }
     }
   }
-  
+
   //Check for bad fft's. (Note that I calculate fft again below.
   //The reason is that when I remove the cells I have to remove all
   //the global arrays associated with them. (I really should have all
@@ -1163,7 +1175,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     //are for id<fret_offset, and the fret_offset+ cells are all
     //labeled _after_ the id<fret_offset cells.
     n_before_fret_copy=n_found;
-    for(i=0;i<n_before_fret_copy;i++){ 
+    for(i=0;i<n_before_fret_copy;i++){
       if (image_type==fret_bf_bottom_only){ //bottom to top
 	boundary[n_found]=copy_cell_for_split_regions(boundary[i],0);
       }else{ //top to bottom
@@ -1194,7 +1206,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
     //cells so that the bottom and top cells match. Ie, for the cells
     //0<=i<n_before_copy, the match should be cell i+n_before_fret_copy.
     //This will mark the cells as matches for later stuff.
-    
+
     printf("Number new cells found in upper region: %i\n",
 	   n_found-n_before_fret_copy);
 
@@ -1269,7 +1281,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	  }
 	  tmp_x/=tmp;
 	  tmp_y/=tmp;
-	  
+
 	  //Accumulate dx,dy statistics to calculate new slope
 	  //and intercept from these.
 	  tmp_x-=tmp1;
@@ -1278,7 +1290,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	  sum1_xy+=(tmp_x*tmp1);
 	  sum1_y+=(tmp_x);
 	  sum2_xy+=(tmp_y*tmp1);
-	  sum2_y+=(tmp_y);	
+	  sum2_y+=(tmp_y);
 	  sum_xx+=(tmp1*tmp1);
 	  sum_x+=(tmp1);
 	  sum_n+=1.0;
@@ -1295,7 +1307,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
       sum2_y/=sum_n;
       sum_xx/=sum_n;
       sum_x/=sum_n;
-      
+
       tmp=sum_xx-sum_x*sum_x;
       if (tmp>0.0){
 	printf("----->%e %e ",fret_mx,fret_bx);
@@ -1365,7 +1377,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	}else{ //If I_over_U_max==0.0 (or is -9999.0 which can happen if
 	  //there aren't any upper cells), then we didn't find anything
 	  //at all. In this case, make a new cell for the upper region
-	  //and copy the lower onto it,    
+	  //and copy the lower onto it,
 	  //but first do an extra quality cut since maybe the cell
 	  //wasn't found in the upper region because it's a bad cell
 	  if (n_points[i]<min_pixels_per_cell_hard){ //Remove the cell
@@ -1404,7 +1416,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	  boundary[j]=copy_cell_for_split_regions(boundary[i],0);
 	  fret_copy_type[i]=0; //This cell was the original
 	  fret_copy_type[j]=1; //This cell was a copy.
-	}else{ 
+	}else{
 	  //The cell copy will be from k (not i) (which is upper) to
 	  //j (which is lower)
 	  boundary[j]=copy_cell_for_split_regions(boundary[k],1);
@@ -1503,7 +1515,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 	//cells since we just incremented n_before_fret_copy
       }
     }
-    
+
   }
   printf("-----> After comparison: Total lower=%i and total upper=%i\n",
 	 n_before_fret_copy,n_found-n_before_fret_copy);
@@ -1526,7 +1538,7 @@ int find_cells(struct point ***boundary_out,struct point ***interior_out){
 
 /*********************************************************/
 void calculate_global_stats_from_interior_and_boundary(){
-  
+
   int i,j;
   float r_save[n_points_r_vs_theta];
 
@@ -1663,7 +1675,7 @@ void calculate_global_stats_from_interior_and_boundary(){
   }
 
   //output_data_to_tif_file("test.tif",atest,xmax,ymax,NULL,0,16,0,"");
-  
+
   printf("\nTotal this time=%i.\n",n_found);
 
   //Test-test-test-test-asg-test-asg-test
@@ -1672,9 +1684,9 @@ void calculate_global_stats_from_interior_and_boundary(){
   //    n_p=(j*xmax+i);
   //    c[n_p]=(float)work_array[n_p];
   //  }
-  //}    
+  //}
   //output_data_to_tif_file("test.tif",c,xmax,ymax,NULL,0,8,0,"");
-  //exit(0);    
+  //exit(0);
 
   return;
 }
@@ -1743,11 +1755,11 @@ int recombination_check(int i_t0,
     //that we have a bad cell (defaults to good) or that we have a nucleus.
     btmp=b0;
     good_cell=1;//Default to good cell with nucleus
-    has_nucleus=1; 
+    has_nucleus=1;
 
     do{
       if ((btmp->i_time)<i_t0) break; //Keep going back until get to i_t0
-      
+
       //Look for all the cuts that are set for this flag type
       flag=btmp->flag;
       for(icut=0;icut<n_cuts;icut++){
@@ -1788,11 +1800,11 @@ int recombination_check(int i_t0,
 
 	} //End if-check if cut applies to current flag
       } //End loop over all the cuts
-      
+
       if (good_cell==0){
 	break; //Done with this cell
       }
-      btmp=btmp->prev;   
+      btmp=btmp->prev;
     }while(btmp!=NULL);
 
     //If cell is very small then always consider it a bud to be
@@ -1803,7 +1815,7 @@ int recombination_check(int i_t0,
     //We don't want to recombine a cell that's
     //already been separated. It's already been separated if the cells exists
     //for times earlier than i_t0.
-    //We got out of the above loop when 
+    //We got out of the above loop when
     //btmp->i_time==i_t0 (the while(btmp!=NULL) is really just a check and
     //it should never get there), so just check that there is another earlier
     //time point.
@@ -1824,7 +1836,7 @@ int recombination_check(int i_t0,
       }
     }
   } //end loop over all known cells
-  
+
   printf("RECOMBINATION INFO: {ID,(0=bad,1=good, no nuc, 2=good, nuc)}\n");
   for(j=0;j<n_known;j++){
     printf("{%i,%i} ",cs[j]->index,cell_marker[j]);
@@ -1884,7 +1896,7 @@ int recombination_check(int i_t0,
       b1=cs[k];
       //Start with cells which are at the current time point
       if ((b0->i_time)!=(b1->i_time)) continue;
-      
+
       //Go back to previous time if we can for this cell (if not
       //continue on) ("previous time" is actually i_t0-1 not the time
       //int the b1-> list because the time there might just be the
@@ -1902,7 +1914,7 @@ int recombination_check(int i_t0,
       if (tmp>max_overlap){
 	max_overlap=tmp;
 	k_remove=k;
-      }	
+      }
     }
 
     if (max_overlap==0.0){ //Increase footprint of cell we're trying to
@@ -1940,7 +1952,7 @@ int recombination_check(int i_t0,
 	    }
 	  }
 	}
-	
+
 	goto try_again;
       }
     }
@@ -1956,7 +1968,7 @@ int recombination_check(int i_t0,
 	n_known--;
       }
     }
-    
+
   } //end loop over b0
 
   free(cell_marker);
@@ -2109,7 +2121,7 @@ int combine_cells_in_cs_array(i0,i1,i_t0){
     p1->prev=NULL;
     return 1;
   }
-  
+
   //Check if the same point was found
   if (p0_a==p0_b)p0_b=p0_a->prev; //Put p0_b is upstream of p0_a,
   //so far p0_a,p0_b directionality has been irrelevant. Below however
@@ -2199,9 +2211,9 @@ int combine_cells_in_cs_array(i0,i1,i_t0){
     b1->fluor_m2+=b0->fluor_m2;
     b1->fluor_m3+=b0->fluor_m3;
     b1->area_p1+=b0->area_p1;
-    b1->area_m1+=b0->area_m1; 
-    b1->area_m2+=b0->area_m2; 
-    b1->area_m3+=b0->area_m3; 
+    b1->area_m1+=b0->area_m1;
+    b1->area_m2+=b0->area_m2;
+    b1->area_m3+=b0->area_m3;
     b1->vacuole_fl+=b0->vacuole_fl;
     b1->vacuole_area+=b1->vacuole_area;
     b1->vol_rotation+=b0->vol_rotation;
@@ -2250,7 +2262,7 @@ void internal_structure(int flag,int flag2){
   //flag==0 means use the FL image to find nucleus, or, for
   //        the fret case, use the lower part of fret image.
   //flag==1 means use the upper part of the FRET image
-  
+
 
   int i;
   int k;
@@ -2303,7 +2315,7 @@ void internal_structure(int flag,int flag2){
     printf("Unknown flag value in internal_structure(%i)\n",flag);
     return;
   }
-  
+
   //Loop over each of the found cells
   if (have_fret_image==1){
     if (flag==0){ //Using lower part of image
@@ -2362,13 +2374,13 @@ void internal_structure(int flag,int flag2){
   }
 
   for(i=nloop_low;i<nloop_high;i++){ //Loop over all the cells
-    
+
     for(itype=0;itype<nucleus_distribution_types;itype++){
 
 			//V1.4.5 ussing the no Gaussian code only (see commented code below)
 				//Now loop over each interior point and maximize a disk of
 				//of fluorescence centered at that point.  Make sure the disk
-				//is entirely within the cell.       
+				//is entirely within the cell.
 	  		nucleus_radius=((float)nucleus_radii[itype]);
 
 				maximum_pixels_within_fixed_radius(array,xmax,ymax,
@@ -2396,7 +2408,7 @@ void internal_structure(int flag,int flag2){
 				}
 				fl_nucleus[i][itype]=sum1; //Value from fluorescence array
 				fl_nucleus_from_search[i][itype]=sum2; //The value from search image
-	
+
 				if ((array==third_image)&&(third_image_type==nuclear_label)&&
 	    		(itype==0)){
 	  			//Mark nuclear boundaries in d[] array
@@ -2458,15 +2470,15 @@ void internal_structure(int flag,int flag2){
 
 
 
-      
-			
+
+
 			/* V1.4.5 Commented out
 			//find best center, next times use that center.
       if ((itype!=do_contiguous)&&(itype!=do_gauss)){
         //do_gauss=nucleus_distribution_type - 1
 				//Now loop over each interior point and maximize a disk of
 				//of fluorescence centered at that point.  Make sure the disk
-				//is entirely within the cell.      
+				//is entirely within the cell.
 				if (itype<all_pixels){ //all_pixels=nucleus_distribution_types - 2
 	  			nucleus_radius=(2.0+((float)itype));
 				}else{
@@ -2481,7 +2493,7 @@ void internal_structure(int flag,int flag2){
 				//center of a circle of radius nucleus_radius that have the brightest
 				//per_pixel values of array[].
 				// *(p_nuclear_center) contains new value if started out NULL.
-      
+
 			}else if (itype==do_contiguous){ //Do contiguous cut method
 				maximum_contiguous_pixels(array,xmax,ymax,interior[i],
 						  &list_x,&list_y,&n_list);
@@ -2505,7 +2517,7 @@ void internal_structure(int flag,int flag2){
 					  	&list_x,&list_y,&n_list);
 
 	  			if (gauss_sig<=0.0)gauss_sig=1.0e5; //Essentially flat
-	  
+
 	  			//printf("------->back=%e and (%i,%i)-->(%e,%e,%e)\n",
 	  			//       back,
 	  			//       p_nuclear_center[i]->i,
@@ -2541,7 +2553,7 @@ void internal_structure(int flag,int flag2){
 				}
 				fl_nucleus[i][itype]=sum1; //Value from fluorescence array
 				fl_nucleus_from_search[i][itype]=sum2; //The value from search image
-	
+
 				if ((array==third_image)&&(third_image_type==nuclear_label)&&
 	    		(itype==0)){
 	  			//Mark nuclear boundaries in d[] array
@@ -2602,7 +2614,7 @@ void internal_structure(int flag,int flag2){
 				}
 
       }else{ //For summing the data with gaussian weights
-	
+
 				mu_x=((double)gauss_x);
 				mu_y=((double)gauss_y);
 				half_inv_sig2=0.5/((double)(gauss_sig*gauss_sig));
@@ -2664,17 +2676,17 @@ void internal_structure(int flag,int flag2){
 	      			dr2=(dtmp1*dtmp1+dtmp2*dtmp2);
 	      			wt=exp(-dr2*half_inv_sig2);
 	      			sum_wt+=wt;
-	      
+
 	      			u=(iy*xmax+ix);
 	      			f1=((double)fl[u]);
 	      			f2=((double)array[u]);
-	      
+
 	      			dsum1+=(f1*wt);
 	      			dsum2+=(f2*wt);
-	      
+
 	    			}
 	  			}
-	  			area_nucleus[icopy][itype]=3.14159*gauss_sig*gauss_sig;  
+	  			area_nucleus[icopy][itype]=3.14159*gauss_sig*gauss_sig;
 	  			if ((npoints>0)&&(gauss_sig<1000.0)){
 	    			fl_nucleus[icopy][itype]=
 	      				((float)(dsum1/sum_wt)); //Value from fluorescence array
@@ -2688,8 +2700,8 @@ void internal_structure(int flag,int flag2){
 
 				}
       }//End if of whether doing normal sum or gaussian weighted sums
-			*/ //End V1.4.5 commented out      
-      
+			*/ //End V1.4.5 commented out
+
     }//End loop over different types of searches
 
 
@@ -2698,7 +2710,7 @@ void internal_structure(int flag,int flag2){
     //	   fl_nucleus[i][3]/area_nucleus[i][3],
     //	   fl_nucleus[i][do_gauss]/area_nucleus[i][do_gauss]);fflush(stdout);
 
-    
+
   }//End loop over all the found cells
   return;
 }
@@ -2756,7 +2768,7 @@ void next_prev_fl_comparison(){
   //Calculate an offset from this image to the previous
   i=0;
   j=0;
-  
+
   do{
     offx=i;
     offy=j;
@@ -2817,13 +2829,13 @@ void next_prev_fl_comparison(){
   }
   if(first_cur_prev_comparison==2){
     output_data_to_tif_file("tmp1.tif",0,16,"");
-  }else 
+  }else
   if(first_cur_prev_comparison==3){
     output_data_to_tif_file("tmp2.tif",0,16,"");
-  }else 
+  }else
   if(first_cur_prev_comparison==4){
     output_data_to_tif_file("tmp3.tif",0,16,"");
-  }else 
+  }else
   if(first_cur_prev_comparison==5){
     output_data_to_tif_file("tmp4.tif",0,16,"");
   }
@@ -2857,7 +2869,7 @@ void next_prev_fl_comparison(){
 	dtmp1=(((double)i)-mu_x);
 	dtmp2=(((double)j)-mu_y);
 
-	//if (cur_prev[i][j]>((float)sqrt((double)(fl[i][j])))){	
+	//if (cur_prev[i][j]>((float)sqrt((double)(fl[i][j])))){
 	if (cur_prev[u1]>0.0){
 	  pos_mean_x+=(dtmp1*curprev2);
 	  pos_mean_y+=(dtmp2*curprev2);
@@ -2922,7 +2934,7 @@ void next_prev_fl_comparison(){
   for(i=0;i<xmax_ymax;i++){
     flprev[i]=fl[i];
   }
-  
+
   return;
 }
 
@@ -2980,11 +2992,11 @@ struct point *make_boundary_list(int x, int y, int v){
   u=(y*xmax+x);
   //Make sure we're in the region we're interested in
   if(d[u]!=v) return NULL;
-  
+
   p=point_malloc();
   p->prev=NULL; //To mark start of list
   pstart=p;
-  
+
   //Go one pixel past the edge in any direction
   xcur=x;
   ycur=y;
@@ -3034,7 +3046,7 @@ struct point *make_boundary_list(int x, int y, int v){
   //Continue until we make a full loop back to the start, don't allow
   //previously used point to be used again.
   for(;;){
-    
+
     nmax=-1;
     imax=-1;
     jmax=-1;
@@ -3071,7 +3083,7 @@ struct point *make_boundary_list(int x, int y, int v){
       u=(ycur*xmax+xcur);
       work_array[u]=v;
     }else{
-      
+
       //Check if we've gone full circle
       if(((xcur-xstart)<=1)&&((xstart-xcur)<=1)&&((ycur-ystart)<=1)&&
 	                                                     ((ystart-ycur)<=1)){
@@ -3105,14 +3117,14 @@ struct point *make_boundary_list(int x, int y, int v){
 
     }
   }
-  
+
   if((p->prev)==NULL){
     point_free(p);
     //printf("Done boundary, SURPRISINGLY no points\n");
     //fflush(stdout);
     return NULL;
   }
-    
+
   //Fix up dangling ends
   (p->prev)->next=NULL;
   point_free(p);
@@ -3131,7 +3143,7 @@ int neighboring_points(int x, int y, int v){
   int n;
 
   int u1,u2,u3;
-  
+
   n=0;
 
   u1=y*xmax+x;
@@ -3144,7 +3156,7 @@ int neighboring_points(int x, int y, int v){
   if((x-1)>=0){
     if(d[u1-1]==v)n++;
   }
-  
+
   if((y-1)>=0){
     if(d[u2]==v)n++;
     if((x+1)<xmax){
@@ -3153,7 +3165,7 @@ int neighboring_points(int x, int y, int v){
     if((x-1)>=0){
       if(d[u2-1]==v)n++;
     }
-  } 
+  }
 
   if((y+1)<ymax){
     if(d[u3]==v)n++;
@@ -3163,11 +3175,11 @@ int neighboring_points(int x, int y, int v){
     if((x-1)>=0){
       if(d[u3]==v)n++;
     }
-  } 
+  }
 
   return n;
 }
-    
+
 /*****************************************************************/
 struct point *fix_spirals(struct point *p_begin){
   //Remove cells that kind of spiral inwards a few points but removing
@@ -3209,7 +3221,7 @@ struct point *fix_spirals(struct point *p_begin){
 
   return p_begin; //Didn't adjust the start
 }
-   
+
 
 
 
@@ -3245,7 +3257,7 @@ struct point *clean_up_tails(struct point *p_begin){
 	  //scheme makes it hard to clean this up, probably won't matter....)
 	  start=p->next;
 	  start->prev=NULL;
-	  
+
 	  return start;
 	}
       }
@@ -3256,7 +3268,7 @@ struct point *clean_up_tails(struct point *p_begin){
   //Note if some full-cells finish with last point being equal to first,
   //then the above loop will have removed the last point, which is a nice
   //feature.
-  
+
   return start;
 
 }
@@ -3313,7 +3325,7 @@ struct point *find_interior_points(struct point *begin){
     if((p0->j)>jmax) jmax=p0->j;
   }
 
-  //We're going to loop from jmin to jmax and consider segments going 
+  //We're going to loop from jmin to jmax and consider segments going
   //horizontally across entire picture.  We then look for intersections
   //of our line segments with this big segment.  We list the locations
   //of all found intersections.  If we write these points sorted in x as
@@ -3321,12 +3333,12 @@ struct point *find_interior_points(struct point *begin){
   //i3 to i4, etc.
 
   for(j=jmin;j<=jmax;j++){
-    
+
     isect_found=0;
     for(p0=begin;p0!=NULL;p0=p0->next){
       p1=p0->next;
       if(p1==NULL)p1=begin; //Keep loop going around begin point
-      
+
       isect=do_segments_intersect(
 				  (float)p0->i,(float)p0->j,
 				  (float)p1->i,(float)p1->j,
@@ -3336,7 +3348,7 @@ struct point *find_interior_points(struct point *begin){
 				  (y+isect_found) );
       //Add .1 to j so don't have any questions about tangential
       //intersections.
-      
+
       if(isect==1){
 	      isect_found++;
 	      if(isect_found>isect_max){
@@ -3344,14 +3356,14 @@ struct point *find_interior_points(struct point *begin){
 	        isect_found--;
 	      }
       }
-    }//End loop over segment list for this value of j    
+    }//End loop over segment list for this value of j
     /*
     for(i=0;i<isect_found;i++){
       printf("       i-point: (%e,%e)\n",x[i],y[i]);
       fflush(stdout);
     }
     */
-    
+
     //Make sure number found is even
     if((isect_found%2)!=0){
       printf("Odd number of intersection points!!!!!\n");
@@ -3359,7 +3371,7 @@ struct point *find_interior_points(struct point *begin){
       point_list_free(interior_start); //Note last point points to NULL
       return NULL;
     }
-    
+
     //If we've found at least two points, then sort them in x[] so can
     //calculate interior points.
     for(i=0;i<(isect_found-1);i++){
@@ -3417,8 +3429,8 @@ int do_segments_intersect(
   //intersection.  If the segments are parallel and also intersect (ie,
   //if they intersect in more than one point, then (x,y) will be
   //returned as a1.
-  
-  //We parameterize each segment as t*M+A where the capital letters are 
+
+  //We parameterize each segment as t*M+A where the capital letters are
   //2-vectors.  Using s for the a1-b1 line and t for the a2-b2 line, we want
   //to find s or t such that
   // s*M1+A1 = t*M2+A2 where M1=B1-A1 and M2=B2-A2
@@ -3429,7 +3441,7 @@ int do_segments_intersect(
   //endpoints, and s=1 (t=1) the other end point.  Then the segments
   //intersect iff 0<=s<1 and 0<=t<1.  (Note I only include the one
   //endpoint in the intersection.
-  
+
   float m1x,m1y,m2x,m2y,a21x,a21y;
   float s,t;
   float m2_perp_m1;
@@ -3443,15 +3455,15 @@ int do_segments_intersect(
   //points for parameterization)
   a21x=a2x-a1x;
   a21y=a2y-a1y;
-  
-  //Slope vectors 
+
+  //Slope vectors
   m1x=b1x-a1x;
   m1y=b1y-a1y;
   m2x=b2x-a2x;
   m2y=b2y-a2y;
   //So t*M+B goves from point a1 to point b1 as t goes from 0 to 1
   //and similarly for points a2 and b2.
-  
+
   m2_perp_m1=(m2y*m1x-m2x*m1y);
   m2_perp_a21=(m2y*a21x-m2x*a21y);
   m1_perp_a21=(m1y*a21x-m1x*a21y); //Note m1_perp_m2 = -m2_perp_m1
@@ -3502,21 +3514,21 @@ int do_segments_intersect(
   }else{
     return 0;
   }
-  
+
 }
 
 /***********************************************************/
 void remove_overlaps(void){
   //Compare the interior points of the different cells, and if two cells
   //overlap too much, remove the smaller.
-  
+
   int a;
   int i,j;
   int remove_point;
-  
+
   struct point *istart;
   int isection;
-  
+
   float tmp;
   float overlap_cut=0.3;
 
@@ -3545,7 +3557,7 @@ void remove_overlaps(void){
     }else{
       c_over_a1=1.0e30;
     }
-    */    
+    */
 
     //might change when we replace cells.
     update_overlap_value();
@@ -3614,7 +3626,7 @@ void remove_overlaps(void){
     }//End loop over inner loop of bubble sort (j)
 
   }//End loop over outer loop over bubble sort (i)
-  
+
   return;
 }
 
@@ -3631,12 +3643,12 @@ void update_overlap_value(void){
     overlap_value=1;
     for(u=0;u<over_array_max;u++) over[u]=overlap_value;
   }
-  
+
   overlap_value++;
   if (overlap_value>overlap_value_max){
     overlap_value=2;
     for(u=0;u<over_array_max;u++) over[u]=1; //Reset array
-    
+
   }
   return;
 }
@@ -3668,7 +3680,7 @@ void fill_overlap_array_with_point_list(struct point *begin){
 void fill_overlap_array_with_point_list_offset(struct point *begin,
 					       int offx,
   					       int offy){
-  
+
   int u;
   struct point *r;
   int ix,iy;
@@ -3693,12 +3705,12 @@ void fill_overlap_array_with_point_list_offset(struct point *begin,
 int overlap(struct point *begin, int offset_i, int offset_j){
   //Calculate the intersection of two linked lists of points.
   //The first point should already have been written into the over[] array
-  //using fill_overlap_array_with_point_list(). 
-  //this since this routine will usually be used in the middle of a 
+  //using fill_overlap_array_with_point_list().
+  //this since this routine will usually be used in the middle of a
   //bubble sort, so don't want to waste time refilling and clearing memory.
-  
+
   int u;
-  
+
   int n;
   int ix,iy;
   struct point *r;
@@ -3758,84 +3770,84 @@ int output_individual_cells_to_file(int i_t,
       //Write number i at position (b->x,b->y)
       //      printf("Adding number %i at (%e,%e).\n",b->index,b->x,b->y);
       //fflush(stdout);
-      
+
       if (((b->x)>=0.0)&&((b->y)>=0.0)){
-	i0=((int)(b->x))-xmax_out/2;
-	j0=((int)(b->y))-ymax_out/2;
-
-	//Zero out this box first (ie, mark all pixels as "deleted")
-	for(ix=0;ix<xmax_out;ix++){
-	  for(iy=0;iy<ymax_out;iy++){
-	    u=(iy*xmax_out+ix);
-	    output_labels[u]=delete_pixel;
-	    output_data[u]=0.0;
-	  }
-	}
-	
-	//Add in our cell and its boundary
-	for(p=b->interior;p!=NULL;p=p->next){
-	  ix=(p->i)-i0;
-	  iy=(p->j)-j0;
-	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
-	    u=(iy*xmax_out+ix);
-	    output_labels[u]=0; //transparent
-	  }
-	}
-	for(p=b->boundary;p!=NULL;p=p->next){
-	  ix=(p->i)-i0;
-	  iy=(p->j)-j0;
-	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
-	    u=(iy*xmax_out+ix);
-	    output_labels[u]=found_border;
-	  }
-	}
-	
-	//Now copy over to our box
-	//Zero out this box first (ie, mark all pixels as "deleted")
-	for(ix=0;ix<xmax_out;ix++){
-	  for(iy=0;iy<ymax_out;iy++){
-	    //Now zero out d[] array in this region (see we can
-	    //use add_boundary_pixels()....
-	    u=(iy*xmax_out+ix);
-	    iuse=ix+i0;
-	    juse=iy+j0;
-	    output_data[u]=0.0;
-	    if ((iuse>=0)&&(iuse<xmax_data)&&(juse>=0)&&(juse<ymax_data)){
-	      uuse=(juse*xmax_data+iuse);
-	      output_data[u]=input_data[uuse];
-	    }    
-	  }
-	}
-
-	//Put number in middle of bottom
-	add_numbers_to_data(b->index,
-			    (xmax_out/2),(ymax_out-10),
-			    output_labels,
-			    xmax_out,ymax_out);
-	
-	strcpy(file,basefile);
-	strcat(file,"_");
-	digits_to_string(cellnum,bit_size,10);
-	strcat(file,cellnum);
-	strcat(file,"b_id_");
-	digits_to_string(cellnum,b->index,9999);
-	strcat(file,cellnum);
-	strcat(file,".tif");
-	if(output_data_to_tif_file(file,
-				   output_data,
-				   xmax_out,ymax_out,
-				   output_labels,
-				   type,
-				   bit_size,
-				   invert)==0){
-	  printf("Couldn't output cell %i to %s.\n",b->index,file);
-	}
-	
+      	i0=((int)(b->x))-xmax_out/2;
+      	j0=((int)(b->y))-ymax_out/2;
+      
+      	//Zero out this box first (ie, mark all pixels as "deleted")
+      	for(ix=0;ix<xmax_out;ix++){
+      	  for(iy=0;iy<ymax_out;iy++){
+      	    u=(iy*xmax_out+ix);
+      	    output_labels[u]=delete_pixel;
+      	    output_data[u]=0.0;
+      	  }
+      	}
+      
+      	//Add in our cell and its boundary
+      	for(p=b->interior;p!=NULL;p=p->next){
+      	  ix=(p->i)-i0;
+      	  iy=(p->j)-j0;
+      	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
+      	    u=(iy*xmax_out+ix);
+      	    output_labels[u]=0; //transparent
+      	  }
+      	}
+      	for(p=b->boundary;p!=NULL;p=p->next){
+      	  ix=(p->i)-i0;
+      	  iy=(p->j)-j0;
+      	  if ((ix>=0)&&(ix<xmax_out)&&(iy>=0)&&(iy<ymax_out)){
+      	    u=(iy*xmax_out+ix);
+      	    output_labels[u]=found_border;
+      	  }
+      	}
+      
+      	//Now copy over to our box
+      	//Zero out this box first (ie, mark all pixels as "deleted")
+      	for(ix=0;ix<xmax_out;ix++){
+      	  for(iy=0;iy<ymax_out;iy++){
+      	    //Now zero out d[] array in this region (see we can
+      	    //use add_boundary_pixels()....
+      	    u=(iy*xmax_out+ix);
+      	    iuse=ix+i0;
+      	    juse=iy+j0;
+      	    output_data[u]=0.0;
+      	    if ((iuse>=0)&&(iuse<xmax_data)&&(juse>=0)&&(juse<ymax_data)){
+      	      uuse=(juse*xmax_data+iuse);
+      	      output_data[u]=input_data[uuse];
+      	    }
+      	  }
+      	}
+      
+      	//Put number in middle of bottom
+      	add_numbers_to_data(b->index,
+      			    (xmax_out/2),(ymax_out-10),
+      			    output_labels,
+      			    xmax_out,ymax_out);
+      
+      	strcpy(file,basefile);
+      	strcat(file,"_");
+      	digits_to_string(cellnum,bit_size,10);
+      	strcat(file,cellnum);
+      	strcat(file,"b_id_");
+      	digits_to_string(cellnum,b->index,9999);
+      	strcat(file,cellnum);
+      	strcat(file,".tif");
+      	if(output_data_to_tif_file(file,
+                                   output_data,
+                                   xmax_out,
+                                   ymax_out,
+                                   output_labels,
+                                   type,
+                                   bit_size,
+                                   invert,
+                                   0)==0){
+      	  printf("Couldn't output cell %i to %s.\n",b->index,file);
+      	}
       }
     }
-
   }
-  
+
   free(file);
   free(output_data);
   free(output_labels);
@@ -3926,7 +3938,7 @@ void background_level(int i_time){
     if (fret_labels==NULL){
       printf("No split-labels for split image in background");
       printf(" calculation.\n");
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
     fret_region=1; //The upper part of the image (lower y) is labelled 2
   }
@@ -3956,15 +3968,15 @@ void background_level(int i_time){
       }
     }
   }
-  
+
   if(min_pixel_value==max_pixel_value){
     printf("min=%e=%e=max, returning cut value of zero. \n",
 	   min_pixel_value,max_pixel_value);
     return;
   }
-  
+
   max_bin_width=(max_pixel_value-min_pixel_value)/10.0;
-  
+
   //width of bins has to be an integer since fluorescence values
   //are actually integers from ccd camera.
   for(i=1;;i++){
@@ -3972,20 +3984,20 @@ void background_level(int i_time){
     if (w<((float)nbins_max)) break; //is ok
   }
   bin_width=((float)i);
-  
+
   back_pixels[i_time]=-1.0e6; //Initialization just in case can't find
   //adequate bin size.
   max_calc_done=0;
   while(max_calc_done==0){
     //Will increase bin_width in loop if think too small
-    
+
     inv_bin_width=1.0/bin_width;
     w=min_pixel_value;
     for(i=0;w<=max_pixel_value;i++){
       h[i]=0.0;
       w+=bin_width;
     }
-    
+
     if (have_fret_image==1){
       for(u=0;u<xmax_ymax;u++){
 	if(fret_labels[u]==fret_region){
@@ -4039,7 +4051,7 @@ void background_level(int i_time){
       w+=bin_width;
       nbins++;
     }
-    
+
     //Now check that the top three bins are all near each other. If
     //not then bin width might have been too low
     i=i1-i2;
@@ -4075,9 +4087,9 @@ void background_level(int i_time){
     mu1=min_pixel_value+( (((float)i1)+0.5)*bin_width );
     mu2=min_pixel_value+( (((float)i2)+0.5)*bin_width );
     mu3=min_pixel_value+( (((float)i3)+0.5)*bin_width );
-    
+
     mu=(mu1*hmax1+mu2*hmax2+mu3*hmax3)/(hmax1+hmax2+hmax3);
-    
+
     back_pixels[i_time]=mu;
     back_cur=mu;
     if (have_fret_image==1){
@@ -4099,7 +4111,7 @@ void background_level(int i_time){
     printf("Background in non-cells at time t=%i is %e (bin_width=%e).\n",
 	   i_time,back_pixels[i_time],bin_width);
   }
-  
+
   return;
 }
 /***********************************************************/
@@ -4133,7 +4145,7 @@ void calculate_cut(){
     printf("Haven't calculated upper and lower regions from");
     printf("fluorescence image.\n");
     fflush(stdout);
-    exit(0);
+    perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
 
   //Get max and min pixel value for histogramming
@@ -4154,7 +4166,7 @@ void calculate_cut(){
 	     mean_other+=tmp;
 	     rms_other+=(tmp*tmp);
 	     n_other++;
-      }	
+      }
     }
     mean_other/=((double)n_other);
     rms_other=(rms_other/((double)n_other))-(mean_other*mean_other);
@@ -4170,13 +4182,13 @@ void calculate_cut(){
       printf("Cut from opposite region in cut calculation: %e\n",cut_other);
     }
   }
-  
+
   //Add cut_other as a requirement on the lower_fret_region
-  //for 
+  //for
   mu=0.0;
   sig=0.0;
   scale=0.0;
-  
+
   //Loop over all the pixels of the bright field image array
   for(i=0;i<xmax_ymax;i++){
     tmp=c[i];
@@ -4193,7 +4205,7 @@ void calculate_cut(){
     if(tmp<min_pixel_value) min_pixel_value=tmp;
     if(tmp>max_pixel_value) max_pixel_value=tmp;
   }
-  
+
   mu/=scale; //mu=sum(pix)/nPix
   sig/=scale;//sig=sum(pix^2)/nPix
   sig=(float)sqrt((double)(sig-mu*mu));
@@ -4209,7 +4221,7 @@ void calculate_cut(){
 
  /*
   goto skip;
- 
+
   //Most points are background, so make a histogram of all points, and
   //the data should show up as a high end tail.  Find it by looking for
   //first crossing of zero of the derivative from it's most negative point.
@@ -4217,7 +4229,7 @@ void calculate_cut(){
   //of that is the most negative point for the derivative.  We're going to
   //put the cut just where the derivative first crosses zero).
 
- 
+
   printf("Min and max=%e, %e.\n",min_pixel_value,max_pixel_value);
   if (min_pixel_value<0.5){ //Don't allow a 0.0 min value in histogram.
     //This is because if we're fitting a metamorph-"deconvolution"
@@ -4239,7 +4251,7 @@ void calculate_cut(){
   nbins=nbins_for_cut_calculation;
 
  gauss_fit_start:
-  
+
   w=((float) nbins)/(max_pixel_value-min_pixel_value);
 
   for(i=0;i<nbins;i++){
@@ -4275,8 +4287,8 @@ void calculate_cut(){
   //  if (nbins>10){
   //    goto gauss_fit_start;
   //  }
-  //}    
-  
+  //}
+
 
   //Fit the peak to a gaussian.  Use mu=peak location and scale=size of
   //peak for first guesses.  Guess sig to be something reasonable.
@@ -4312,8 +4324,8 @@ void calculate_cut(){
     }
   }
  skip:
-  */  
-      
+  */
+
   printf("In Pixel units: mu=%e, sig=%e.\n",min_pixel_value+mu/w,sig/w);
 
   //Set cut to be 3*sigma above mean.  mu and sig are in units of
@@ -4352,7 +4364,7 @@ void check_mem(void){
   }
 
   i=max_cells-1;
-  
+
   if(boundary[i]!=NULL) printf("Screwup in boundary[](%i,%i)!!!!!\n",
 			       i,(int) boundary[i]);
   if(interior[i]!=NULL) printf("Screwup in interior[](%i,%i)!!!!!\n",
@@ -4361,7 +4373,7 @@ void check_mem(void){
   if(mean_y[i]!=222.0) printf("Screwup in y[](%i,%e)!!!!!\n",i,mean_y[i]);
   if(n_points[i]!=111) printf("Screwup in n_points(%i,%i)!!!!!\n",
 			      i,n_points[i]);
-  
+
   return;
 }
 */
@@ -4396,7 +4408,7 @@ struct point *point_malloc(void){
       printf("Need to introduce an offset into point_free() to since\n");
       printf("the structure and the memory-unit holding the structure\n");
       printf("have different addresses (%i != %i) in point_malloc().\n",i,j);
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 
@@ -4427,7 +4439,7 @@ struct point *point_malloc(void){
 
   return p;
 }
-  
+
 /**********************************************************/
 void point_list_free(struct point *p_in){
 
@@ -4463,14 +4475,14 @@ void point_free(struct point *p){
   pmem_cur=(struct point_mem *)p; //Make the new first location
 
   pmem_cur->next=ptmp;  //point to previous first location
-  
+
   return;
 }
 
 /**********************************************************/
 void update_list_of_found_cells(int i_t, int secs, int flag){
   //Go through all the known cells and compare to the currently found
-  //cells.  If a current cell isn't near any of them, then start a 
+  //cells.  If a current cell isn't near any of them, then start a
   //new one in the list of known cells, otherwise add the current one to
   //the known list using time index i_t.
   //secs is the time in seconds since the first image.
@@ -4559,7 +4571,7 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 
       tmp_i=offset_i;
       tmp_j=offset_j;
-      
+
       do{
 	offset_i=tmp_i;
 	offset_j=tmp_j;
@@ -4592,13 +4604,13 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	  }
 	}
       } while((tmp_i!=offset_i)||(tmp_j!=offset_j)) ;
-      
+
     } //If there was a previous image to calculate offset against
 
     //Below we put the current image in the over[] array,
     //so meaning of offsets gets reversed.
-    offset_i=-offset_i; 
-    offset_j=-offset_j; 
+    offset_i=-offset_i;
+    offset_j=-offset_j;
 
     printf("Offset from previous image: (%i,%i).\n",offset_i,offset_j);
     //We'll only use the offsets to calculate overlaps to match to cells
@@ -4653,7 +4665,7 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	printf("The %ith cell in the current image isn't marked",i);
 	printf("whether it's an original or a copy.\n");
 	fflush(stdout);
-	exit(0);
+	perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
       }
     }
     bnew->interior=interior[i];
@@ -4691,7 +4703,7 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
     bnew->fl_nucleus_from_search6=fl_nucleus_from_search[i][5];
 //    bnew->fl_nucleus_from_search7=fl_nucleus_from_search[i][6];
 //    bnew->fl_nucleus_from_search8=fl_nucleus_from_search[i][7];
- 
+
     bnew->pos_sig_mean_x=pos_sig_mean_x[i];
     bnew->pos_sig_mean_y=pos_sig_mean_y[i];
     bnew->pos_sig_mean_r=pos_sig_mean_r[i];
@@ -4772,7 +4784,7 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	  c_over_a1=1.0e30;
 	  }
 	*/
-	
+
 	j_max=-1;
 	tmp_j=(fret_offset+overall_id_offset);
 	for(j=0;j<loop_total;j++){
@@ -4783,12 +4795,17 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	    continue; //No need to compare to id's above fret_offset
 	  }
 	  if (cs[j]->x<0) continue; //A flag for removing cells
-	  for(b=cs[j];(b!=NULL)&&(b->i_time==i_t);b=b->prev);
+	  
+	  for(b=cs[j]; (b!=NULL)&&(b->i_time==i_t); b=b->prev);
+	  
 	  if(b==NULL){ //Should never happen
+	    // Definition:  struct blob *b;
+	    // Declaration: b=cs[j];  //cs[j] is the previous time point found for cell j
 	    printf("Chose a list that had no previous elements!!!\n");
 	    printf("!!!!!!!!!! (%i, %i) !!!!!!!!!\n",i_t,j);
 	    break;
 	  }
+	  
 	  isection=overlap(b->interior,offset_i,offset_j);
 	  uon=((b->n)+n_p) - isection; //union of points
 	  I_over_U=((float)isection)/((float)uon);
@@ -4802,7 +4819,7 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	  I_over_U_max=-1.0;
 	}
       } //if we have a fret-image and we're in the id+fret_offset range
-      
+
     }else{ //if we don't have a new list of cells
       j_max=location_in_cs_array[i];
       if (j_max<0){
@@ -4852,11 +4869,11 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
     }else{
 
       if (n_known<max_cells){
-	
+
 	  //Add a new cell to the list
 	location_in_cs_array[iloc]=n_known; //Save this location
 	cs[n_known]=bnew;
-	bnew->prev=NULL; 
+	bnew->prev=NULL;
 	//bnew->index=n_known+overall_id_offset;
 	if ((have_fret_image==1)&&(i>=n_before_fret_copy)){
 	  bnew->index=id_fret;
@@ -4872,20 +4889,20 @@ void update_list_of_found_cells(int i_t, int secs, int flag){
 	    continue;
 	  }
 	}
-	n_known++;	
+	n_known++;
       }else{ //Skip this cell
 	printf("************** Too many known cells*****: %i.\n",n_known);
 	location_in_cs_array[iloc]=-999;
 	free(bnew);
 	continue;
       }
-      
+
     }
-    
+
   } //End loop over found cells
 
   printf("Currently found total of %i separate cells.\n",n_known);
-    
+
   return;
 }
 /**********************************************************/
@@ -4930,7 +4947,7 @@ int total_overlap_of_all_cells(offset_i,offset_j){
 void add_cell_number_to_the_data(int i_t){
   //Loop over the list of known cells and add to the data a number label
   //based on the cells location in the known list.  Only do those cells
-  //that were found during iteration i_t. 
+  //that were found during iteration i_t.
 
   int i;
   struct blob *b;
@@ -4946,25 +4963,27 @@ void add_cell_number_to_the_data(int i_t){
 
   count=0;
   for(i=0;i<n_known;i++){
-    b=cs[i]; //cs[] points to most recently added cell
+    b=cs[i];                    // A "cell" list. cs[] points to most recently added cell, defined as: "struct blob *cs[max_cells];"
     if(b->i_time==i_t){
       //Write number i at position (b->x,b->y)
       //     printf("Adding number %i at (%e,%e).\n",b->index,b->x,b->y);
       //fflush(stdout);
-      
+
       if((count%alternate)==0){
 	       if (((b->x)>=0.0)&&((b->y)>=0.0)){
 	         add_numbers_to_data(b->index,
-			       ((int)((b->x))),
-			       ((int)((b->y))),
-			       d,xmax,ymax);
+			                         ((int)((b->x))),
+			                         ((int)((b->y))),
+			                         d,                   // used by add_numbers_to_data to label pixels as: "d[(iy*xmax)+ix]=cell_label;"
+			                         xmax,
+			                         ymax);
 	       }
       }
       count++;
-      
+
     }
   }
-  
+
   return;
 }
 
@@ -4979,7 +4998,7 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
   struct blob *b;
   FILE *fp=NULL;
   char file[500];
-  
+
   //char sys_cmd[500];
   int time1,time2;
   float back;
@@ -4991,8 +5010,8 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
   }else{
     strcpy(wa,"w"); //write and overwrite
   }
-  
-  
+
+
   //First sort the cs[] list based on how many timepoints are in each
   //of the linked lists (ie, how many nodes in each linked list).
   for(i=0;i<(n_known-1);i++){
@@ -5017,40 +5036,41 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
       }
     }
   }
-  
+
   //Put all cells into one file --4/24/03, so no more writing out a
   //separate file for each and every cell.
   strcpy(file,basename);
   strcat(file,"_all");
-  
+
   if((fp=fopen(file,wa))==NULL){
-    printf("Couldn't open file %s\n",file);
+    printf("Couldn't open single output file %s\n",file);
     fflush(stdout);
-    return 0;
+    perror("Error in segment.c!")
+    return;
   }
-  
+
   //Printing header to file
   fprintf(fp,"cellID \tt.frame\t time \t xpos \t ypos \t f.tot  \t a.tot  \t");
   fprintf(fp,"num.pix\tfft.stat \t perim  \t maj.axis \t min.axis \t f.nucl \t ");
   fprintf(fp,"a.nucl \t flag \t rot.vol \t con.vol \t a.vacuole \t f.vacuole \t f.bg   \t ");
-  
+
   fprintf(fp,"f.tot.p1 \t a.tot.p1 \t f.tot.m1 \t a.tot.m1 \t f.tot.m2 \t");
   fprintf(fp,"a.tot.m2 \t f.tot.m3 \t a.tot.m3 \t");
-  
+
 	fprintf(fp,"xpos.nucl\typos.nucl\t ");
   fprintf(fp,"f.nucl1 \t f.nucl.tag1 \t a.nucl1 \t f.nucl2 \t f.nucl.tag2 \t ");
   fprintf(fp,"a.nucl2 \t f.nucl3 \t f.nucl.tag3 \t a.nucl3 \t f.nucl4 \t ");
   fprintf(fp,"f.nucl.tag4 \t a.nucl4 \t f.nucl5 \t f.nucl.tag5 \t a.nucl5 \t ");
   fprintf(fp,"f.nucl6 \t f.nucl.tag6 \t a.nucl6 \t ");
-  
+
   fprintf(fp,"f.local.bg \t a.local.bg \t a.local \t f.local2.bg \t");
   fprintf(fp,"a.local2.bg \t a.local2 \t ");
-  
+
   fprintf(fp,"a.surf \t con.vol \t sphere.vol ");
-  
+
   fprintf(fp,"\n");
-  
-    
+
+
   for(i=0;i<n_known;i++){
     b=cs[i];
     time1=1;
@@ -5059,7 +5079,7 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
       b=b->prev; //Go to first time point and count how many points
       time1++;
     }
-        
+
     while(b!=NULL){
       fprintf(fp,"%4i\t%4i\t%4i\t%4i\t%4i\t%10.6e\t%10.6e\t%4i\t",
         b->index,
@@ -5086,13 +5106,13 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
       fprintf(fp,"%10.6e\t",b->vacuole_area);
       fprintf(fp,"%10.6e\t",b->vacuole_fl);
       if (have_fret_image!=1){ //Don't have fret image
-	back=back_pixels[b->i_time];
+        back=back_pixels[b->i_time];
       }else{
-	if ((b->index)<fret_offset){ //high y-cells (lower in image)
-	  back=back_pixels_1[b->i_time];
-	}else{
-	  back=back_pixels_2[b->i_time];
-	}
+        if ((b->index)<fret_offset){ //high y-cells (lower in image)
+          back=back_pixels_1[b->i_time];
+        }else{
+          back=back_pixels_2[b->i_time];
+        }
       }
       fprintf(fp,"%10.6e\t",back);
       //fprintf(fp,"\n");
@@ -5110,7 +5130,7 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
       //fprintf(fp,"\n");
 
 
-			//V1.4.5      
+			//V1.4.5
 			fprintf(fp,"%9i\t%9i\t",
 	      b->x_nucleus,b->y_nucleus);
       //no se si tiene sentido usar estos valores
@@ -5161,18 +5181,19 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
 	    //  b->vol_eff_4,
 	    //  b->vol_eff_5,
 	    //  b->vol_eff_6);
-      
+
       fprintf(fp,"\n");
 
-      
+
       b=b->next;
     }
   }
   if (fp!=NULL)fclose(fp);
 
+  printf("Done writing output, file closed.");
   return 1;
 }
-  
+
 /**********************************************************/
 int output_cells(char *basename, char *append, int *time_index){
 
@@ -5204,8 +5225,8 @@ int output_cells(char *basename, char *append, int *time_index){
   }else{
     strcpy(wa,"w"); //write and overwrite
   }
-  
-  
+
+
   //First sort the cs[] list based on how many timepoints are in each
   //of the linked lists (ie, how many nodes in each linked list).
   for(i=0;i<(n_known-1);i++){
@@ -5230,12 +5251,12 @@ int output_cells(char *basename, char *append, int *time_index){
       }
     }
   }
-  
+
   //Put all cells into one file --4/24/03, so no more writing out a
   //separate file for each and every cell.
   strcpy(file,basename);
   strcat(file,"_all");
-  
+
   strcpy(file2,file);
   strcat(file2,"_part2");
 
@@ -5252,36 +5273,36 @@ int output_cells(char *basename, char *append, int *time_index){
   strcat(file6,"_part6");
 
   if((fp=fopen(file,wa))==NULL){
-    printf("Couldn't open file %s\n",file);
+    printf("Couldn't open fp file %s\n",file);
     fflush(stdout);
     return 0;
   }
   if((fp2=fopen(file2,wa))==NULL){
-    printf("Couldn't open file %s\n",file2);
+    printf("Couldn't open fp2 file %s\n",file2);
     fflush(stdout);
     return 0;
   }
   if((fp3=fopen(file3,wa))==NULL){
-    printf("Couldn't open file %s\n",file3);
+    printf("Couldn't open fp3 file %s\n",file3);
     fflush(stdout);
     return 0;
   }
   if((fp4=fopen(file4,wa))==NULL){
-    printf("Couldn't open file %s\n",file5);
+    printf("Couldn't open fp4 file %s\n",file5);
     fflush(stdout);
     return 0;
   }
   if((fp5=fopen(file5,wa))==NULL){
-    printf("Couldn't open file %s\n",file5);
+    printf("Couldn't open fp5 file %s\n",file5);
     fflush(stdout);
     return 0;
   }
   if((fp6=fopen(file6,wa))==NULL){
-    printf("Couldn't open file %s\n",file5);
+    printf("Couldn't open fp6 file %s\n",file5);
     fflush(stdout);
     return 0;
   }
-    
+
   for(i=0;i<n_known;i++){
     b=cs[i];
     time1=1;
@@ -5302,7 +5323,7 @@ int output_cells(char *basename, char *append, int *time_index){
 
     strcpy(file2,file);
     strcat(file2,"_part2");
-    
+
     if((fp=fopen(file,"w"))==NULL){
       printf("Couldn't open file %s\n",file);
       fflush(stdout);
@@ -5314,7 +5335,7 @@ int output_cells(char *basename, char *append, int *time_index){
       return 0;
     }
     */
-        
+
     while(b!=NULL){
       fprintf(fp,"% 4i % 4i % 4i % 4i  % 4i  % 10.6e  % 10.6e  % 4i ",
 	      b->index,
@@ -5438,7 +5459,7 @@ int output_cells(char *basename, char *append, int *time_index){
 	      b->vol_eff_6);
       fprintf(fp6,"\n");
 
-      
+
       b=b->next;
     }
   }
@@ -5455,16 +5476,16 @@ int output_cells(char *basename, char *append, int *time_index){
 /**********************************************************/
 void all_free(){
   //Free all the memory that we've allocated
-  
+
   pmem_cur=pmem_start;
   pmem_cur->next=NULL;
 
   while((--next_block)>=0) free(mem_blocks[next_block]);
-  
+
   next_block=0; //Just to be sure
   return;
-}    
-  
+}
+
 /**********************************************************/
 int calculate_fluorescence_with_r_info(void){
 
@@ -5507,7 +5528,7 @@ int calculate_fluorescence_with_r_info(void){
 
   //Loop over all the interior points (assume they're already calculated)
   //and sum up fl[] array (assume it's already filled with fluorescence
-  //data. 
+  //data.
   //All calculate the distance of each pixel from the boundary.
 
   //If we have a third image that is a vacuole-label, then we
@@ -5535,7 +5556,7 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence[i]=((float)total);
       cell_area[i]=count; //See comment above in calculate_fluorecence()
-      
+
       //radius increased by 1
       total=0.0;
       count=0.0;
@@ -5552,9 +5573,9 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_p1[i]=((float)total);
       cell_area_p1[i]=count;
-      
+
       //radius decreased by 1
-      total=0.0;    
+      total=0.0;
       count=0.0;
       for(p=interior_m1[i];p!=NULL;p=p->next){
 	ix=(p->i);
@@ -5569,7 +5590,7 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_m1[i]=((float)total);
       cell_area_m1[i]=count;
-      
+
       //radius decreased by 2
       total=0.0;
       count=0.0;
@@ -5586,7 +5607,7 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_m2[i]=((float)total);
       cell_area_m2[i]=count;
-    
+
       //radius decreased by 3
       total=0.0;
       count=0.0;
@@ -5603,11 +5624,11 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_m3[i]=((float)total);
       cell_area_m3[i]=count;
-      
+
     }
 
   }else{
-    
+
     for(i=0;i<n_found;i++){
 
       total=0.0;
@@ -5638,9 +5659,9 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_p1[i]=((float)total);
       cell_area_p1[i]=count;
-      
+
       //radius decreased by 1
-      total=0.0;    
+      total=0.0;
       count=0.0;
       for(p=interior_m1[i];p!=NULL;p=p->next){
 	ix=(p->i);
@@ -5653,7 +5674,7 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_m1[i]=((float)total);
       cell_area_m1[i]=count;
-      
+
       //radius decreased by 2
       total=0.0;
       count=0.0;
@@ -5668,7 +5689,7 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_m2[i]=((float)total);
       cell_area_m2[i]=count;
-      
+
       //radius decreased by 3
       total=0.0;
       count=0.0;
@@ -5683,7 +5704,7 @@ int calculate_fluorescence_with_r_info(void){
       }
       fluorescence_m3[i]=((float)total);
       cell_area_m3[i]=count;
-   
+
       find_vacuole(interior_m3[i],fl,xmax,ymax,
 		   &clist_x,
 		   &clist_y,
@@ -5703,7 +5724,7 @@ int calculate_fluorescence_with_r_info(void){
 
       vacuole_area[i]=count;
       vacuole_fl[i]=((float)total);
-            
+
     }
 
   }
@@ -5750,7 +5771,7 @@ int calculate_fluorescence_with_r_info(void){
       for(p1=b;p1!=NULL;p1=p1->next){
 	p2=p1->next;
 	if(p2==NULL) p2=b; //So make full circuit
-	
+
 	dx=(float)( (p2->i)-(p1->i) );
 	dy=(float)( (p2->j)-(p1->j) );
 	ix=p1->i;
@@ -5781,7 +5802,7 @@ int calculate_fluorescence_with_r_info(void){
 	    }
 	  }
 	}
-      }    
+      }
       //Make into an average
       if (((pixelsback[j])[i])>0.0){
 	((flback[j])[i])/=((pixelsback[j])[i]);
@@ -5805,7 +5826,7 @@ int get_data_from_text_file(char *file){
   float tmp;
 
   if( (fp_in=fopen(file,"r"))==NULL ){
-    printf("Couldnt open file %s.\n",file);
+    printf("Couldnt open file %s (get_data_from_text_file).\n",file);
     return 0;
   }
 
@@ -5875,10 +5896,10 @@ void align_found_cells_to_fl(int flag){
       point_list_adjust(boundary_m3[i],itmpx,itmpy);
       point_list_adjust(boundary_p1[i],itmpx,itmpy);
     }
-    
+
     return;
   }
-  
+
   //For each cell, calculate new set of interior points
 
   //Initialize offsets to 0
@@ -5888,7 +5909,7 @@ void align_found_cells_to_fl(int flag){
     save_realign_offset_x[i]=0;
     save_realign_offset_y[i]=0;
   }
-  
+
   i_trials=0;
   do{
     i_trials++;
@@ -5897,7 +5918,7 @@ void align_found_cells_to_fl(int flag){
 	     i_trials,max_trials);
       break;
     }
-    
+
     change=0;//Change will be set if any offset has changed
 
     //Set overlap array with current positions
@@ -5921,7 +5942,7 @@ void align_found_cells_to_fl(int flag){
 	       re_align_cell(interior[i],(offx+i),(offy+i));
       }else{
 	       re_align_cell(boundary[i],(offx+i),(offy+i));
-      }	
+      }
       if ((offx[i]!=itmpx)||(offy[i]!=itmpy)) change=1;
       //Add it back
       fill_overlap_array_with_point_list_offset(interior[i],
@@ -5959,9 +5980,9 @@ void align_found_cells_to_fl(int flag){
 void point_list_adjust(struct point *p_in,int offx,int offy){
 
   struct point *ptmp;
-  
+
   if (p_in==NULL) return;
-  
+
   for (ptmp=p_in;ptmp!=NULL;ptmp=ptmp->next){
     ptmp->i=(ptmp->i)+offx;
     ptmp->j=(ptmp->j)+offy;
@@ -6102,7 +6123,7 @@ void re_align_cell(struct point *p_in,int *offx_out, int *offy_out){
 }
 /****************************************************/
 void add_boundary_points_to_data(struct point *p_in){
-  
+
   struct point *p1;
   struct point *p2;
   int i;
@@ -6112,17 +6133,20 @@ void add_boundary_points_to_data(struct point *p_in){
   int a,b,a2,b2;
 
   int border;
+  border=found_border;  // tif_routines.h says: #define found_border 5
+
   struct point *p_start;
+
   //Add boundary points for border list p_in.
   //if p_in==NULL then do all n_found borders.
   //add found_border to d[] array in appropriate place.
 
-  border=found_border;
   p_start=p_in;
   //for(i=0;i<xmax_ymax;i++)d[i]=0;
   for(i=0;i<n_found;i++){
     //calculate_volume_cone_old(interior[i]);
-    if (p_in==NULL)p_start=boundary[i];
+    if (p_in==NULL) p_start=boundary[i];  //if p_in==NULL then do all n_found borders.
+    
     for(p1=p_start;p1!=NULL;p1=p1->next){
       p2=p1->next;
       if(p2==NULL) p2=p_start; //So make full circuit
@@ -6142,13 +6166,13 @@ void add_boundary_points_to_data(struct point *p_in){
           a=a2;
           b=b2;
 	        d[(b*xmax+a)]=border;
-	      }
+          }
       }
-    }    
+    }
     //A hack--break out of loop if only doing the passed in list.
-    if(p_in!=NULL) break; 
+    if(p_in!=NULL) break;
   }
-  
+
   return;
 }
 
@@ -6170,7 +6194,7 @@ struct point *circularize_points(struct point *begin, float cut){
   struct point *psave;
   float r;
   float area;
-  float circ; 
+  float circ;
 
   float rfirst,rlast;
 
@@ -6234,11 +6258,11 @@ struct point *circularize_points(struct point *begin, float cut){
   }else{ //Nothing to be gained by doing anything more
     return begin;
   }
-  
+
 }
 
 
-      
+
 
 
 
@@ -6265,7 +6289,7 @@ float circumference_of_cell(struct point *begin){
     u=j*j+k*k;
     circ+=( (float) sqrt( (double) u ) );
   }
-  
+
   return circ;
 }
 
@@ -6290,7 +6314,7 @@ float max_d_over_s(struct point *begin,
   int iprev,jprev;
 
   (*max0)=NULL;
-  (*max1)=NULL; 
+  (*max1)=NULL;
 
   //Calculate total circumference
   ctot=0.0;
@@ -6331,7 +6355,7 @@ float max_d_over_s(struct point *begin,
       di=(icur-iprev);
       dj=(jcur-jprev);
       cc+=((float)sqrt((double)(di*di+dj*dj)));
-      
+
       iprev=icur;
       jprev=jcur;
 
@@ -6343,7 +6367,7 @@ float max_d_over_s(struct point *begin,
       }
       if(tmp>5.0){
 	      r=tmp*tmp/dd;  //Squared of (circumference/distance)
-	
+
 	      if(r>r_max){
 	        r_max=r;
 	        ptmp=p1; //Save location
@@ -6374,7 +6398,7 @@ float area_of_cell(struct point *begin){
   //points interior to the polygon that's formed by connecting all the
   //points pointed to by begin.  This routine is essentially identical
   //to find_interior_points() except that it only calculates the number
-  //of points (also allowing fractional points).  
+  //of points (also allowing fractional points).
   //(I could have somehow hacked this into find_interior_points(), but they'll
   //both probably go faster like this, and it's not as ugly.)
 
@@ -6412,7 +6436,7 @@ float area_of_cell(struct point *begin){
     if((p0->j)>jmax) jmax=p0->j;
   }
 
-  //We're going to loop from jmin to jmax and consider segments going 
+  //We're going to loop from jmin to jmax and consider segments going
   //horizontally across entire picture.  We then look for intersections
   //of our line segments with this big segment.  We list the locations
   //of all found intersections.  If we write these points sorted in x as
@@ -6420,7 +6444,7 @@ float area_of_cell(struct point *begin){
   //i3 to i4, etc.
   area=0.0;
   yj=((float)jmin)-0.1;
-  while(yj<=(float)jmax){    
+  while(yj<=(float)jmax){
     dely=0.1;
     yj+=dely;
     doub_yj=(double)yj;
@@ -6436,7 +6460,7 @@ float area_of_cell(struct point *begin){
     for(p0=begin;p0!=NULL;p0=p0->next){
       p1=p0->next;
       if(p1==NULL)p1=begin; //Keep loop going around begin point
-      
+
       isect=do_segments_intersect(
 				  (float)p0->i,(float)p0->j,
 				  (float)p1->i,(float)p1->j,
@@ -6444,7 +6468,7 @@ float area_of_cell(struct point *begin){
 				  (float) (xmax+1),yj,
 				  (x+isect_found),
 				  (y+isect_found) );
-      
+
       if(isect==1){
 	isect_found++;
 	if(isect_found>isect_max){
@@ -6453,13 +6477,13 @@ float area_of_cell(struct point *begin){
 	}
       }
     }//End loop over segment list for this value of yj
-    
+
     //Make sure number found is even
     if((isect_found%2)!=0){
       printf("Odd number of intersection points in area search!!!!!\n");
       return 0.0;
     }
-    
+
     //If we've found at least two points, then sort them in x[] so can
     //calculate interior points.
     for(i=0;i<(isect_found-1);i++){
@@ -6488,7 +6512,7 @@ float area_of_cell(struct point *begin){
 
 /************************************************************/
 void fill_cos_sin_arrays(void){
-  
+
   int i;
   double theta;
   free(sin_theta);
@@ -6613,7 +6637,7 @@ void r_vs_theta_from_boundary(struct point *p){
 
 
 /***********************************************************/
-struct point *boundary_from_r_vs_theta(void){ 
+struct point *boundary_from_r_vs_theta(void){
 
   struct point *p;
   struct point *pstart;
@@ -6623,12 +6647,12 @@ struct point *boundary_from_r_vs_theta(void){
   if ((sin_theta==NULL)||(cos_theta==NULL)){
     fill_cos_sin_arrays();
   }
-  
+
   p=point_malloc();
   p->next=NULL;
   p->prev=NULL;
   pstart=p;
-  
+
   for(i=0;i<n_points_r_vs_theta;i++){
     (p->i)=((int)(r_vs_theta[i]*((float)cos_theta[i])+centroid_x+0.5));
     (p->j)=((int)(r_vs_theta[i]*((float)sin_theta[i])+centroid_y+0.5));
@@ -6644,7 +6668,7 @@ struct point *boundary_from_r_vs_theta(void){
 
   //Return start of list
   return pstart;
-  
+
 }
 
 /***********************************************************/
@@ -6733,7 +6757,7 @@ float calculate_volume_cone_old(struct point *p_interior){
       //}
 
       //Check 4 neighboring squares and 4 diagonal squares
-      if ((ix+1)<xmax){  
+      if ((ix+1)<xmax){
 	u1=u+1;             //(x+1,y+0)
 	if ((over[u1]!=interior_value)
 	    &&(over[u1]!=current_outer_value)){
@@ -6761,7 +6785,7 @@ float calculate_volume_cone_old(struct point *p_interior){
 
       }
 
-      if ((ix-1)>=0){   
+      if ((ix-1)>=0){
 	u1=u-1;        //(x-1,y+0)
 	if ((over[u1]!=interior_value)
 	    &&(over[u1]!=current_outer_value)){
@@ -6865,7 +6889,7 @@ int calculate_volume(struct point *p_interior,
   //For calculating effective volume observed by cross section
   float del_z=0.227; //Pixel size in microns
   float sigma_a=0.2; //sigma in microns of beam width
-  float sigma_b=0.6; 
+  float sigma_b=0.6;
   float sigma_c=1.0;
   float sigma_d=1.4;
   float sigma_e=1.8;
@@ -7021,7 +7045,7 @@ int calculate_volume(struct point *p_interior,
   v_eff4*=(2.0*gauss_weight*sigma_c); //Make so pixel at z=0 gets weight 1
   v_eff5*=(2.0*gauss_weight*sigma_d);//not weight 1/sqrt(2*pi)/sigma which
   v_eff6*=(2.0*gauss_weight*sigma_e);//is what integrate_gaussian...() does
-  
+
   free(height);
   free(height0);
 
@@ -7067,7 +7091,7 @@ float integrate_gaussian_from_0_to_x(float x,float sigma){
       z+=dz;
     }
   }
-  
+
   if (sigma<=0.0){
     return 0.0;
   }
@@ -7148,11 +7172,11 @@ void statistics_from_r_vs_theta(int flag,
     j=i+n_180;
     //j marks point 180 degrees away from i.
     //(Note that j should always be less than n_points_r_vs_theta.)
-    tmp=r_vs_theta[i]+r_vs_theta[j]; 
+    tmp=r_vs_theta[i]+r_vs_theta[j];
     if (tmp>major){
       major=tmp;
       i_max=i;
-    }    
+    }
     if (tmp<minor){
       minor=tmp;
       i_min=i;
@@ -7190,16 +7214,16 @@ void statistics_from_r_vs_theta(int flag,
   circ=0.0;
   vrot=0.0;
   for(i=0;i<n_points_r_vs_theta;i++){
-    
+
     //For circumference
     j=i+1;
     if (j==n_points_r_vs_theta)j=0;
-    
+
     r1=(double)r_vs_theta[i];
     r2=(double)r_vs_theta[j];
     ds=sqrt(r1*r1+r2*r2-2.0*r1*r2*cos_dtheta);
     circ+=ds;
-    
+
     //For volume of rotation about major axis
     j=i-i_max; //Rotating about major axis.
     if (j<0)j+=n_points_r_vs_theta;
@@ -7212,7 +7236,7 @@ void statistics_from_r_vs_theta(int flag,
   //Assuming that the cell is symmetric, then we just did twice
   //the actual integral. So scale here by pi/3 intead of 2pi/3
   vrot*=((3.1415926535/3.0)*dtheta);
-    
+
   (*circ_out)=((float)circ);
   (*vrot_out)=((float)vrot);
 
@@ -7221,7 +7245,7 @@ void statistics_from_r_vs_theta(int flag,
 
 /**********************************************/
 int mark_distance_from_boundary(struct point *p_int, int nmax){
-  
+
   //Fill the over[] array so that all the points contained in
   //the list p_int[] are marked so that each successive anulus
   //away from the border towards the interior has an decreasing value
@@ -7246,7 +7270,7 @@ int mark_distance_from_boundary(struct point *p_int, int nmax){
 
   int i_in,i_tot;
   int tot_in;
-  
+
   int total_tries=5;
   int i_total_tries;
 
@@ -7269,17 +7293,17 @@ int mark_distance_from_boundary(struct point *p_int, int nmax){
     //cell)
     update_overlap_value(); //Bigger than every other point in over[]
     while (overlap_value<25) update_overlap_value();
-    
+
     //First mark the outer boundary
     fill_overlap_array_with_point_list(p_int);
     over_start=overlap_value;
     pnew=p_int; //Next list to loop over
     pold=NULL;
     //Loop over pold and save all neighboring points with
-    //over[]<current overlap_value to the new list and mark 
+    //over[]<current overlap_value to the new list and mark
     //the over[] array with over_cur. Keep going until reach nmax.
     while((overlap_value-over_start)<nmax){ //
-      
+
       //pnew points to list of recently added points.
       //Set pold to pnew and then setup pnew for a new list
       //Make sure to free everything appropriately.
@@ -7287,12 +7311,12 @@ int mark_distance_from_boundary(struct point *p_int, int nmax){
       pold=pnew;
       pnew=(struct point *)malloc(sizeof(struct point));
       pnew->prev=NULL;
-      
+
       //Update overlap value for the next exterior boundary points
       over_prev=overlap_value;
       update_overlap_value();
       if (overlap_value<over_prev) break; //was reset, will start over
-      
+
       for(p=pold;p!=NULL;p=p->next){
 	ix0=(p->i);
 	iy0=(p->j);
@@ -7369,18 +7393,18 @@ int mark_distance_from_boundary(struct point *p_int, int nmax){
       over_prev=over_cur;
       over_cur--;
       if (over_cur<=2) break; //Too small
-      
+
     } while (tot_in>0) ;//Still have interior points to do
-    
+
     if (over_cur>2){
       return 0; //done, success
     }
-    
+
   } //End of the i_total_tries loop
-  
+
   return 1; //Returning here means failure (i_total_tries too high)
-  
-}	
+
+}
 
 /**********************************************/
 void neighbor_interpolation(int ix0,int iy0,
@@ -7389,11 +7413,11 @@ void neighbor_interpolation(int ix0,int iy0,
 			    float *prediction, float *rms){
   //Do a 2d interpolation for pixels +-2 pixels around the
   //point (ix,iy). Return predicted value and rms of residuals.
-  
+
   //Fit to f(x,y)=f0+a*x+b*y+m*xy (so actually "quadratic interpolation")
   //Set coordinates so (ix,iy) is in center.
   //We're going to do fit numerically.
-  
+
 #define ninterp 25
   int u,u0;
   float vinterp[ninterp*ninterp];
@@ -7435,7 +7459,7 @@ void neighbor_interpolation(int ix0,int iy0,
 
   u0=(iy0*xmax+ix0);
   vcenter=array[u0];
-  
+
   //Radius and theta of initial point
   dx=((double)(ix0)-((double)centerx));
   dy=((double)(iy0)-((double)centery));
@@ -7454,11 +7478,11 @@ void neighbor_interpolation(int ix0,int iy0,
       if ((i==0)&&(j==0)) continue; //Skip middle point
       idy=j-iy0;
       //if ((idx<=1)&&(idx>=-1)&&(idy<=1)&&(idy>=-1)) continue; //remove middle box
-      
+
       u=(j*xmax+i);
       if ((u<0)||(u>=xmax_ymax)) continue; //out of bounds
       if (over[u]==0) continue;//0 is used to mark bad points
-      
+
       //Calculate theta with respect to centroid
       dx=((double)(i)-((double)centerx));
       dy=((double)(j)-((double)centery));
@@ -7513,7 +7537,7 @@ void neighbor_interpolation(int ix0,int iy0,
   pars[4]=0.0;
   pars[5]=0.0;
   //Initial calculation of chi^2
-  sum0=0.0; 
+  sum0=0.0;
   for(j=0;j<nuse;j++){
     fpred=(pars[0]+
 	   pars[1]*xinterp[j]+
@@ -7527,23 +7551,23 @@ void neighbor_interpolation(int ix0,int iy0,
     //sum0+=tmp;
   }
 
-  
+
   nloop=5;
   for(iloop=0;iloop<nloop;iloop++){
-        
+
     for (i=0;i<npar;i++){
       dir=1; //0=right, 1=left
       stepcur=step[i];
       for(iconverge=0;iconverge<nconverge;iconverge++){
-	
+
 	//Do step
 	if (dir==1){
 	  pars[i]-=stepcur;
 	}else{
 	  pars[i]+=stepcur;
 	}
-	
-	sum=0.0; 
+
+	sum=0.0;
 	for(j=0;j<nuse;j++){
 	  fpred=(pars[0]+
 		 pars[1]*xinterp[j]+
@@ -7558,7 +7582,7 @@ void neighbor_interpolation(int ix0,int iy0,
 	}
 	//      printf("%i %e %e %e %e: %e %e\n",
 	//     i,pars[0],pars[1],pars[2],pars[3],sum,sum0);
-	
+
 	//Did we improve?
 	if (sum>sum0){ //no improvement, switch direction and cut step in half
 	  if (dir==1){ //We've been going to the left
@@ -7572,7 +7596,7 @@ void neighbor_interpolation(int ix0,int iy0,
 	}else{
 	  sum0=sum; //Save for next step
 	}
-	
+
       }
       if (iconverge>=nconverge){
 	printf("No convergence: %i\n",i);fflush(stdout);
@@ -7617,7 +7641,7 @@ void neighbor_interpolation(int ix0,int iy0,
   //(*prediction)=(float)sqrt((double)
   //			    (pars[1]*pars[1]+pars[2]*pars[2]));
   //Calculate sum of weights to get rms
-  sum=0.0; 
+  sum=0.0;
   for(j=0;j<nuse;j++){
     sum+=(dvinterp[j]);
   }
@@ -7654,7 +7678,7 @@ int get_median(int ix, int iy,int n,float *array,float *smallest,
 
   inext=0;
   u=(iy*xmax+ix);
-  
+
   overlap_group=over[u];
 
   for(j=-n;j<=n;j++){
@@ -7667,7 +7691,7 @@ int get_median(int ix, int iy,int n,float *array,float *smallest,
       if (over[u2]!=overlap_group) continue;
       val=array[u2];
 
-      //Where to put it	
+      //Where to put it
       ind=inext;
       for(k=0;k<inext;k++){
 	if (val<sorted[k]){
@@ -7690,7 +7714,7 @@ int get_median(int ix, int iy,int n,float *array,float *smallest,
   (*smallest)=sorted[0];
   (*largest)=sorted[(inext-1)];
 
-  //Get median 
+  //Get median
   i=(inext/2); //integer division
   j=(inext%2); //Remainder of integer division
   if (j==0){ //inext was even
@@ -7738,8 +7762,8 @@ int get_median_deviations(int ix, int iy,float y0,float *array,float *dev){
       if ((u2<0)||(u2>=xmax_ymax))continue;
       if (over[u2]!=overlap_group) continue;
       val=fabsf(array[u2]-median);
-      
-      //Where to put it	
+
+      //Where to put it
       ind=inext;
       for(k=0;k<inext;k++){
 	if (val<sorted[k]){
@@ -7759,7 +7783,7 @@ int get_median_deviations(int ix, int iy,float y0,float *array,float *dev){
   //inext is how many points we found
   if (inext<=1) return 1; //Flag an error
 
-  //Get median 
+  //Get median
   i=(inext/2); //integer division
   j=(inext%2); //Remainder of integer division
   if (j==0){ //inext was even
@@ -7790,7 +7814,7 @@ void sort_list_by_fl(struct point *pin){
   //Go to start of list
   pstart=pin;
   while ((pstart->prev)!=NULL)pstart=(pstart->prev);
-  
+
   for(p0=pstart;(p0->next)!=NULL;p0=(p0->next)){
     fl0=fl[(p0->j)*xmax+(p0->i)];
     //fl0=cur_prev[p0->i][p0->j];
@@ -7810,33 +7834,33 @@ void sort_list_by_fl(struct point *pin){
       }
     }
   }
-  
+
   return;
 }
- 
- 
+
+
 /**************************************************************/
 struct point *copy_cell_for_split_regions(
 					  struct point *p_in,
 					  int flag){
-  
+
   struct point *ptmp;
   struct point *p;
   int fret_offx;
   int fret_offy;
   float tmpx;
   struct point *p_return;
-  
+
   //Assume fret_bx, etc, already calculated. Use them to move pixel
   //list by linear offset function.
-  
+
   if (p_in==NULL) return NULL;
-  
+
   p_return=point_malloc();
   p_return->prev=NULL;
-  
+
   ptmp=p_return; //start of new list
-  
+
   if (flag==0){ //Go from bottom to top
     for(p=p_in;p!=NULL;p=p->next){
       tmpx=((float)(p->i));
@@ -7859,21 +7883,21 @@ struct point *copy_cell_for_split_regions(
       (ptmp->next)->prev=ptmp;
       ptmp=ptmp->next;
     }
-    
+
   }else{
     //Unknown flag type
     return NULL;
   }
-  
+
   //One too many points, free last
   if ((ptmp->prev)!=NULL){
     (ptmp->prev)->next=NULL;
   }else{
     printf("Pointer screw-up in copy_cell_for_split_regions().\n");
-    exit(0);
+    perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
   point_free(ptmp); //One too many points
-  
+
   return p_return;
 }
 
@@ -7910,6 +7934,6 @@ void load_global_arrays(int type, float *v1, int *v2,int xmax_in, int ymax_in){
   }else{
     printf("Unknown global array type in load_global_arrays()\n");
     fflush(stdout);
-    exit(0);
+    perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
   }
 }

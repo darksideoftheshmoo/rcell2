@@ -36,23 +36,23 @@ contains the following copyright notice:
    "Copyright (c) 1988-1997 Sam Leffler
     Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
-    Permission to use, copy, modify, distribute, and sell this software and 
+    Permission to use, copy, modify, distribute, and sell this software and
     its documentation for any purpose is hereby granted without fee, provided
     that (i) the above copyright notices and this permission notice appear in
     all copies of the software and related documentation, and (ii) the names
     of Sam Leffler and Silicon Graphics may not be used in any advertising or
     publicity relating to the software without the specific, prior written
-    permission of Sam Leffler and Silicon Graphics.  
+    permission of Sam Leffler and Silicon Graphics.
 
-    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
     IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
     ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
     OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
-    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
+    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
     OF THIS SOFTWARE."
 
 End-copyright-notice-for-Libtiff
@@ -76,7 +76,7 @@ float diff_stat_reg1_reg2(float,float,float,float,float,int *,
 
 int *find_split_regions(float *fl, int xmax, int ymax){
   //Assume we have a split image. Find a cut value that divides the
-  //two images. 
+  //two images.
   //We're going to return a pointer to an array of integers dimensioned
   //xmax by ymax. 0 means between images, 1 in lower, and 2 in upper.
 
@@ -97,14 +97,14 @@ int *find_split_regions(float *fl, int xmax, int ymax){
 
   int *split=NULL;
   int xmax_ymax;
-  
+
   int n_contiguous;
 
   float sum;
 
   struct contiguous_search csearch_memory;
   struct contiguous_search *csearch;
-  
+
   csearch=&csearch_memory;
   xmax_ymax=xmax*ymax;
 
@@ -112,7 +112,7 @@ int *find_split_regions(float *fl, int xmax, int ymax){
     split=(int *)malloc(xmax_ymax*sizeof(int)); //Will be returned
   }
   memset(split,0,(xmax_ymax)*sizeof(int));
-  
+
   //To talk to contiguous search routine
   (csearch->p)=NULL; //Will search entire image
   (csearch->data_array)=fl;
@@ -184,7 +184,7 @@ int *find_split_regions(float *fl, int xmax, int ymax){
     sum/=((float)n_contiguous);
     if (sum==0.0){ //Couldn't find region even though was a region
       printf("Middle region was found and then lost.\n");
-      exit(0);
+      perror(0); //exit(0); //http://r-pkgs.had.co.nz/src.html
     }
   }
 
@@ -205,7 +205,7 @@ int *find_split_regions(float *fl, int xmax, int ymax){
       u++;
     }
   }
-  
+
   //Now search each region separately to try to get rid of more of
   //the boundary region area.
   (csearch->cut_low)=cut; //Same as above
@@ -434,7 +434,7 @@ void calculate_split_offset(int *split,
 	   ((float)(fabs((double)(mx-mx_start)))),
 	   ((float)(fabs((double)(my-my_start))))
 	   );
-    */  
+    */
 
     //printf("offx=(%e)x+(%e), offy=(%e)x+(%e): %e\n",mx,bx,my,by,sum1);
 
@@ -519,7 +519,7 @@ float diff_stat_reg1_reg2(float mx, float bx,
   }
 
   //printf("(%i,%i)=%e\n",offx,offy,(sum/total));fflush(stdout);
-  return (sum/total);    
+  return (sum/total);
 
 
 }

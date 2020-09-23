@@ -62,6 +62,13 @@ End-copyright-notice-for-Libtiff
 
 
 */
+
+// rcel22 imports
+#include <unistd.h>
+#include <getopt.h>
+#include <libgen.h>           // for basename()
+
+// original imports
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -97,8 +104,13 @@ float *flat_cors=NULL;
 //against the known cells or just to use the previous values.
 int new_phase=0;
 
+// rcell2 getopt declarations
+extern char *optarg;
+extern int optind, opterr, optopt;
+int opt;
 
-int main(int argc, char *argv[]){
+void CellID(int * argc0, char *argv[], int* out){
+  int argc = *argc0;
 
   //The first argument should point to a file that contains a list of
   //phase contrast files.
@@ -208,7 +220,7 @@ int main(int argc, char *argv[]){
   double max_split_d_over_minor_t0,max_split_d_over_minor_save;
 
 
-#define n_recomb_cuts_max 100
+  #define n_recomb_cuts_max 100
   float recombination_cuts[n_recomb_cuts_max];
   int recombination_cuts_type[n_recomb_cuts_max];
   int recombination_cuts_flag[n_recomb_cuts_max];
@@ -265,9 +277,6 @@ int main(int argc, char *argv[]){
 
 
   //Command line parsing variables
-  GOptionContext *ctx;
-  GOptionGroup *grpCellFind, *grpMisc, *grpImageType;
- 
   char *equal_sign = NULL;
   int help_flag = 0;
   
@@ -285,15 +294,75 @@ int main(int argc, char *argv[]){
   char *str_align_fl = NULL;
 
 	//V1.4a
-	gchar *file_basename = NULL; //for getting correct channel identification
-															 //from filenames with paths
+	char *file_basename = NULL; //for getting correct channel identification from filenames with paths
  
   char str_third_img_label[500];
   char *pnt_third_img_label = NULL;
 	char str_image_type[500];
 	char *pnt_image_type = NULL;
 
- 
+  // rcell2 chunk: getopts option parser
+  opterr = 0;  // https://stackoverflow.com/a/24331449/11524079
+  optind = 1;  // https://stackoverflow.com/a/25937743/11524079
+  
+  while((opt = getopt(argc, argv, "p:b:f:o:")) != -1) {
+    printf("Parsing getopt options\n");
+    switch(opt) {
+    case 'p':
+       printf("parameters: ");
+       printf("%s\n", optarg);
+      param_file=optarg;
+      break;
+      
+    case 'b':
+       printf("brightfield: ");
+       printf("%s\n", optarg);
+      bright_list_file=optarg;
+      break;
+      
+    case 'f':
+       printf("fluorescence: ");
+       printf("%s\n", optarg);
+      fluor_list_file=optarg;
+      break;
+      
+    case 'o':
+       printf("output_prefix: ");
+       printf("%s\n", optarg);
+      output_basename=optarg;
+      break;
+      
+    case ':':
+       printf("option needs a value\n");
+      break;
+      
+    case '?':
+       printf("unknown option: ");
+       printf("%c\n", optopt);
+      break;
+    }
+  }
+
+  // Get all of the non-option arguments and print them
+  //https://azrael.digipen.edu/~mmead/www/Courses/CS180/getopt.html
+  if (optind < argc) {
+    printf("Non-option args: ");
+    while (optind < argc)
+      printf("%s ", argv[optind++]);
+      printf("\n");
+  }
+
+  // rcell2 chunk
+  // Print the final value of  parsed arguments
+  if(*debug_flag==1) printf("bright_list_file: %s\n", bright_list_file);
+  if(*debug_flag==1) printf("fluor_list_file: %s\n", fluor_list_file);
+  if(*debug_flag==1) printf("third_list_file: %s\n", third_list_file);
+  if(*debug_flag==1) printf("dark_list_file: %s\n", dark_list_file);
+  if(*debug_flag==1) printf("flat_list_file: %s\n", flat_list_file);
+  if(*debug_flag==1) printf("param_file: %s\n", param_file);
+  if(*debug_flag==1) printf("output_basename: %s\n", output_basename);
+
+  // CellID chunk
   //Checking for parameters file option in command line manually
   for(i=1;i<argc;i++){
 	if(strstr(argv[i],"-?")!=NULL||strstr(argv[i],"--help")!=NULL||argc==1){
@@ -307,7 +376,8 @@ int main(int argc, char *argv[]){
           param_file=argv[i+1]; 
         }else{
           printf("Filename requiered after -p or --param option");
-          return 0;  
+          perror("Error! 1");  // rcell2 addition
+          return;  // rcell2 modification
         }  
       } else {
         param_file=++equal_sign;  
@@ -315,6 +385,8 @@ int main(int argc, char *argv[]){
     }    
   }
 
+  // CellID chunk
+  // Look for parameters, one by one, in the parameters file.
   if(help_flag==0 && (fp=fopen(param_file,"r"))!=NULL ){
     printf("Reading %s\n",param_file);
     //fscanf() only reads to next white space, not end of line
@@ -532,119 +604,6 @@ int main(int argc, char *argv[]){
     printf("%s not found. Using default parameters. \n",param_file);
   }
 
-  //Reading command line options with GOptions library
-  GOptionEntry optFileNames[]={
-    {"bright",'b',0,G_OPTION_ARG_STRING, &bright_list_file,
-      "Text file list of brightfield tif images",NULL},
-    {"fluor",'f',0,G_OPTION_ARG_STRING, &fluor_list_file,
-      "Text file of fluorescent tif images",NULL},
-    {"third",'3',0,G_OPTION_ARG_STRING, &third_list_file,
-      "List of third images to be used",NULL},
-    {"dark",'d',0,G_OPTION_ARG_STRING, &dark_list_file,
-      "List of dark images to be used","dark.txt"},
-    {"flat",'t',0,G_OPTION_ARG_STRING, &flat_list_file,
-      "List of flat images to be used","flat.txt"}, 
-    {"param",'p',0,G_OPTION_ARG_STRING, &param_file,
-      "Parameters file ", "parameters.txt"},
-    {"output",'o',0,G_OPTION_ARG_STRING, &output_basename,
-      "Basename of output files (including dirs)", NULL},
-
-    {NULL}
-  };
- 
-  GOptionEntry optCellFind[]={
-    {"brf",0,0,G_OPTION_ARG_DOUBLE, &background_reject_factor,
-      "background_reject_factor segmentation parameter",NULL},
-    {"max-ppc",0,0,G_OPTION_ARG_INT, &max_pixels_per_cell,
-      "max_pixels_per_cell segmentation parameter",NULL},      
-    {"min-ppc",0,0,G_OPTION_ARG_INT, &min_pixels_per_cell,
-      "min_pixels_per_cell segmentation parameter",NULL},        
-    {"max-som",0,0,G_OPTION_ARG_DOUBLE, &max_split_d_over_minor,
-      "max_split_over_minor cell splitting parameter",NULL},
-    {"max-dow",0,0,G_OPTION_ARG_DOUBLE, &max_d_over_s_cut,
-      "max_dist_over_waist cell splitting parameter",NULL},
-    {"max-som-t0",0,0,G_OPTION_ARG_DOUBLE, &max_split_d_over_minor_t0,
-      "max_split_over_minor_t0 cell splitting parameter",NULL},
-    {"max-dow-t0",0,0,G_OPTION_ARG_DOUBLE, &max_d_over_s_cut_t0,
-      "max_dist_over_waist_t0 cell splitting parameter",NULL},
-    {"track",0,0,G_OPTION_ARG_DOUBLE, &I_over_U_for_match,
-      "tracking_comparison parameter",NULL},
-    {"align-fl",0,0,G_OPTION_ARG_STRING, &str_align_fl,
-      "align_fl_to_first/bf option (first, bf)",NULL},
-    {"nucl1",0,0,G_OPTION_ARG_INT, &(nucleus_radii[0]),
-      "nucleus_radius_1 parameter ",NULL},
-    {"nucl2",0,0,G_OPTION_ARG_INT, &(nucleus_radii[1]),
-      "nucleus_radius_2 parameter ",NULL},
-    {"nucl3",0,0,G_OPTION_ARG_INT, &(nucleus_radii[2]),
-      "nucleus_radius_3 parameter ",NULL},
-    {"nucl4",0,0,G_OPTION_ARG_INT, &(nucleus_radii[3]),
-      "nucleus_radius_4 parameter ",NULL},
-    {"nucl5",0,0,G_OPTION_ARG_INT, &(nucleus_radii[4]),
-      "nucleus_radius_5 parameter ",NULL},
-    {"nucl6",0,0,G_OPTION_ARG_INT, &(nucleus_radii[5]),
-      "nucleus_radius_6 parameter ",NULL},
-    //{"nuc-ch",0,0,G_OPTION_ARG_STRING, &nucleus_channel_pnt,
-    //  "channel used to find nucleus, first three letters of image name",NULL},
-    {NULL}
-  };
-  
-  GOptionEntry optMisc[]={
-    {"force-nuc",0,0,G_OPTION_ARG_NONE, &force_nucleus_in_center,
-      "force_nucleus_in_center option",NULL},
-    {"list-mapping",0,0,G_OPTION_ARG_NONE, &bf_fl_mapping,
-      "bf_fl_mapping list",NULL},
-    {"bf-as-fl",0,0,G_OPTION_ARG_NONE, &treat_brightfield_as_fluorescence,
-      "treat_brightfield_as_fluorescence option",NULL},
-    {"align-ind",0,0,G_OPTION_ARG_NONE, &align_individual_cells,
-      "align_individual_cells option",NULL},
-    {"align-ind-boundary",0,0,G_OPTION_ARG_NONE, &align_individual_cells_boundary,
-      "align_individual_cells_boundary option",NULL},
-    {"output-ind",0,0,G_OPTION_ARG_NONE, &output_individual_cells,
-      "output_individual_cells option",NULL},
-    {"append_output",0,0,G_OPTION_ARG_INT, &overall_id_offset,
-      "append_output option, argument is the id-offset (>=0)",NULL},  
-    {"output_paw",0,0,G_OPTION_ARG_NONE, &paw_output,
-      "Make output for PAW.",NULL}, 
-    //{"recomb",0,0,G_OPTION_ARG_NONE, &do_recombination,
-    //  "do_recombination option",NULL},
-    {NULL}
-  };
- 
-  GOptionEntry optImageType[]={
-    {"fret-bf",0,0,G_OPTION_ARG_STRING, &fret_bf,
-      "fret_bf options for split images (top, bottom or both)",NULL},
-    {"fret-nuclear",0,0,G_OPTION_ARG_STRING, &fret_nuclear,
-      "fret_nuclear options for split images (top, bottom )",NULL},  
-    {"image-type",0,0,G_OPTION_ARG_STRING, &pnt_image_type,
-      "image_type options (bright, decon, hex, confocal)","bright"},
-    {"3-img-label",0,0,G_OPTION_ARG_STRING, &pnt_third_img_label,
-      "third_image label option (nuclear, vacuole)","none"},
-    {NULL}
-  };
-  ctx = g_option_context_new("- Cell ID options");
-  
-  grpCellFind = g_option_group_new("cell", "Cell Segmenting", 
-    "Parameters used to find cells", NULL, NULL);
-  grpMisc = g_option_group_new("misc", "Miscelaneus options", 
-    "Miscelaneus options", NULL, NULL);
-  grpImageType = g_option_group_new("image-type", "Image Type options", 
-    "Specifications for the input images", NULL, NULL);
-  
-  
-  g_option_group_add_entries(grpCellFind, optCellFind);
-  g_option_group_add_entries(grpImageType, optImageType);
-  g_option_group_add_entries(grpMisc, optMisc);
-  
-  
-  g_option_context_add_main_entries(ctx, optFileNames, "Input filenames options");
-  g_option_context_add_group(ctx, grpCellFind);
-  g_option_context_add_group(ctx, grpImageType);
-  g_option_context_add_group(ctx, grpMisc);
-  
-  g_option_context_parse(ctx, &argc, &argv, NULL);
-  g_option_context_free(ctx);
-
-
 	//V1.4.5
 	printf("Using nucleus radii %i %i %i %i %i %i px.\n",nucleus_radii[0],nucleus_radii[1]
 				,nucleus_radii[2],nucleus_radii[3],nucleus_radii[4],nucleus_radii[5]);  
@@ -804,7 +763,7 @@ int main(int argc, char *argv[]){
   }else{
 	  printf("Append_output was requested with ID offset of %i.\n",overall_id_offset);
 	  printf("Minimum offset is 0.\n");
-	  exit(0);
+    perror("Error! 3"); //exit(0); //http://r-pkgs.had.co.nz/src.html
 	}
 
 
@@ -812,8 +771,9 @@ int main(int argc, char *argv[]){
   n_third=0;
   if (third_list_file!=NULL){//if there is a third image
     if( (fp_in=fopen(third_list_file,"r"))==NULL ){
-	    printf("Couldnt open file %s.\n",third_list_file);
-	    return 0;
+      printf("Couldnt open third_list_file file %s.\n",third_list_file);
+      perror("Error! 4");
+      return;
     }
     //Read in names of the third-files to be read in
     i=0;
@@ -854,8 +814,9 @@ int main(int argc, char *argv[]){
 
   //loading brightfield file names into array phase_files
   if( (fp_in=fopen(bright_list_file,"r"))==NULL ){
-    printf("Couldnt open file %s.\n",bright_list_file);
-    return 0;
+    printf("Error! 5: Couldnt open bright_list_file file %s.\n",bright_list_file);
+    perror("Error! 5");
+    return;
   }
   i=0;
   while(fscanf(fp_in,"%s",line)==1){ //the 1 means it filled the "%s" part
@@ -868,8 +829,9 @@ int main(int argc, char *argv[]){
 
   //loading fluorescence file names into array fluor_files
   if( (fp_in=fopen(fluor_list_file,"r"))==NULL ){
-    printf("Couldnt open file %s.\n",fluor_list_file);
-    return 0;
+    printf("Couldnt open fluor_list_file file %s.\n",fluor_list_file);
+    perror("Error! 6");
+    return;
   }
   i=0;
   while(fscanf(fp_in,"%s",line)==1){ //the 1 means it filled the "%s" part
@@ -1034,7 +996,8 @@ int main(int argc, char *argv[]){
     for(i=0;i<n_flat;i++){
       if(get_date_and_time(flat_files[i],&dtmp,&t,&xstage,&ystage)==0){
         printf("Couldn't get date and time for %s.\n",flat_files[i]);
-        return 0;
+        perror("Error! 7");
+        return;
       }else{
         t=t/1000; //Convert to seconds
         flat_t[i]=t;
@@ -1098,7 +1061,8 @@ int main(int argc, char *argv[]){
     if (n_phase!=n_fluor){
       printf("The number of elements in %s (%i) and %s (%i) \n",bright_list_file,n_phase,fluor_list_file,n_fluor);
       printf("must be equal. Make sure not lo leave any blank spaces at the end of the files");
-      return 0;
+      perror("Error! 8");
+      return;
     }
 
     //Assining null time values
@@ -1124,6 +1088,7 @@ int main(int argc, char *argv[]){
     }
   }
 
+  void free(void *ptr); // rcell2 declaration
 
   //Do a comparison of names to see if we should give the different
   //fluorescence files different flags.
@@ -1132,14 +1097,13 @@ int main(int argc, char *argv[]){
   flag[0]=0;
   for(i=1;i<n_fluor;i++){
 		//V1.4a file names can have paths
- 		file_basename= g_path_get_basename(fluor_files[i]);
+    file_basename = basename(fluor_files[i]);
 		c0=(file_basename)[0];
     c1=(file_basename)[1];
     c2=(file_basename)[2];
-  	g_free(file_basename);  
 		flag[i]=flag[i-1]+1; //Default to new flag
     for(j=0;j<i;j++){//Look for a match among previous files
-			file_basename= g_path_get_basename(fluor_files[j]);	
+      file_basename= basename(fluor_files[j]);
     	if (
 	     (((file_basename)[0])==c0)&&
 	     (((file_basename)[1])==c1)&&
@@ -1148,7 +1112,6 @@ int main(int argc, char *argv[]){
 	       flag[i]=flag[j]; //Found a match
 	       break;
       }
-    	g_free(file_basename);
 		}
   }
   //Print out message if we have different flags set.
@@ -1201,19 +1164,21 @@ int main(int argc, char *argv[]){
     if((fl=get_data_from_tif_file(fluor_files[i],0,dark,
                               &xmax_new,&ymax_new))==NULL){
       printf("Couldn't open tif file %s.\n",fluor_files[i]);
-      return 0;
+      perror("Error! 9");
+      return;
     }
     if (((xmax>0)&&(xmax!=xmax_new))||((ymax>0)&&(ymax!=ymax_new))){
       printf("New file has different dimensions that others\n");
       printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
              xmax,ymax,xmax_new,ymax_new);
-      free(fl);
-      return 0;
+      perror("Error! 10");
+      return;
     }
     if ((xmax_new<=0)||(ymax_new<=0)){
       printf("Couldn't get data from tif file %s\n",fluor_files[i]);
       free(fl);
-      return 0;
+      perror("Error! 11");
+      return;
     }
     xmax=xmax_new; //xmax<0 means haven't done yet, so just redefine
     ymax=ymax_new;//here even though usually the same
@@ -1374,15 +1339,17 @@ int main(int argc, char *argv[]){
 	      }
 	      if((third_image=get_data_from_tif_file(third_files[third_cur],0,dark,
 				                                         &xmax_new,&ymax_new))==NULL){
-	        printf("Couldn't open tif file %s.\n",third_files[third_cur]);
-	        return 0;
+          printf("Couldn't open tif file %s.\n",third_files[third_cur]);
+          perror("Error! 12");
+          return;
 	      }
 	      if ((xmax!=xmax_new)||(ymax!=ymax_new)){
 	        printf("Third file has different dimensions than others\n");
 	        printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
 		        xmax,ymax,xmax_new,ymax_new);
 	        free(third_image);
-	        return 0;
+          perror("Error! 13");
+          return;
 	      }
 	      //Subtract fluorescence image as a test--for vacuole type
 	      if(third_image_type==vacuole_label){
@@ -1483,6 +1450,8 @@ int main(int argc, char *argv[]){
          	printf("Writing found cells and data to output file %s.\n",line);
          	if(output_data_to_tif_file(line,bf,xmax,ymax,bf_fl_labels,0,8,0)==0){
            	printf("Couldn't output data to tif file %s.\n",line);
+            perror("Error! 13+1");
+            return;
           }
        	}
      	}
@@ -1514,15 +1483,16 @@ int main(int argc, char *argv[]){
     	//Do no dark field correction for bright field image....
     	if((bf=get_data_from_tif_file(phase_files[j_cur],0,NULL,&xmax_new,&ymax_new))==NULL){
     	  printf("Couldn't open tif file %s.\n",phase_files[j_cur]);
-	  		free(bf);
-	  		return 0;
+        perror("Error! 14");
+        return;
       }
       if ((xmax!=xmax_new)||(ymax!=ymax_new)){
 			  printf("BF file has different dimensions than others\n");
 			  printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
 	      		xmax,ymax,xmax_new,ymax_new);
 			  free(bf);
-			  return 0;
+        perror("Error! 15");
+        return;
       }
 
       //Make sure to add new array to global variables in segment.
@@ -1705,6 +1675,8 @@ int main(int argc, char *argv[]){
 	      strcat(line,fluor_files[i]);
 	      if(output_individual_cells_to_file(i,line,fl,xmax,ymax,0,8,0)==0){
 	        printf("Couldn't output individual to tif file %s.\n",line);
+          perror("Error! 15+1");
+          return;
 	      }
       }
       
@@ -1713,6 +1685,8 @@ int main(int argc, char *argv[]){
       printf("Writing found cells and data to output file %s.\n",line);
       if(output_data_to_tif_file(line,fl,xmax,ymax,bf_fl_labels,1,8,0)==0){
 	      printf("Couldn't output data to tif file %s.\n",line);
+        perror("Error! 15+2");
+        return;
       }
     }
 
@@ -1729,6 +1703,8 @@ int main(int argc, char *argv[]){
 					   0)==0){
 	     
           printf("Couldn't output individual to tif file %s.\n",line);
+          perror("Error! 15+3");
+          return;
 	      }
       }
       output_third_image=0;
@@ -1744,6 +1720,8 @@ int main(int argc, char *argv[]){
 				 0)==0){
 	
         printf("Couldn't output data to tif file %s.\n",line);
+        perror("Error! 15+4");
+        return;
       }
     }
 
@@ -1771,6 +1749,8 @@ int main(int argc, char *argv[]){
 	      strcat(line,phase_files[j_cur]);
 	      if(output_individual_cells_to_file(i,line,bf,xmax,ymax,0,8,0)==0){
 	        printf("Couldn't output individual to tif file %s.\n",line);
+          perror("Error! 15+5");
+          return;
 	      }
       }
 
@@ -1788,6 +1768,8 @@ int main(int argc, char *argv[]){
 				 0)==0){
 	
         printf("Couldn't output data to tif file %s.\n",line);
+        perror("Error! 15+6");
+        return;
       }
 
     }
@@ -1826,6 +1808,8 @@ int main(int argc, char *argv[]){
 			       8,
 			       0)==0){
       printf("Couldn't output data to tif file %s.\n",line);
+      perror("Error! 15+7");
+      return;
     }
   }
 
@@ -1844,11 +1828,15 @@ int main(int argc, char *argv[]){
     printf("Output file in PAW format.\n");
     if(output_cells(output_basename,append,time_index)==0){
       printf("Couldn't open X output files: %s.\n",line2);
+      perror("Error! 16");
+      return;
     }
   } else {  
     printf("Output file in R format.\n");
     if(output_cells_single_file(output_basename,append,time_index)==0){
       printf("Couldn't open X output files: %s.\n",line2);
+      perror("Error! 17");
+      return;
     }
   }
   
@@ -1859,7 +1847,8 @@ int main(int argc, char *argv[]){
   if((bf_fl_file=fopen(bf_fl_file_name,"w"))==NULL){
     printf("Couldn't open file %s\n",bf_fl_file_name);
     fflush(stdout);
-    return 0;
+    perror("Error! 18");
+    return;
   }
   
   fprintf(bf_fl_file,"fluor\tflag\tt.frame\tbright\tbf.as.fl\n");
@@ -1869,9 +1858,11 @@ int main(int argc, char *argv[]){
   }  
   
   if (bf_fl_file!=NULL)fclose(bf_fl_file);
-  
-return 1;
 
+  printf("\nCellID is done! :)\n");
+
+  out[0] = 1; 
+  return;
 }
   
 
