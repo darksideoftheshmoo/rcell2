@@ -179,8 +179,8 @@ void add_numbers_to_data(int n, int x, int y, int *d, int xmax, int ymax){
 	         ix=x+i;
 	         iy=y+j;
 	         if((ix>=0)&&(ix<xmax)&&(iy>=0)&&(iy<ymax)){
-	           // if(d[ix][iy]!=found_border){             //Don't overwrite border
-	           d[(iy*xmax)+ix]=cell_label;                 // defined at tif_routines.h as #define cell_label 6
+	           // if(d[ix][iy]!=found_border){ //Don't overwrite border
+	           d[(iy*xmax)+ix]=cell_label;
 	           //}
 	         }
 	       }

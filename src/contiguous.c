@@ -36,23 +36,23 @@ contains the following copyright notice:
    "Copyright (c) 1988-1997 Sam Leffler
     Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
-    Permission to use, copy, modify, distribute, and sell this software and
+    Permission to use, copy, modify, distribute, and sell this software and 
     its documentation for any purpose is hereby granted without fee, provided
     that (i) the above copyright notices and this permission notice appear in
     all copies of the software and related documentation, and (ii) the names
     of Sam Leffler and Silicon Graphics may not be used in any advertising or
     publicity relating to the software without the specific, prior written
-    permission of Sam Leffler and Silicon Graphics.
+    permission of Sam Leffler and Silicon Graphics.  
 
-    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
-    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
+    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
 
     IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
     ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
     OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
-    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
+    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
     OF THIS SOFTWARE."
 
 End-copyright-notice-for-Libtiff
@@ -78,12 +78,11 @@ int *list_start=NULL;
 int *npoints_in_list=NULL;
 int xmax_save=-999;
 int ymax_save=-999;
-static int xmax;       // made static because of multiple definitions error, see: https://stackoverflow.com/a/7190020/11524079
-static int ymax;       // made static
-static int xmax_ymax;  // made static
+int xmax,ymax;
+int xmax_ymax;
 
-static float cut_low;  // made static
-static float cut_high;  // made static
+float cut_low;
+float cut_high;
 int label_value;
 
 int list_cur;
@@ -167,9 +166,9 @@ void do_contiguous_search(struct contiguous_search *csearch){
 
   list_cur=0;
   n_lists=0;
-
+  
   update_cur_history_value();
-
+  
   check_function=NULL;
   //Set up cut-parameters for the contiguous list search
   behavior=(csearch->cut_behavior);
@@ -185,7 +184,7 @@ void do_contiguous_search(struct contiguous_search *csearch){
   }else if (behavior==cut_between){
 
     cut_low=(csearch->cut_low);
-    cut_high=(csearch->cut_high);
+    cut_high=(csearch->cut_high);    
     check_function=check_cut_between;
 
   }else if (behavior==equal_to_labels){
@@ -254,11 +253,11 @@ void do_contiguous_search(struct contiguous_search *csearch){
   (csearch->npoints_in_list)=npoints_in_list;
   (csearch->list_found_x)=clist_x;
   (csearch->list_found_y)=clist_y;
-
+  
   free(stack);
 
   return;
-
+  
 }
 
 /*************************************************************/
@@ -294,9 +293,9 @@ void make_contiguous_list(int istart, int jstart, int (*check)(int)){
   int u;
   int i,j;
   int dir;
-
+  
   n_contiguous=0; //Count of how many points we find
-
+  
   sp=stack; //Start stack pointer at beginning
   sp++;//Note we don't use the sp=stack position, but we use
   //it as a marker below for when we're done
@@ -304,16 +303,16 @@ void make_contiguous_list(int istart, int jstart, int (*check)(int)){
   (sp->j)=(unsigned short int) jstart;
   (sp->dir)=0; //All new points start this at zero (will record
   //whether we've checked this point already right, up, down, left, etc)
-
+  
   do{
     //Check current point
     i=(sp->i);
     j=(sp->j);
     u=(j*xmax+i);
-
+    
     dir=(int)(sp->dir);
     (sp->dir)++; //Increment for the next time we see this point
-
+    
     if (dir==0){ //This is a new point, check if it passes
 
       //Check if we've been here before for this search
@@ -334,7 +333,7 @@ void make_contiguous_list(int istart, int jstart, int (*check)(int)){
       list_cur++;
       n_contiguous++;
     }
-
+    
     //Now determine whether we want to check right, left, up, or down
     if (dir==0){ //Check to the right
       if(i<(xmax-1)){
@@ -372,10 +371,10 @@ void make_contiguous_list(int istart, int jstart, int (*check)(int)){
     }
 
   }while(sp!=stack); //Keep going until popped all the way back
-
+  
   return;
 }
-
+  
 /*************************************************************/
   int check_cut_low(int u){
   if(c_array[u]>=cut_low){
@@ -441,7 +440,7 @@ void make_contiguous_list_cut_low(int x, int y){
     return;
   }
   history[u]=cur_history_value;
-
+  
   //Add to the list
   clist_x[list_cur]=x;
   clist_y[list_cur]=y;
@@ -485,7 +484,7 @@ void make_contiguous_list_cut_high(int x, int y){
     return;
   }
   history[u]=cur_history_value;
-
+  
   //Add to the list
   clist_x[list_cur]=x;
   clist_y[list_cur]=y;
@@ -530,7 +529,7 @@ void make_contiguous_list_cut_between(int x, int y){
     return;
   }
   history[u]=cur_history_value;
-
+  
   //Add to the list
   clist_x[list_cur]=x;
   clist_y[list_cur]=y;
@@ -575,7 +574,7 @@ void make_contiguous_list_label(int x, int y){
     return;
   }
   history[u]=cur_history_value;
-
+  
   //Add to the list
   clist_x[list_cur]=x;
   clist_y[list_cur]=y;
@@ -614,13 +613,13 @@ void make_contiguous_list_label_cut_low(int x, int y){
   //Check if this point fails the criterion
   if (d_array[u]!=label_value) return;
   if(c_array[u]>=cut_low) return;
-
+  
   //Check if we've been here before for this search
   if(history[u]==cur_history_value){
     return;
   }
   history[u]=cur_history_value;
-
+  
   //Add to the list
   clist_x[list_cur]=x;
   clist_y[list_cur]=y;
@@ -659,13 +658,13 @@ void make_contiguous_list_label_cut_high(int x, int y){
   //Check if this point fails the criterion
   if (d_array[u]!=label_value) return;
   if(c_array[u]<=cut_high) return;
-
+  
   //Check if we've been here before for this search
   if(history[u]==cur_history_value){
     return;
   }
   history[u]=cur_history_value;
-
+  
   //Add to the list
   clist_x[list_cur]=x;
   clist_y[list_cur]=y;

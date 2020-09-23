@@ -17,8 +17,8 @@ extern int overall_id_offset;
 extern int recalculate_internal;
 #ifndef _image_type_
 #define _image_type_
-//int image_type;
-//int third_image_type;
-//int overall_id_offset;
-//int recalculate_internal;
+int image_type;
+int third_image_type;
+int overall_id_offset;
+int recalculate_internal;
 #endif
