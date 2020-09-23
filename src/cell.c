@@ -121,7 +121,7 @@ extern int opterr;
 extern int optind;
 int opt;
 
-void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
+void CellID_debug(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
   // char *argv[]
   // declare argv as array of pointers to char
   
@@ -143,7 +143,7 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
     printf("arg%i = %s\n", i, argv[i]);
   }
   
-  printf("\nSetting up CellID variable\n");
+  printf("\nSetting up CellID variables\n");
   char *equal_sign = NULL;
   int help_flag = 0;
   
@@ -263,24 +263,20 @@ void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_ou
   return;
 }
 
-// LA POSTA, importado en cellid_wrapper.R
-//int main_(int argc, char* argv[], int* out){
-void CellID2(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
+void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
   //   argv is a one-dimensional array of strings
   int argc = *argc0;
   int argc2 = argc;
-  if(*debug_flag==1) printf("first argc2 value is: %d \n",argc2);
 
-  int getopt(int argc, char * const argv[],
-             const char *optstring);
-  extern char *optarg;
-  extern int optind, opterr, optopt;
-  int opt;
-
-  //int i,j,k; // lo movi aca arriba para el printf, puede volver
+  printf("\nStarting CellID C call with the following arguments:\n");
+  printf("argc is: %i\n", argc);
+  int iargs; // https://azrael.digipen.edu/~mmead/www/Courses/CS180/getopt.html
+  for (iargs = 0; iargs < argc; iargs++){
+    printf("arg%i is: %s\n", iargs, argv[iargs]);
+  }
 
   //The first argument should point to a file that contains a list of
   //phase contrast files.
@@ -301,8 +297,8 @@ void CellID2(int * argc0, char *argv[], int* out, int* label_cells, int* blank_o
   //V1.2a When reading oif (Olympus Image File) the first arguments is the
   //name of the file ("myfile.oif") and the second argument is the output
 
-  // Wellcome message
-  if(*debug_flag==1) printf("\n*** Cell_ID Version 1.4.6 *** \n\n");
+  // Welcome message
+  printf("\n*** Cell_ID Version 1.4.6 *** \n\n");
 
   FILE *fp_in;
   FILE *fp;
@@ -442,12 +438,7 @@ void CellID2(int * argc0, char *argv[], int* out, int* label_cells, int* blank_o
   int paw_output=0; //V1.3a
   int n_bf_as_fl=0; //V1.4.2
 
-  //error("error 1");
-
   //Command line parsing variables
-  //GOptionContext *ctx;
-  //GOptionGroup *grpCellFind, *grpMisc, *grpImageType;
-
   char *equal_sign = NULL;
   int help_flag = 0;
 
@@ -465,20 +456,15 @@ void CellID2(int * argc0, char *argv[], int* out, int* label_cells, int* blank_o
   char *str_align_fl = NULL;
 
   //V1.4a
-  //gchar *file_basename = NULL; //for getting correct channel identification
-  char *file_basename = NULL; //for getting correct channel identification
-  //from filenames with paths
+  char *file_basename = NULL; //for getting correct channel identification from filenames with paths
 
   char str_third_img_label[500];
   char *pnt_third_img_label = NULL;
   char str_image_type[500];
   char *pnt_image_type = NULL;
 
-  // error("error 2.0"); // hasta acá todo bien, el error está abajo de esto
-
-
-  if(*debug_flag==1) printf("\nNico's simple option parser\n");
-
+  if(*debug_flag==1) printf("\nNico's simple option parser - 1\n");
+  
   // b bright_list_file "Text file list of brightfield tif images"
   // f fluor_list_file "Text file of fluorescent tif images"
   // 3 third_list_file "List of third images to be used"
@@ -486,50 +472,63 @@ void CellID2(int * argc0, char *argv[], int* out, int* label_cells, int* blank_o
   // t flat_list_file "List of flat images to be used","flat.txt"
   // p param_file "Parameters file ", "parameters.txt"
   // o output_basename "Basename of output files (including dirs)"
-
-  // put ':' in the starting of the string so that program can distinguish between '?' and ':'
-  //opt = getopt(argc, argv, ":if:lrx");
-  //printf("%c\n", opt);
-
-  while((opt = getopt(argc, argv, "p:b:f:o:")) != -1)
-  {
-    switch(opt)
-    {
+  
+  opterr = 0;  // https://stackoverflow.com/a/24331449/11524079
+  optind = 1;  // https://stackoverflow.com/a/25937743/11524079
+  
+  while((opt = getopt(argc, argv, "p:b:f:o:")) != -1) {
+    printf("Parsing getopt options\n");
+    switch(opt) {
     case 'p':
-      if(*debug_flag==1) printf("parameters: %s\n", optarg);
+      if(*debug_flag==1) printf("parameters: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
       param_file=optarg;
       break;
+      
     case 'b':
-      if(*debug_flag==1) printf("brightfield: %s\n", optarg);
+      if(*debug_flag==1) printf("brightfield: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
       bright_list_file=optarg;
       break;
+      
     case 'f':
-      if(*debug_flag==1) printf("fluorescence: %s\n", optarg);
+      if(*debug_flag==1) printf("fluorescence: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
       fluor_list_file=optarg;
       break;
+      
     case 'o':
-      if(*debug_flag==1) printf("output_prefix: %s\n", optarg);
+      if(*debug_flag==1) printf("output_prefix: ");
+      if(*debug_flag==1) printf("%s\n", optarg);
       output_basename=optarg;
       break;
+      
     case ':':
       if(*debug_flag==1) printf("option needs a value\n");
       break;
+      
     case '?':
-      if(*debug_flag==1) printf("unknown option: %c\n", optopt);
+      if(*debug_flag==1) printf("unknown option: ");
+      if(*debug_flag==1) printf("%c\n", optopt);
       break;
     }
   }
-
+  
   if(*debug_flag==1) printf("\nNico's simple option parser - 2\n");
 
-  // optind is for the extra arguments
-  // which are not parsed
-  for(; optind < argc; optind++){
-    if(*debug_flag==1) printf("extra arguments: %s\n", argv[optind]);
+  //https://azrael.digipen.edu/~mmead/www/Courses/CS180/getopt.html
+  /* Get all of the non-option arguments */
+  if (optind < argc) {
+    if(*debug_flag==1) printf("Non-option args: ");
+    while (optind < argc)
+      if(*debug_flag==1) printf("%s ", argv[optind++]);
+      if(*debug_flag==1) printf("\n");
   }
-
+  
+  
   if(*debug_flag==1) printf("\nNico's simple option parser - 3\n");
-
+  
+  // Print the final value of  parsed arguments
   if(*debug_flag==1) printf("bright_list_file: %s\n", bright_list_file);
   if(*debug_flag==1) printf("fluor_list_file: %s\n", fluor_list_file);
   if(*debug_flag==1) printf("third_list_file: %s\n", third_list_file);
