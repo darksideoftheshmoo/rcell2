@@ -506,13 +506,13 @@ cell <- function(cell.args,
 
   # registerDoParallel(no_cores)
   commands <- foreach::foreach(pos=1:n_positions) %dopar% {
+    print("---- Position info")
     print(pos)
 
     cell.args.tmp <- c("p" = unname(parameters),  # there is a "feature" here worthy of the R Inferno
                        "o" = unname(cell.args$o[pos*n_times])) # unnaming is necesary or the element's name is joined to the assigned name
 
     for(channel in channels) {
-      print(channel)
       tmp <- tempfile(tmpdir = cell.args.tmp["o"],
                       fileext = ".txt",
                       pattern = paste("pos", pos,
@@ -522,10 +522,15 @@ cell <- function(cell.args,
       # paths <- cell.args[[channel]][str_detect(names(cell.args[[channel]]), u_positions[pos])]
       paths <- cell.args[[channel]][ grepl(pattern = u_positions[pos],
                                            x = names(cell.args[[channel]])) ]
-      print(paths)
       
-      write(x = paths, file = tmp)  # readLines(tmp)
+      write(x = paths, file = tmp)
       cell.args.tmp[channel] <- normalizePath(tmp)
+      
+      print("---- Channel info")
+      print(channel)
+      print(paths)
+      print(tmp)
+      print(readLines(tmp))
     }
 
     command <- paste(cell.command,
@@ -534,6 +539,7 @@ cell <- function(cell.args,
     )
 
     if(cell.command == "cellBUILTIN") {
+      print("---- Command info")
       print(command)
       if(!dry){
         exit_code <- cellid(args = command, label_cells = label_cells, bf_out_mask_only = bf_out_mask_only)
