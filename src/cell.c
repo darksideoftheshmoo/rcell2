@@ -117,7 +117,7 @@ int new_phase=0;
 
 // LA POSTA, importado en cellid_wrapper.R
 //int main_(int argc, char* argv[], int* out){
-int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
+void CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out_bg, int* debug_flag){
   // https://stackoverflow.com/a/27400430
   // http://crasseux.com/books/ctutorial/argc-and-argv.html
   //   argc contains the number of arguments passed to the program
@@ -2109,8 +2109,6 @@ int CellID(int * argc0, char *argv[], int* out, int* label_cells, int* blank_out
   if(*debug_flag==1) printf("\nLast argc2 value is: %d \n",argc2);
   
   if(*debug_flag==1) printf("\nCellID is done! :)\n");
-
-  //return out[0];
 }
 
 
