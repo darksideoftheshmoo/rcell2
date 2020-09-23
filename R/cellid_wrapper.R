@@ -16,14 +16,14 @@ cellid <- function(args, label_cells=1, bf_out_mask_only=1, debug_flag=0){
   if(debug_flag != 1) print(argv)
   if(debug_flag != 1) print(argc)
 
-  exit_code = .C(CellID, 
-                 as.integer(argc),             # Argument count
-                 as.character(argv),           # Argument character vector
-                 as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
-                 as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
-                 as.integer(bf_out_mask_only), # Option to put blank backgound on BF out.tif
-                 as.integer(debug_flag)        # Option to print more messages from CellID. Set to 1 to print.
-                 )[[3]]
+  exit_code <- .C(CellID, 
+                  as.integer(argc),             # Argument count
+                  as.character(argv),           # Argument character vector
+                  as.integer(0),                # Return variable: "out[0] = 1;" is set at the end of cell.c
+                  as.integer(label_cells),      # Option to disable cell labeling on .out.tif files
+                  as.integer(bf_out_mask_only), # Option to put blank backgound on BF out.tif
+                  as.integer(debug_flag)        # Option to print more messages from CellID. Set to 1 to print.
+                  )[[3]]  # get the value of the third argument "out" as a return value
   
   if(exit_code != 1) stop(paste("CellID exited with code", exit_code))
   
