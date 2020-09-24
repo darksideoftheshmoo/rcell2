@@ -57,7 +57,7 @@ square <- function(x1, y1, x2, y2){
 # To-do: hacer algo para poder armar filtros fuera de la app. ¿Cómo hacer filtros de una sola variable? El polígono no sirve.
 #filterBox <- function(xvar, xmin, xmax, yvar, ymin, ymax)
 
-#' Una función para procesar el facet string y que devuelva las variables presentes en names(pdata)
+#' Una función para procesar el facet string y que devuelva las variables presentes en names(pdata) en un character vector
 getFacetVars <- function(pdata, facetFormulaString = "pos ~ treatment"){
     print("F1")
     facetFormula <- eval(parse(text=facetFormulaString))

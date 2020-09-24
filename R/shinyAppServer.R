@@ -12,14 +12,16 @@ shinyAppServer <-
     {
       # Reactive values definition
       values <- reactiveValues()
+      
+      if(!all(names(cdata) %in% names(pdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
 
       # Initialize cdata
       cdata$filter <- T
-      values$cdata <- cdata
-      if(!{cell.data$d$t.frame %>% unique() %>% length()} == 1){
+      if(!{cdata$t.frame %>% unique() %>% length()} == 1){
         cdata <- mutate(cdata, ucid_time = paste0(ucid, "_", t.frame))
         cdata.cell_unique_id_field <- "ucid_time"
       }
+      values$cdata <- cdata
       
       # Initialize cfilter
       if(length(filters) > 0) { values$stringFilters <- filters} else {values$stringFilters <- c()}  # Load initial filters if any
@@ -122,9 +124,12 @@ shinyAppServer <-
                                 pos %in% positions & filter == TRUE)
                   }
 
-                  print(paste0("-- Facet variables: ", input$facet, "."))
+                  print(paste0("-- Facet formula: ", input$facet))
                   facetVars <- getFacetVars(pdata, facetFormulaString = input$facet)
-
+                  
+                  print(paste("-- Rows left in filtered dataframe for plotting:", nrow(d)))
+                  print(paste("-- Facet variables:", paste0(facetVars, collapse = ", ")))
+                  print(paste("-- Facet vars in data:", paste0(facetVars %in% names(d), collapse = ", ")))
 
                   # Plot stuff
                   if(input$x == input$y){
