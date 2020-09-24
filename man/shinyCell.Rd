@@ -16,6 +16,7 @@ shinyCell(
   facet_grid_option = TRUE,
   facets_scale_free = NULL,
   n_max = 100,
+  boxSize = 50,
   ...
 )
 }
@@ -37,6 +38,8 @@ shinyCell(
 \item{facet_grid_option}{Use facet_grid (TRUE, default) or facet_wrap.}
 
 \item{facets_scale_free}{Use facets with fixed scales (NULL, default) or free scales ("free").}
+
+\item{boxSize}{Size in pixels for individual cells' images.}
 
 \item{...}{Further arguments passed to magickCell()}
 }

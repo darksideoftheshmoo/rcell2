@@ -376,7 +376,8 @@ shinyAppServer <-
                                        seed = values$seed, 
                                        n = n_max, 
                                        .equalize = input$equalize_pics,
-                                       .normalize = input$normalize_pics)
+                                       .normalize = input$normalize_pics,
+                                       boxSize = boxSize)
             tmpimage <- magick.cell$img
             print(magick.cell$ucids)
           } else {
@@ -453,7 +454,8 @@ shinyAppServer <-
                                     seed = values$seed, 
                                     n = n_max, 
                                     .equalize = input$equalize_pics,
-                                    .normalize = input$normalize_pics)
+                                    .normalize = input$normalize_pics,
+                                    boxSize = boxSize)
           tmpimage <- magick.cell$img
         } else {
           # Si no hay algo seleccionado output white
@@ -546,7 +548,8 @@ shinyAppServer <-
                                        seed = values$seed, 
                                        n = 1, 
                                        .equalize = input$equalize_pics,
-                                       .normalize = input$normalize_pics)
+                                       .normalize = input$normalize_pics,
+                                       boxSize = boxSize)
             tmpimage <- magick.cell$img
             print(magick.cell$ucids)
           } else {

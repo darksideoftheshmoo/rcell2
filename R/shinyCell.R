@@ -18,6 +18,7 @@
 #' @param initial_facet Initial facet formula as a string.
 #' @param facet_grid_option Use facet_grid (TRUE, default) or facet_wrap.
 #' @param facets_scale_free Use facets with fixed scales (NULL, default) or free scales ("free").
+#' @param boxSize Size in pixels for individual cells' images.
 #' @param ... Further arguments passed to magickCell()
 #' @return Lots of stuff.
 # @examples
@@ -33,7 +34,7 @@ shinyCell <- function(cdata,
                       seed = 1,
                       initial_facet = "",
                       facet_grid_option = TRUE, facets_scale_free = NULL,
-                      n_max = 100,
+                      n_max = 100, boxSize = 50,
                       ...){
 
     # To-do
