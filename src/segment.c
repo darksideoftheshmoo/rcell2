@@ -5045,7 +5045,7 @@ int output_cells_single_file(char *basename, char *append, int *time_index){
     printf("Couldn't open single output file %s\n",file);
     fflush(stdout);
     perror("Error in segment.c!");
-    return;
+    return 0;
   }
 
   //Printing header to file
