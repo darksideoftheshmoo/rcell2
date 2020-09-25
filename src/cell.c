@@ -1170,6 +1170,7 @@ void CellID(int * argc0, char *argv[], int* out){
       printf("New file has different dimensions that others\n");
       printf("that were already loaded. (%i,%i) is not (%i,%i)\n",
              xmax,ymax,xmax_new,ymax_new);
+      free(fl);
       perror("Error! 10");
       return;
     }
@@ -1483,6 +1484,7 @@ void CellID(int * argc0, char *argv[], int* out){
     	if((bf=get_data_from_tif_file(phase_files[j_cur],0,NULL,&xmax_new,&ymax_new))==NULL){
     	  printf("Couldn't open tif file %s.\n",phase_files[j_cur]);
         perror("Error! 14");
+        free(bf);
         return;
       }
       if ((xmax!=xmax_new)||(ymax!=ymax_new)){
