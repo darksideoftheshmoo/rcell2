@@ -49,3 +49,20 @@ Lots of stuff.
 \description{
 Filtrar cdata usando gráficos y dibujando regiones
 }
+\examples{
+path <- "/mac/apesta/trololololol/"
+
+cell.data <- rcell2::cell.load.alt(path = path)
+
+image.paths <- cell.data$d.paths  # image.paths <- rcell2::magickPaths(cell.data)
+
+pdata <- read_tsv(paste0(path, "pdata.csv"))
+
+cdata <- left_join(cell.data$d, pdata)
+
+rcell2::shinyCell(cdata = cdata, 
+                  pdata = pdata, 
+                  paths = cell.data$d.paths, 
+                  n_max = 5^2, 
+                  boxSize = 100)
+}

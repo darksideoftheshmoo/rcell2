@@ -29,7 +29,7 @@ tagCell(
 
 \item{paths}{dataframe of image paths}
 
-\item{cell_tags}{list of named vectors corresponding to tag groups and tags.}
+\item{cell_tags}{list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...)}
 
 \item{tag_box_size}{size of the image crop in pixels}
 
@@ -56,4 +56,47 @@ Lots of stuff.
 }
 \description{
 Filtrar cdata usando gráficos y dibujando regiones
+}
+\examples{
+path <- "/mac/apesta/trololololol/"
+
+cell.data <- rcell2::cell.load.alt(path = path)
+
+image.paths <- cell.data$d.paths  # Si usaste load_cell es: image.paths <- rcell2::magickPaths(cell.data)
+
+pdata <- read_tsv(paste0(path, "pdata.csv"))
+
+cdata <- left_join(cell.data$d, pdata)
+
+p <- ggplot() + 
+  geom_line(aes(x=t.frame, y=cf.y, group=ucid))
+
+tag_channels_select <- c("BF", "BF.out", "YFP", "YFP.out")
+
+saved <- rcell2::tagCell(cdata,
+                         pdata, 
+                         image.paths,
+                         cell_tags = list(far1_drop = c(TRUE,
+                                                        FALSE),
+                                          budding =   c("emergence",
+                                                        "division", 
+                                                        "shmoo_o_algo"),
+                                          artifact =  c("segmentation",
+                                                        "crowding",
+                                                        "out_of_focus",
+                                                        "interesante",
+                                                        "death",
+                                                        "flown_away",
+                                                        "not_a_cell")
+                         ),
+                         tag_channels_select = tag_channels_select,
+                         .equalize = T,
+                         .normalize = F,
+                         n_max = 50,
+                         tag_box_size = 75,
+                         cell_resize = 300,
+                         tag_ggplot = p,
+                         tmp_output_file = "../output/annotations/progress.csv", 
+                         debug_messages = F)
+                         
 }
