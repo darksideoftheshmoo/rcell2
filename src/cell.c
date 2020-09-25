@@ -614,7 +614,7 @@ void CellID(int * argc0, char *argv[], int* out){
   if(help_flag==1){
     printf("For help type 'cell --help'\n");
     printf("Required options: --bright brightfile.txt --fluor fluorfile.txt");
-    return 0; 
+    return; 
   }
   
   if(output_individual_cells==1){
