@@ -2,10 +2,10 @@
 % Please edit documentation in R/definitions.R
 \name{getFacetVars}
 \alias{getFacetVars}
-\title{Una función para procesar el facet string y que devuelva las variables presentes en names(pdata)}
+\title{Una función para procesar el facet string y que devuelva las variables presentes en names(pdata) en un character vector}
 \usage{
 getFacetVars(pdata, facetFormulaString = "pos ~ treatment")
 }
 \description{
-Una función para procesar el facet string y que devuelva las variables presentes en names(pdata)
+Una función para procesar el facet string y que devuelva las variables presentes en names(pdata) en un character vector
 }

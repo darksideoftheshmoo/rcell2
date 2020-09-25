@@ -13,8 +13,6 @@ shinyAppServer <-
       # Reactive values definition
       values <- reactiveValues()
       
-      if(!all(names(cdata) %in% names(pdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
-
       # Initialize cdata
       cdata$filter <- T
       if(!{cdata$t.frame %>% unique() %>% length()} == 1){

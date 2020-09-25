@@ -36,6 +36,8 @@ shinyCell <- function(cdata,
                       facet_grid_option = TRUE, facets_scale_free = NULL,
                       n_max = 100, boxSize = 50,
                       ...){
+    
+    if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
 
     # To-do
     # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
