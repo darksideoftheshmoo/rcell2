@@ -6,6 +6,8 @@
 # @param .type a string, either "Subtractive" or "Additive", the two types of filters.
 #' @param print_plots Set to false to prevent printing the plots on execution.
 #'
+#' @importFrom rlang parse_expr
+#'
 #' @return Prints a lis
 #' @export
 #'

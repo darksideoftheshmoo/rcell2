@@ -4,7 +4,7 @@
 #' @param debug_messages Print internal stuff, useful for debugging.
 #' @param print_plot_on_exit Prints user_plot replacing it's data with the "brushed" subset
 #' @return A data.frame with the brushed points from the original plot's data.
-#' @import shiny tidyverse
+#' @import shiny ggplot2
 #' @export
 plotApp <- function(user_plot, debug_messages = F, print_plot_on_exit = F){
 

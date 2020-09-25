@@ -1,6 +1,7 @@
 #' Shiny app UI object for shinyCell
 #'
-#' @import shiny DT
+#' @import shiny 
+# @import DT
 #'
 plotAppUI <- function(){
   fluidPage(

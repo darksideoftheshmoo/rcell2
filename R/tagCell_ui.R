@@ -2,7 +2,7 @@
 #'
 #' @import shiny shinyjs formattable shinydashboard
 #'
-tagCellUi <- function(){shiny::fluidPage(useShinyjs(),  # Set up shinyjs
+tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyjs
                                          tags$head(
                                            tags$style(HTML('#quit{background-color:orange}'))
                                          ),

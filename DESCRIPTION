@@ -51,7 +51,9 @@ Imports:
     reshape2,
     stringr,
     purrr,
-    readr
+    readr,
+    shinyjs,
+    rlang
 Suggests: 
     tidyverse,
     skimr
