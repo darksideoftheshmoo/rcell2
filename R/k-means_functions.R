@@ -14,18 +14,17 @@ X.normalize <- function(X){
 }
 
 
-#' make.fit.variables
+#' add_fit_variables
 #'
 #' Create custom fit variables
 #'
-#' @param X a cell.data data.frame to which fir.vars are added
+#' @param x a cell.data data.frame
 #'
-#' @return Normalized X
+#' @return a cell.data data.frame to which new variables have been added
 #'
-make.fit.variables <- function(x){
+add_fit_variables <- function(x){
   x <- transform(x, perim.bud=(pi*maj.axis))
   x <- transform(x, perim.hglass=(pi*min.axis))
-  x <- transform(x, perim.ellipse=(pi*(3*(maj.axis/2+min.axis/2)-sqrt((3*maj.axis/2+min.axis/2)*(maj.axis/2+3*min.axis/2)))))
   x <- transform(x, perim.circle=(pi*(min.axis/2)**2))
   
   x <- transform(x, a.bud=((pi/4)*(2*min.axis**2-2*min.axis*maj.axis+maj.axis**2)))
@@ -37,7 +36,7 @@ make.fit.variables <- function(x){
   x <- transform(x, eccentricity=sqrt(1-((min.axis/2)/(maj.axis/2))**2))
   x <- transform(x, flattening=(maj.axis-min.axis)/(maj.axis+min.axis))
   x <- transform(x, perim.by.a=(perim/a.tot))
-  x <- transform(x, perim.by.perimellipse=(perim/perim.ellipse))
+  x <- transform(x, perim.by.perimellipse=(perim/ellipse.perim))
   x <- transform(x, perim.by.perimbud=(perim/perim.bud))
   x <- transform(x, perim.by.spherevol=(perim/sphere.vol))
   
@@ -50,16 +49,16 @@ make.fit.variables <- function(x){
   x <- transform(x, fit.var4=fft.stat/sphere.vol)
   x <- transform(x, fit.var5=a.surf/elongatedness)
   x <- transform(x, fit.var6=sphere.vol/elongatedness)
-  return(x)
+  x
 }
 
 
 #' get.fit.variables
 #'
-#' Extract columns for classification
+#' Extract columns for clustering
 #'
 #' @param x 
-#' @param vars "m" for morph.vars, "f" for fluor.vars
+#' @param vars "m" for morpho.vars, "f" for fluor.vars
 #'
 #' @return data.frame with fit.variables ("extr.vars") only
 #'
@@ -69,11 +68,11 @@ get.fit.variables <- function(x, vars='m'){
   #id.vars <- c('pos', 'cellID', 'time', 'ucid', 't.frame')
   id.vars <- c('ucid','t.frame')
   
-  #morph.vars <- c('xpos', 'ypos', 'fft.stat', 'perim', 'maj.axis', 'min.axis', 'rot.vol', 'con.vol', 'a.surf', 'sphere.vol')
-  morph.vars <- c('fft.stat', 'perim', 'maj.axis', 'min.axis', 'a.surf', 'sphere.vol')
+  #morpho.vars <- c('xpos', 'ypos', 'fft.stat', 'perim', 'maj.axis', 'min.axis', 'rot.vol', 'con.vol', 'a.surf', 'sphere.vol')
+  morpho.vars <- c('a.tot','fft.stat', 'perim', 'maj.axis', 'min.axis', 'a.surf', 'sphere.vol', 'ellipse.perim')
   
   #area.vars <- c('a.tot', 'a.tot.p1', 'a.tot.m1', 'a.tot.m2', 'a.tot.m3')
-  area.vars <- c('a.tot')
+  #area.vars <- c('a.tot')
   
   #f.vars <- c('f.tot', 'f.tot.p1', 'f.tot.m1', 'f.tot.m2', 'f.tot.m3')
   f.vars <- c('f.tot')
@@ -90,7 +89,7 @@ get.fit.variables <- function(x, vars='m'){
   
   default.vars <- names(x)
   
-  x <- make.fit.variables(x)
+  x <- add_fit_variables(x)
   
   new.vars <- names(x)
   new.vars <- new.vars[!(new.vars%in%default.vars)]
@@ -100,31 +99,27 @@ get.fit.variables <- function(x, vars='m'){
   ## Defines whether fluorescence ('f') and/or morphology ('m') variables should be extracted
   extr.vars <- c()
   if(sum(grep("m",vars))){
-    morph.vars <- c(id.vars, morph.vars, area.vars, new.vars)
-    extr.vars <- c(extr.vars,morph.vars)
+    morpho.vars <- c(id.vars, morpho.vars, new.vars)
+    extr.vars <- c(extr.vars,morpho.vars)
   }
   if(sum(grep("f",vars))){
     fluor.vars <- c(f.vars, bg.vars, bg.f.vars)
     extr.vars <- c(extr.vars,fluor.vars)
   }
-  #if(vars%in%c('fm', 'mf')){
-  #  extr.vars <- c(id.vars, morph.vars, area.vars, f.vars, bg.vars, bg.f.vars, new.vars)
-  #}
-  #else if(vars=='m'){
-  #  extr.vars <- c(id.vars, morph.vars, area.vars, new.vars)
-  #}
   
   return(x[,names(x) %in% extr.vars])
 }
 
-#' k.means.classification
+#' kmeans_clustering
 #'
-#' Perform k-means classification to Cell-ID data. Appends a 'k' column indicating the assigned class, and a 'k.dist' column indicating the calculated Euclidean distance to the nearest centroid.
+#' Perform k-means clustering on Cell-ID data.
 #'
-#' @param x possibly the cell.data object
-#' @param k 
-#' @param max.iterations
-#' @param vars
+#' @param x cell.data object
+#' @param k non-negative integer. The desired number of clusters.
+#' @param centroids optional integer vector of length 'k' defining the rows in 'x$data' to be chosen as starting centroids. If not provided, these are selected randomly.
+#' @param max_iter non-negative integer. The maximal number of iterations allowed, if the algorithm has not yet converged.
+#' @param resume logical. If TRUE the algorithm resumes clustering from previously assigned clusters.
+#' @param vars optional character vector
 #' 
 #' @example 
 #' 
@@ -138,7 +133,7 @@ get.fit.variables <- function(x, vars='m'){
 #' # Set max number of iterations (*)
 #' max_iter <- 50 
 #' 
-#' # (*) The function k.means.classification runs the algorithm iteratively,
+#' # (*) The function kmeans_clustering runs the algorithm iteratively,
 #' # and keeps track of how many cells changed class between each iteration.
 #' # If for any iteration there were no class updates, the function considers
 #' # the classification complete, and breaks the run. Otherwise, it continues
@@ -146,35 +141,38 @@ get.fit.variables <- function(x, vars='m'){
 #' 
 #' # Run k-means classification; returns Cell-ID object with column "k",
 #' # indicating the assigned class for each row/cell
-#' X <- k.means.classification(X, k=k_count, max.iterations=max_iter, vars=class.variables)
+#' X <- kmeans_clustering(X, k=k_count, max_iter=max_iter, vars=class.variables)
 #'
-#' @return the data with a classification column added as "k.data"
+#' @return the original cell.data object with appended 'k' and 'k_dist' columns indicating the assigned class and Euclidean distance the assigned centroid, respectively.
 #' @export
 #'
-k.means.classification <- function(x, k=10, max.iterations=100, vars=NULL){
-  ## Remove any pre-existing 'k' and 'k.dist' columns
-  x$data <- x$data[,!(names(x$data)%in%c('k','k.dist'))]
+kmeans_clustering <- function(x, k=10, max_iter=100, vars=NULL, resume=FALSE){
+  if(!resume){
+    ## Remove pre-existing 'k' and 'k_dist' columns
+    x$data <- x$data %>% mutate(k = NULL, k_dist = NULL)
+  }
   
   ## Get data to classify
-  cellk <- subset(x$data, qc==TRUE)
+  cdata <-x$data[x$data$qc,]
+  #cellk <- subset(x$data, qc==TRUE)
   
-  ## Create and get training variables
-  cellk <- get.fit.variables(cellk, 'm')
+  ## Append training variables
+  cdata <- get.fit.variables(cdata)
   
   if(!is.null(vars)){
     vars <- c(c('ucid','t.frame','tag.type'),vars)
-    cellk <- cellk[,names(cellk)%in%vars]
+    cdata <- cdata[,names(cdata)%in%vars]
   }
   
   ## Remove rows with NAs
-  n.cols <- ncol(cellk)
-  na.idx <- unique(unlist(sapply(1:n.cols,function(x,i) which(is.na(x[,i])), x=cellk)))
-  if(length(na.idx)) cellk <- cellk[-na.idx,]
+  n.cols <- ncol(cdata)
+  na.idx <- unique(unlist(sapply(1:n.cols,function(x,i) which(is.na(x[,i])), x=cdata)))
+  if(length(na.idx)) cdata <- cdata[-na.idx,]
   
   ## Extract ucids (id) and data (Xd)
-  fit.vars <- names(cellk)[!(names(cellk)%in%c('ucid','t.frame','tag.type'))]
-  id <- cellk[,c('ucid','t.frame')]
-  Xd <- cellk[,fit.vars]
+  fit.vars <- names(cdata)[!(names(cdata)%in%c('ucid','t.frame','tag.type'))]
+  id <- cdata[,c('ucid','t.frame')]
+  Xd <- cdata[,fit.vars]
   
   ### RUN k-means classification
   ## Normalize X
@@ -192,7 +190,7 @@ k.means.classification <- function(x, k=10, max.iterations=100, vars=NULL){
   i.diff <- 1
   i.count <- 0
   
-  while(i.diff>0 && i.count<max.iterations){
+  while(i.diff>0 && i.count<max_iter){
     ## Calculate distances of each row in Xd to each centroid in k.means
     dists <- apply(k.means,1,function(x,k) sqrt(rowSums(sweep(x, 2, k)**2)),x=Xd)
     
@@ -200,7 +198,7 @@ k.means.classification <- function(x, k=10, max.iterations=100, vars=NULL){
     k.labs <- apply(dists,1,function(x) which(x==min(x))[1])
     i.diff <- sum(k.labs!=k.labs.old)
     i.count <- i.count + 1
-    print(paste("Iteration:",i.count,"| Updates:",i.diff))
+    message(paste0("Iteration #",i.count,". Updates: ",i.diff))
           
     ## Calculate new centroids
     k.means <- t(sapply(1:k, function(i,x,n) colMeans(x[which(n==i),]), x=Xd, n=k.labs))
