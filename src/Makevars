@@ -2,16 +2,36 @@ CC=ccache clang -Qunused-arguments
 CXX=ccache clang++ -Qunused-arguments
 CCACHE_CPP2=yes
 
-PKG_CPPFLAGS= -I./tiff410/include
-PKG_LIBS= -L./tiff410/libtiff -ltiff -ljpeg -llzma -lz
+# Include de archivos ".h"
+PKG_CPPFLAGS= -I./tiff410/include  # probably unnecesary
+# Links a archivos ".so" (las libraries)
+PKG_LIBS= -L./tiff410/r_build/libtiff -ltiff -ljpeg -llzma -lz
 
 MAKEFLAGS = -j4
 
-.PHONY: all tiflibs
 
-all: $(SHLIB)
+# https://makefiletutorial.com/
+# A Makefile consists of a set of rules. A rule generally looks like this:
+# 
+# targets : prerequisites
+#    command
+#    command
+#    command
+
+# Adding .PHONY to a target will prevent make from confusing the phony target with a file name. 
+# For example, if the file “clean” is created somehow elsewhere, "make clean" will still be run.
+.PHONY: all tiflibs rbuildcleanup
+
+all: $(SHLIB) rbuildcleanup
 
 $(SHLIB): tiflibs
 
+# Note that each command is run independently, that's why there is a "cd" in each one.
 tiflibs:
-	cd tiff410 && cmake --clean-first . && make all -j4 -B && cmake --target clean . && cd ..
+	cd tiff410/r_build && cmake --clean-first ../
+	cd tiff410/r_build && make all -j4 -B
+	cd tiff410/r_build && cmake --target clean ../
+
+# The cleanup target must depend on the rest in order to be execured last in a parallel compilation
+rbuildcleanup: $(SHLIB)
+	rm -rf tiff410/r_build/*

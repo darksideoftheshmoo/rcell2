@@ -14,3 +14,4 @@ data/time_series_image_samples/Position*/out/
 /data/image_samples_x/v*/*out.tif
 /testings/XFP_files.nb.html
 /data/image_samples_x/Position*/out*
+/src/tiff410/r_build/*
