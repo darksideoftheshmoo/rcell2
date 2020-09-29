@@ -124,13 +124,16 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
 #' @export
 #'
 kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k', var_cats=c("morpho"),custom_vars=NULL){
+  
   ## Get filtered data
   if(is.cell.data(x)){
+    ## Do this if x is a cell.data object
     xdata <- x$data[x$data$qc,]
     f.channels <- x$channels$posfix
     }
   else{
-    xdata <- x
+    ## Do this if x is a data.frame
+    xdata <- x[x$qc,]
     f.channels <- substr(unlist(regmatches(names(xdata), gregexpr(paste0("(f.tot.)+([a-z]{1}$)"), names(xdata)))), 7, 8)
   }
   
@@ -160,7 +163,8 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
   if(resume){
     ### If clustering takes off from or resumes previous tagging
     ## Verify that tag_col exists
-    stopifnot("missing k column" = tag_col%in%names(xdata))
+    stopifnot("missing tag column" = tag_col%in%names(xdata),
+              "expected a numeric value for k for processing pre-clustered data" = !is.data.frame(k))
     
     ## Extract tag_col
     tags <- xdata %>% pull(!!tag_col)
@@ -175,19 +179,38 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
     k.labs.sampled <- sample(k.labs.unique,length(k.labs.current),replace=TRUE)
     k.labs.current[na.idx] <- k.labs.sampled[na.idx]
     
-    ## Calculate current cluster centroids
-    k.means <- t(sapply(1:length(unique_tags), function(i,x,n) colMeans(x[which(n==i),]), x=cdata, n=k.labs.current))
+    ## Randomly reassign rows in clusters>k
+    if(k<length(k.labs.unique)){
+      reassigned <- which(k.labs.current>k)
+      k.labs.current[reassigned] <- sample(1:k,length(reassigned),replace=TRUE)
+    }
     
-    ## Check for empty clusters, and randomly assign rows
-    missing <- (1:k)[!(1:k%in%unique(k.labs.current))]
-    k.sample <- sample(dim(cdata)[1],length(missing))
-    k.means <- rbind(k.means,cdata[k.sample,])
+    ## Calculate current cluster centroids
+    k.means <- t(sapply(1:length(unique(k.labs.current)), function(i,x,n) colMeans(x[which(n==i),]), x=cdata, n=k.labs.current))
+    
+    ## Randomly assign rows as starting centroids for empty clusters
+    if(k>length(k.labs.unique)){
+      n.missing <- length((1:k)[!(1:k%in%unique(k.labs.current))])
+      k.sample <- sample(dim(cdata)[1],n.missing)
+      k.means <- rbind(k.means,cdata[k.sample,])
+    }
   }
   else{
     ### Else, if tagging de novo
-    ## Randomly pick k samples as initial cluster centroids
-    k.sample <- sample(dim(cdata)[1],k)
-    k.means <- cdata[k.sample,]
+    if(is.data.frame(k)){
+      ## Extract rows chosen as initial cluster centroids
+      k <- k %>% mutate(k_labs = seq_along(t.frame))
+      centroids.idx <- id %>% mutate(i_row = seq_along(t.frame)) %>%
+        left_join(k,by=c("ucid","t.frame")) %>% 
+        filter(!is.na(k_labs)) %>% select(ucid,t.frame,i_row)
+      k.means <- cdata[centroids.idx$i_row,]
+      k <- dim(k)[1]
+    }
+    else{
+      ## Randomly pick k samples as initial cluster centroids
+      k.sample <- sample(dim(cdata)[1],k)
+      k.means <- cdata[k.sample,]
+    }
     
     ## Set random initial cluster assignments
     k.labs.current <- sample(1:k,dim(id)[1],replace=TRUE)
