@@ -3,7 +3,7 @@ CXX=ccache clang++ -Qunused-arguments
 CCACHE_CPP2=yes
 
 # Include de archivos ".h"
-PKG_CPPFLAGS= -I./tiff410/include  # probably unnecesary
+PKG_CPPFLAGS= -I./tiff410/libtiff  # apparently unnecesary
 # Links a archivos ".so" (las libraries)
 PKG_LIBS= -L./tiff410/r_build/libtiff -ltiff -ljpeg -llzma -lz
 
