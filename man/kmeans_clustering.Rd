@@ -9,7 +9,7 @@ kmeans_clustering(
   k = 10,
   max_iter = 100,
   resume = FALSE,
-  tag_col = "k",
+  label_col = "k",
   var_cats = NULL,
   custom_vars = NULL
 )
@@ -21,24 +21,24 @@ kmeans_clustering(
 
 \item{max_iter}{The maximum number of iterations allowed.}
 
-\item{resume}{logical. If \code{TRUE} the algorithm picks up clustering from pre-assigned clusters found in a column with name \code{k} (default), or by the column name passed by the \code{tag_col} argument.}
+\item{resume}{logical. If \code{TRUE} the algorithm picks up clustering from pre-assigned clusters found in a column with name \code{k} (default), or by the column name passed by the \code{label_col} argument.}
 
-\item{tag_col}{optional string specifying the column containing pre-defined clusters used when \code{resume} is set to \code{TRUE}. This overrides the default column \code{k}.}
+\item{label_col}{optional string specifying the column containing pre-defined clusters used when \code{resume} is set to \code{TRUE}. This overrides the default column \code{k}.}
 
 \item{var_cats}{optional character vector specifying whether pre-defined sets of morphological (\code{morpho}) and/or fluorescence (\code{fluor}) variables should be included for clustering. If no value is given and \code{custom_vars} is empty, this defaults to \code{morpho}.}
 
 \item{custom_vars}{optional character vector specifying custom variables to be included for clustering. These are added to any variable sets specified by \code{var_cats}.}
 }
 \value{
-depending on the data type provided in \code{x}, either a cell.data object or a cell.data data.frame with appended columns \code{k} and \code{k.dist}, indicating the assigned cluster and Euclidean distance to the cluster centroid, respectively.
+Depending on the data type provided by \code{x}, either a cell.data object or a cell.data data.frame with appended columns \code{k} and \code{k.dist}, indicating the assigned cluster and Euclidean distance to the cluster centroid, respectively.
 }
 \description{
 Perform k-means clustering on Cell-ID data.
 }
 \details{
-K-means clusters data by assigning rows to different clusters based on their Euclidean distance to the center (centroid) of each cluster. After assigning each row to a cluster, the centroid positions are updated by calculating the mean values of all rows assigned to each cluster. Row assignment and centroid updates are performed iteratively until the algorithm converges, i.e., no rows are re-assigned after centroids have been updated.
+K-means clusters data by assigning each row to the nearest cluster based on its Euclidean distance to the center (centroid) of all clusters. After assigning all rows, centroid positions are updated by calculating the column means of all rows assigned to each cluster. Row assignment and centroid updates are performed iteratively until the algorithm converges, i.e., no rows are re-assigned after centroid positions have been updated.
 
-The number of clusters is defined by \code{k}, and clustering can be either completely unsupervised (\code{k} is a number only setting the desired number of clusters), or semi-supervised (\code{k} is a data.frame of \code{ucid} and \code{t.frame} pairs defining which rows/cells to choose as starting centroids). If unsupervised, starting centroids are chosen randomly from the data. Semi-supervised clustering can also be achieved by providing a column of pre-defined labels assigned to a subset of rows, which will then be used to calculate the positions of the starting centroids.
+The number of clusters is defined by the parameter \code{k}, and clustering can be either completely unsupervised (\code{k} is a number only setting the desired number of clusters), or semi-supervised (\code{k} is a data.frame of \code{ucid} and \code{t.frame} pairs defining which rows/cells to choose as starting centroids). If unsupervised, starting centroids are chosen randomly by sampling \code{k} rows from data. Semi-supervised clustering can also be achieved by indicating a column of pre-defined labels assigned to a subset of rows, which will then be used to calculate the positions of the starting centroids.
 
 Note that this algorithm does not guarantee to find the optimum.
 }

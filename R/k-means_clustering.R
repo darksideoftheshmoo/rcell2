@@ -110,26 +110,26 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
 #'
 #' Perform k-means clustering on Cell-ID data.
 #' 
-#' K-means clusters data by assigning rows to different clusters based on their Euclidean distance to the center (centroid) of each cluster. After assigning each row to a cluster, the centroid positions are updated by calculating the mean values of all rows assigned to each cluster. Row assignment and centroid updates are performed iteratively until the algorithm converges, i.e., no rows are re-assigned after centroids have been updated.
+#' K-means clusters data by assigning each row to the nearest cluster based on its Euclidean distance to the center (centroid) of all clusters. After assigning all rows, centroid positions are updated by calculating the column means of all rows assigned to each cluster. Row assignment and centroid updates are performed iteratively until the algorithm converges, i.e., no rows are re-assigned after centroid positions have been updated.
 #' 
-#' The number of clusters is defined by \code{k}, and clustering can be either completely unsupervised (\code{k} is a number only setting the desired number of clusters), or semi-supervised (\code{k} is a data.frame of \code{ucid} and \code{t.frame} pairs defining which rows/cells to choose as starting centroids). If unsupervised, starting centroids are chosen randomly from the data. Semi-supervised clustering can also be achieved by providing a column of pre-defined labels assigned to a subset of rows, which will then be used to calculate the positions of the starting centroids.
+#' The number of clusters is defined by the parameter \code{k}, and clustering can be either completely unsupervised (\code{k} is a number only setting the desired number of clusters), or semi-supervised (\code{k} is a data.frame of \code{ucid} and \code{t.frame} pairs defining which rows/cells to choose as starting centroids). If unsupervised, starting centroids are chosen randomly by sampling \code{k} rows from data. Semi-supervised clustering can also be achieved by indicating a column of pre-defined labels assigned to a subset of rows, which will then be used to calculate the positions of the starting centroids.
 #' 
 #' Note that this algorithm does not guarantee to find the optimum.
 #'
 #' @param x cell.data object or a cell.data data.frame
 #' @param k either a non-negative integer setting the desired number of clusters, or a data.frame with \code{ucid} and \code{t.frame} pairs specifying the rows in \code{x} to be used as starting centroids.
 #' @param max_iter The maximum number of iterations allowed.
-#' @param resume logical. If \code{TRUE} the algorithm picks up clustering from pre-assigned clusters found in a column with name \code{k} (default), or by the column name passed by the \code{tag_col} argument.
-#' @param tag_col optional string specifying the column containing pre-defined clusters used when \code{resume} is set to \code{TRUE}. This overrides the default column \code{k}.
+#' @param resume logical. If \code{TRUE} the algorithm picks up clustering from pre-assigned clusters found in a column with name \code{k} (default), or by the column name passed by the \code{label_col} argument.
+#' @param label_col optional string specifying the column containing pre-defined clusters used when \code{resume} is set to \code{TRUE}. This overrides the default column \code{k}.
 #' @param var_cats optional character vector specifying whether pre-defined sets of morphological (\code{morpho}) and/or fluorescence (\code{fluor}) variables should be included for clustering. If no value is given and \code{custom_vars} is empty, this defaults to \code{morpho}.
 #' @param custom_vars optional character vector specifying custom variables to be included for clustering. These are added to any variable sets specified by \code{var_cats}.
 #' 
 #' @example 
-#' No example yet
+#' No example yet.
 #' @return Depending on the data type provided by \code{x}, either a cell.data object or a cell.data data.frame with appended columns \code{k} and \code{k.dist}, indicating the assigned cluster and Euclidean distance to the cluster centroid, respectively.
 #' @export
 #'
-kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k', var_cats=NULL,custom_vars=NULL){
+kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = 'k', var_cats=NULL,custom_vars=NULL){
   max_iter <- as.integer(max_iter)
   stopifnot("invalid max_iter value" = is.integer(max_iter) & max_iter>0)
   
@@ -172,12 +172,12 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
   ### Run k-means classification ####
   if(resume){
     ### If clustering takes off from or resumes previous tagging
-    ## Verify that tag_col exists
-    stopifnot("missing tag column" = tag_col%in%names(xdata),
+    ## Verify that label_col exists
+    stopifnot("missing tag column" = label_col%in%names(xdata),
               "expected a numeric value for k for processing pre-clustered data" = !is.data.frame(k))
     
-    ## Extract tag_col
-    tags <- xdata %>% pull(!!tag_col)
+    ## Extract label_col
+    tags <- xdata %>% pull(!!label_col)
     unique_tags <- sort(unique(tags)[!is.na(unique(tags))])
     
     # Ensure numeric, consecutive cluster labels
@@ -188,9 +188,9 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
     na.idx <- is.na(tags)
     
     ## Calculate current cluster centroids
-    k.means <- t(sapply(1:length(unique(k.labs.current)), function(i,x,n) colMeans(x[which(n==i),]), x=cdata[!na.idx,], n=k.labs.current[!na.idx]))
+    k.means <- t(sapply(1:length(k.labs.unique), function(i,x,n) colMeans(x[which(n==i),]), x=cdata[!na.idx,], n=k.labs.current[!na.idx]))
     
-    ## Randomly reassign rows in clusters>k
+    ## Randomly reassign rows if pre-assigned clusters > k
     if(k<length(k.labs.unique)){
       reassigned <- which(k.labs.current>k)
       k.labs.current[reassigned] <- sample(1:k,length(reassigned),replace=TRUE)
@@ -219,10 +219,10 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
       k.sample <- sample(dim(cdata)[1],k)
       k.means <- cdata[k.sample,]
     }
-    
-    ## Set random initial cluster assignments
-    k.labs.current <- sample(1:k,dim(id)[1],replace=TRUE)
   }
+  ## Set random initial cluster assignments
+  ## This does not affect assignments, only prevents later error
+  k.labs.current <- sample(1:k,dim(id)[1],replace=TRUE)
   
   ## Loop over centroid calculation as long as labels continue getting updated
   ## Limit loop to max_iter iterations
@@ -240,7 +240,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
     k.labs.current <- k.labs
     
     ## Print progress
-    cat("\r  Iteration #",i.count," (",max_iter,")",". Updates: ",i.diff," ",sep="")
+    cat("\r  Iteration #",i.count," (",max_iter,")",". Re-assignments: ",i.diff," ",sep="")
     flush.console() 
     
     if(i.diff==0){
