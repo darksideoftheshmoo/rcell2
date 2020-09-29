@@ -108,22 +108,32 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
 
 #' K-means clustering 
 #'
-#' Perform k-means clustering on a Cell-ID data.
+#' Perform k-means clustering on Cell-ID data.
+#' 
+#' K-means clusters data by assigning rows to different clusters based on their Euclidean distance to the center (centroid) of each cluster. After assigning each row to a cluster, the centroid positions are updated by calculating the mean values of all rows assigned to each cluster. Row assignment and centroid updates are performed iteratively until the algorithm converges, i.e., no rows are re-assigned after centroids have been updated.
+#' 
+#' The number of clusters is defined by \code{k}, and clustering can be either completely unsupervised (\code{k} is a number only setting the desired number of clusters), or semi-supervised (\code{k} is a data.frame of \code{ucid} and \code{t.frame} pairs defining which rows/cells to choose as starting centroids). If unsupervised, starting centroids are chosen randomly from the data. Semi-supervised clustering can also be achieved by providing a column of pre-defined labels assigned to a subset of rows, which will then be used to calculate the positions of the starting centroids.
+#' 
+#' Note that this algorithm does not guarantee to find the optimum.
 #'
 #' @param x cell.data object or a cell.data data.frame
-#' @param k either a non-negative integer setting the number of clusters, or a data.frame with \code{ucid} and \code{t.frame} pairs giving the rows to be used as starting centroids.
-#' @param max_iter non-negative integer. The maximum number of iterations allowed.
+#' @param k either a non-negative integer setting the desired number of clusters, or a data.frame with \code{ucid} and \code{t.frame} pairs specifying the rows in \code{x} to be used as starting centroids.
+#' @param max_iter The maximum number of iterations allowed.
 #' @param resume logical. If \code{TRUE} the algorithm picks up clustering from pre-assigned clusters found in a column with name \code{k} (default), or by the column name passed by the \code{tag_col} argument.
-#' @param tag_col optional string for specifying the name of the column containing pre-defined clusters to be used when \code{resume} is set to \code{TRUE}. Defaults to \code{k}.
-#' @param var_cats optional character vector specifying if morphological (\code{morpho}) and/or fluorescence (\code{fluor}) variables should be used for clustering.
-#' @param custom_vars optional character vector specifying custom variables to be included for clustering.
+#' @param tag_col optional string specifying the column containing pre-defined clusters used when \code{resume} is set to \code{TRUE}. This overrides the default column \code{k}.
+#' @param var_cats optional character vector specifying whether pre-defined sets of morphological (\code{morpho}) and/or fluorescence (\code{fluor}) variables should be included for clustering. If no value is given and \code{custom_vars} is empty, this defaults to \code{morpho}.
+#' @param custom_vars optional character vector specifying custom variables to be included for clustering. These are added to any variable sets specified by \code{var_cats}.
 #' 
 #' @example 
-#' 
-#' @return a cell.data object with columns 'k' and 'k.dist' appended to the data.frame, indicating the assigned class and Euclidean distance to the assigned centroid, respectively.
+#' No example yet
+#' @return Depending on the data type provided by \code{x}, either a cell.data object or a cell.data data.frame with appended columns \code{k} and \code{k.dist}, indicating the assigned cluster and Euclidean distance to the cluster centroid, respectively.
 #' @export
 #'
-kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k', var_cats=c("morpho"),custom_vars=NULL){
+kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k', var_cats=NULL,custom_vars=NULL){
+  max_iter <- as.integer(max_iter)
+  stopifnot("invalid max_iter value" = is.integer(max_iter) & max_iter>0)
+  
+  if(is.null(custom_vars) & is.null(var_cats)) var_cats <- "morpho"
   
   ## Get filtered data
   if(is.cell.data(x)){
@@ -175,18 +185,16 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
     k.labs.unique <- unique(k.labs.current[!is.na(k.labs.current)])
     
     ## Assign random cluster value to any missing values (NA)
-    na.idx <- which(is.na(tags))
-    k.labs.sampled <- sample(k.labs.unique,length(k.labs.current),replace=TRUE)
-    k.labs.current[na.idx] <- k.labs.sampled[na.idx]
+    na.idx <- is.na(tags)
+    
+    ## Calculate current cluster centroids
+    k.means <- t(sapply(1:length(unique(k.labs.current)), function(i,x,n) colMeans(x[which(n==i),]), x=cdata[!na.idx,], n=k.labs.current[!na.idx]))
     
     ## Randomly reassign rows in clusters>k
     if(k<length(k.labs.unique)){
       reassigned <- which(k.labs.current>k)
       k.labs.current[reassigned] <- sample(1:k,length(reassigned),replace=TRUE)
     }
-    
-    ## Calculate current cluster centroids
-    k.means <- t(sapply(1:length(unique(k.labs.current)), function(i,x,n) colMeans(x[which(n==i),]), x=cdata, n=k.labs.current))
     
     ## Randomly assign rows as starting centroids for empty clusters
     if(k>length(k.labs.unique)){
@@ -199,7 +207,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
     ### Else, if tagging de novo
     if(is.data.frame(k)){
       ## Extract rows chosen as initial cluster centroids
-      k <- k %>% mutate(k_labs = seq_along(t.frame))
+      k <- k %>% mutate(k_labs = 1)
       centroids.idx <- id %>% mutate(i_row = seq_along(t.frame)) %>%
         left_join(k,by=c("ucid","t.frame")) %>% 
         filter(!is.na(k_labs)) %>% select(ucid,t.frame,i_row)
@@ -242,7 +250,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, tag_col = 'k'
     i.count <- i.count + 1
   }
   if(i.diff>0){
-    cat("\nk-means clustering reached max number of iterations without converging.\nAppending clusters calculated on last iteration.\n")
+    cat("\nk-means clustering reached max number of iterations without converging.\nAppending clusters from last iteration.\n")
   }
   
   ## Sum up data by id, cluster, and distance to cluster centroid
