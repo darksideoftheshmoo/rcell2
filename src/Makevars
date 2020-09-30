@@ -29,6 +29,7 @@ $(SHLIB): tiflibs
 
 # Note that each command is run independently, that's why all must have have a cd prepended.
 tiflibs:
+	mkdir -p tiff410/r_build
 	cd tiff410/r_build && cmake --clean-first ../ && make all -j4 -B && cmake --target clean ../
 
 # The cleanup target must depend on the rest in order to be execured last in a parallel compilation
