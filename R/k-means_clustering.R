@@ -272,3 +272,4 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   }
   return(x)
 }
+                   
