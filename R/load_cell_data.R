@@ -530,6 +530,16 @@ load_cell_data <-
             cat("\nJoining pdata!\n\n")
             pdata <- file.path(path, pdata_file)
             pdata <- readr::read_csv(pdata)
+            
+            if(!"pos" %in% names(pdata)) {
+                error_string <- paste0(
+                    "Error: aborting because position column 'pos' was not found in pdata file", 
+                    " '", normalizePath(paste0(path, "/", pdata_file)), "'. ",
+                    "Manually inspect your pdata file, and check it is correctly formatted as a CSV."
+                )
+                stop(error_string)
+            }
+            
             pos.data <- dplyr::left_join(pos.data, pdata, by ="pos")
         } else if (length(pdata_file > 1)) {
             cat("\n MULTIPLE PDATA FILES IN EXPERIMENT FOLDER! \n\n\n")
