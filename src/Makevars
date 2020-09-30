@@ -27,11 +27,9 @@ all: $(SHLIB) rbuildcleanup
 
 $(SHLIB): tiflibs
 
-# Note that each command is run independently, that's why these are run consecutively with "&&".
+# Note that each command is run independently, that's why all must have have a cd prepended.
 tiflibs:
-	pwd > /tmp/pwd.rbuild
-	ls -lR > /tmp/ls.rbuild
-	mkdir tiff410/r_build
+	mkdir tiff410/r_build  # i do not know why the "r_build" directory that exists in src/ is not copied and must be recreated
 	cd tiff410/r_build && cmake --clean-first ../ && make all -j4 -B && cmake --target clean ../
 
 # The cleanup target must depend on the rest in order to be execured last in a parallel compilation
