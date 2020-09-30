@@ -7,13 +7,12 @@ output: html_document
 
 # Rebuild
 
-```{r build, eval=FALSE, message=FALSE, warning=TRUE}
-
-devtools::document()
-devtools::load_all(recompile = T, reset = T)
-devtools::install(reload = T, build = T,
-                  quiet = T,
-                  upgrade = "never", keep_source = T)
+```{r rebuild, eval=FALSE, message=FALSE, warning=TRUE}
+# devtools::document()
+# devtools::load_all(recompile = T, reset = T)
+# devtools::install(reload = T, build = T,
+#                   quiet = T,
+#                   upgrade = "never", keep_source = T)
 # devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 # devtools::check()
 # devtools::build()
@@ -29,21 +28,21 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(rcell2)
 
-path <- "../data/image_samples/"
-path.pdata <- paste0(path, "pdata.csv")
-parameters <- "../inst/parameters.txt"
-
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
 
-# USAGE
+# Examples
 
 ## Sin tiempo
 
 ```{r}
-# Generate CellID input paths
 path <- "../data/image_samples/"
-path <- "../data/image_samples_x//"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+```
+
+
+```{r}
 cell.args <- cellArgs(#path = path,
                       path = path,
                       parameters = parameters,
@@ -52,238 +51,41 @@ cell.args <- cellArgs(#path = path,
                       O.pattern = ".*(Position\\d+)\\.tif"
                       )
 cellArgs.print(cell.args)  # Para revisar inputs
-
-# cell.args$o
 ```
 
 ```{r}
-# cell(cell.args, pth = path, cell.command = "~/Software/cellID-linux/cell", )
-# debugonce(cell)
-# cell(cell.args = cell.args,
-#      # cell.command = "~/Software/cellID-linux/cell",
-#      cell.command = "cellBUILTIN",
-#      no_cores = 3, dry = T)
-
 cell(cell.args = cell.args,
-     cell.command = "cellBUILTIN",
-     # cell.command = "~/Software/cellID-linux/cell", 
-     no_cores = 3, 
-     label_cells = 1,  # Label cells? 1 is true
-     bf_out_null_bg = 1
+     cell.command = "cellBUILTIN",  # cell.command = "~/Software/cellID-linux/cell", 
+     no_cores = 3, dry = F
      )  
 ```
 
 ## Con series temporales
 
 ```{r}
-# Generate CellID input paths
 path <- "../data/time_series_image_samples/"
 
-cell.args <- cellArgs(#path = path,
-                      path = path,
+cell.args <- cellArgs(path = path,
                       parameters = parameters,
                       BF.pattern = "BF_Position\\d+_time\\d+\\.tif$",
                       FP.pattern = "FP_Position\\d*_time\\d+\\.tif$",
                       O.pattern = ".*(Position\\d+)_time\\d+\\.tif"
                       )
 cellArgs.print(cell.args)  # Para revisar inputs
-
-cell.args$o
 ```
 
 ```{r}
-# cell(cell.args, path = path, cell.command = "~/Software/cellID-linux/cell", )
-# debugonce(cell)
 cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "cellBUILTIN",
-
+     cell.command = "cellBUILTIN",  # cell.command = "~/Software/cellID-linux/cell",
      position.time.pattern = "time\\d+",
-     no_cores = 3, dry = T)
-
-cell(cell.args = cell.args,
-     # cell.command = "~/Software/cellID-linux/cell",
-     cell.command = "~/Software/cellID-linux/cell", 
-     position.time.pattern = "time\\d+",
-
      no_cores = 3, dry = F)
 ```
-
-## Time series arguments
-
-En cada archivo tiene que haber una lista con todos los tiempos para una sola posición.
-
-```
-cell -b /home/nicomic/split/Position01/bf_vcellid.txt -f /home/nicomic/split/Position01/fl_vcellid.txt -o /home/nicomic/split/Position01/out -p /home/nicomic/split/Position01/parameters_vcellid_out.txt
-```
-
-En `bf_vcellid.txt` solo van los BF:
-
-    /home/nicomic/split/BF_Position01_time01.tif
-    /home/nicomic/split/BF_Position01_time02.tif
-    /home/nicomic/split/BF_Position01_time03.tif
-
-En `fl_vcellid.txt` se meten todos los canalas de fluorescencia:
-
-    /home/nicomic/split/YFP_Position01_time01.tif
-    /home/nicomic/split/YFP_Position01_time02.tif
-    /home/nicomic/split/YFP_Position01_time03.tif
-
-El argumento de "out" y de los parámetos no cambia:
-
-`parameters_vcellid_out.txt`
-
-     max_split_over_minor 0.66
-     max_dist_over_waist 8.00
-     max_pixels_per_cell 1500
-     min_pixels_per_cell 75
-     background_reject_factor 1.00
-     tracking_comparison 0.20
-     image_type brightfield
-     bf_fl_mapping list
-    
-
 ## Load cell data
 
 ```{r}
 cell.data.old <- rcell2::cell.load.alt(path =  path)
 cell_data.new <- rcell2::load_cell_data(path = path)
-
-# path_vcellid = "~/Projects/Colman/HD/reentry/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_vcellid/"
-# cell.data.old.vcell <- rcell2::cell.load.alt(path =  path_vcellid)
-# cell_data.new.vcell <- rcell2::load_cell_data(path = path_vcellid)
 ```
-
-
-```{r}
-names(cell.data.old)
-```
-
-```{r}
-names(cell_data.new)
-```
-
-Mismas columnas en `data`:
-
-```{r}
-setdiff((cell.data.old$data %>% names), (cell_data.new$data %>% names))
-```
-
-Inspeccionar filas de VCellID:
-
-```{r}
-# cell_data.new.vcell$data %>% View()
-```
-
-
-Y en `d.map`:
-
-```{r}
-cell.data.old$d.map %>% names
-View(cell.data.old$d.map)
-cell.data.old$d.map %>% select(-fluor, -bright)
-cell.data.old$d.map %>% select(fluor, bright) %>% View()
-```
-
-```{r}
-cell_data.new$images %>% names
-cell_data.new$images %>% View()
-
-cell_data.new$channels %>% names
-cell_data.new$channels %>% View()
-
-cell_data.new$data %>% View()
-
-cell_data.new$images %>% 
-  filter(!is.out) %>% 
-  unite("image", path, image) %>% 
-  dplyr::rename(channel_long = channel) %>% 
-  left_join(
-    cell_data.new$channels %>% 
-      dplyr::rename(channel_long = name, channel = posfix)
-  ) %>% {
-      left_join(
-        filter(., channel_long != "BF") %>% rename(fluor = image),
-        filter(., channel_long == "BF") %>% select(image, pos, t.frame) %>% rename(bright = image)
-      )
-  } %>% 
-  View()
-```
-
-
-```{r}
-cell.data <- cell.load(path = path,
-                       pdata = path.pdata)
-
-glimpse(cell.data)
-
-# git checkout b8a1d7c3a760a4b373422d4ff1905cc193489901 .
-# saveRDS(cell.data, "wapper_test.vcell.RDS")     # vcellid tests
-
-# git checkout a6312b2ba1a4c53ea01ab4818d46099deb766073 .
-# saveRDS(cell.data, "wapper_test.internal.RDS")  # internal cellid wrapper
-
-# git checkout 0f44e6f7fa61c0158c9cd86b2dd738c0f39f60ce .
-# saveRDS(cell.data, "wapper_test.external.RDS")  # external cellid wrapper
-```
-
-## Testing differences
-
-All have used the same parameters.
-
-```{r}
-test <- cell.data$d
-
-vcellstd <- readRDS("wapper_test.vcell.RDS")$d     # vcellid tests
-internal <- readRDS("wapper_test.internal.RDS")$d  # internal cellid wrapper
-external <- readRDS("wapper_test.external.RDS")$d  # external cellid wrapper
-```
-
-
-```{r}
-nrow(test)
-nrow(vcellstd)
-nrow(internal)
-nrow(external)
-```
-
-
-```{r}
-dplyr::all_equal(test, vcellstd)
-
-dplyr::all_equal(internal, external)
-dplyr::all_equal(vcellstd, external)
-dplyr::all_equal(internal, vcellstd)
-```
-
-```{r}
-res <- compare::compareIgnoreOrder(vcellstd[,c("pos","xpos","ypos")], external[,c("pos","xpos","ypos")])
-
-setdiff(vcellstd[,c("pos","xpos","ypos")], external[,c("pos","xpos","ypos")])
-
-
-bind_rows(vcellstd, external, .id = "origin") %>% arrange(pos, xpos, ypos) %>% View()
-
-d <- bind_rows(vcellstd, test, .id = "origin")
-
-d$.duplicated <- bind_rows(vcellstd, test) %>% duplicated()
-
-# d %>% filter(!.duplicated) %>% View()
-
-difference <- function(a) abs(a[1] - a[2])
-
-d %>% group_by(pos, xpos, ypos) %>% summarise(count = n(), 
-                                              origin = paste(origin, collapse = ","),
-                                              ucids =  paste(ucid, collapse = ","),
-                                              ucids_diff = difference(as.numeric(ucid))) %>% View()
-
-d %>% group_by(pos, xpos, ypos) %>% summarise(count = n(), 
-                                              origin = paste(origin, collapse = ","),
-                                              ucids =  paste(ucid, collapse = ","),
-                                              ucids_diff = difference(as.numeric(ucid))) %>%
-  filter(count != 2)
-```
-
 
 # USAGE 2
 

@@ -9,10 +9,12 @@ output: html_document
 
 ```{r build, message=FALSE, warning=TRUE}
 devtools::document()
-devtools::load_all(recompile = F, reset = T, quiet = T)
-devtools::install(reload = T, build = F,
-                  quiet = T,
-                  upgrade = "never", keep_source = T)
+devtools::load_all(recompile = T, reset = T, quiet = F)
+devtools::install(reload = T, 
+                  build = T,
+                  quiet = F,
+                  upgrade = "never",
+                  keep_source = T)
 # devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 # devtools::check()
 # devtools::build()
@@ -25,9 +27,10 @@ devtools::install(reload = T, build = F,
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-library(rcell2)
+# library(rcell2)
 
 path <- "../data/image_samples/"
+path <- "../data/time_series_image_samples//"
 path.pdata <- paste0(path, "pdata.csv")
 parameters <- "../inst/parameters.txt"
 
@@ -37,25 +40,20 @@ difference <- function(lista) abs(lista[1] - lista[2])
 ## Reinstall
 
 ```{r, eval=F}
-devtools::install(reload = T, build = T,
+devtools::install(reload = T,
+                  build = T,
                   quiet = T,
-                  upgrade = "never", keep_source = T)
+                  upgrade = "never",
+                  keep_source = T)
 ```
 
+
+# USAGE
+
+## Load data and plot something
 
 ```{r}
-devtools::load_all(recompile = F, reset = T, quiet = T)
-
-cell.data <- readRDS("../data/cell.data-cellid_multiple_definitions_fix.RDS")
-
-pdata <- read_tsv("../data/cell.data-cellid_multiple_definitions_fix-pdata.csv")
-
-cdata <- left_join(cell.data$d, pdata)
-
-rcell2::shinyCell(cdata = cdata, 
-                  initial_facet = "~ cepa",
-                  pdata = pdata, 
-                  paths = cell.data$d.paths, 
-                  n_max = 5^2, 
-                  boxSize = 100)
+cell_data <- rcell2::load_cell_data(path =  path)
+cell.data <- rcell2::cell.load.alt(path =  path, cellid.zero.pad = 5)
 ```
+
