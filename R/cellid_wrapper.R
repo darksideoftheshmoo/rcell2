@@ -87,9 +87,9 @@ cell.images.out <- function(path,
 #'
 #' @param path directory where images are stored, full path.
 #' @param parameters absolute path to the parameters file.
-#' @param BF.pattern regex pattern to BF images
-#' @param FP.pattern regex pattern to ?FP images
-#' @param O.pattern regex pattern to output directories
+#' @param BF.pattern regex pattern to BF images. Use "BF_Position\\d+_time\\d+\\.tif$" to include time.
+#' @param FP.pattern regex pattern to ?FP images. Use "FP_Position\\d*_time\\d+\\.tif$" to include time.
+#' @param O.pattern regex pattern to output directories. Use ".*(Position\\d+)_time\\d+\\.tif" to include time.
 #' @param out.dir name for output directories paths "out"
 # @param channels Default c("b", "f"), don't change, used to create temporal file lists for BF and ?FP.
 #' @return Nothing.
@@ -541,12 +541,10 @@ cell <- function(cell.args,
         system(command = command, wait = T)
       }
     }
-
-    # return(command)  # foreach return
-    command  # foreach return
-    # print(command)
     
     print("---- Done with this position.")
+    # return(command)  # foreach return
+    command  # foreach return
   }
 
   parallel::stopCluster(cl)

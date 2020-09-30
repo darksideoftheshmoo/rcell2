@@ -18,11 +18,11 @@ cellArgs(
 
 \item{parameters}{absolute path to the parameters file.}
 
-\item{BF.pattern}{regex pattern to BF images}
+\item{BF.pattern}{regex pattern to BF images. Use "BF_Position\\d+_time\\d+\\.tif$" to include time.}
 
-\item{FP.pattern}{regex pattern to ?FP images}
+\item{FP.pattern}{regex pattern to ?FP images. Use "FP_Position\\d*_time\\d+\\.tif$" to include time.}
 
-\item{O.pattern}{regex pattern to output directories}
+\item{O.pattern}{regex pattern to output directories. Use ".*(Position\\d+)_time\\d+\\.tif" to include time.}
 
 \item{out.dir}{name for output directories paths "out"}
 }
