@@ -531,7 +531,7 @@ load_cell_data <-
             pdata <- file.path(path, pdata_file)
             pdata <- readr::read_csv(pdata)
             pos.data <- dplyr::left_join(pos.data, pdata, by ="pos")
-        } else if (length(pdata_path > 1)) {
+        } else if (length(pdata_file > 1)) {
             cat("\n MULTIPLE PDATA FILES IN EXPERIMENT FOLDER! \n\n\n")
         }
 
