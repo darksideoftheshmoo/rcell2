@@ -3,7 +3,8 @@ CXX=ccache clang++ -Qunused-arguments
 CCACHE_CPP2=yes
 
 # Include de archivos ".h"
-PKG_CPPFLAGS= -I./tiff410/libtiff  # apparently unnecesary
+# apparently unnecesary
+PKG_CPPFLAGS= -I./tiff410/libtiff
 # Links a archivos ".so" (las libraries)
 PKG_LIBS= -L./tiff410/r_build/libtiff -ltiff -ljpeg -llzma -lz
 
@@ -26,12 +27,13 @@ all: $(SHLIB) rbuildcleanup
 
 $(SHLIB): tiflibs
 
-# Note that each command is run independently, that's why there is a "cd" in each one.
+# Note that each command is run independently, that's why these are run consecutively with "&&".
 tiflibs:
-	cd tiff410/r_build && cmake --clean-first ../
-	cd tiff410/r_build && make all -j4 -B
-	cd tiff410/r_build && cmake --target clean ../
+	pwd > /tmp/pwd.rbuild
+	ls -lR > /tmp/ls.rbuild
+	mkdir tiff410/r_build
+	cd tiff410/r_build && cmake --clean-first ../ && make all -j4 -B && cmake --target clean ../
 
 # The cleanup target must depend on the rest in order to be execured last in a parallel compilation
-rbuildcleanup: $(SHLIB)
+rbuildcleanup: tiflibs $(SHLIB)
 	rm -rf tiff410/r_build/*
