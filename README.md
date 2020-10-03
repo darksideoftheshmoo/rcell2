@@ -2,7 +2,7 @@
 
 Functions to analyze Cell-ID single-cell cytometry data in a tidy and shiny framework.
 
-It also magically builds and wraps the original CellID program into the package!
+A CellID wrapper is also on the works. Checkout the `cellid_master` branch.
 
 # Installation
 
@@ -23,23 +23,16 @@ BiocManager::install("EBImage")
 
 Also install `imagemagick` on your system; this is required by R's `magick` package. All the major operating systems are supported by ImageMagick: https://imagemagick.org/script/download.php
 
-The `cmake` compiler is also required.
-
 For Ubuntu, Arch and Brew (macOS) these commands may come in handy:
 
 ```
 # Aptitude
-sudo apt install cmake imagemagick
+sudo apt install imagemagick
 
 # Pacman
-sudo pacman -S cmake imagemagick
-
-# macOS Brew
-# https://stackoverflow.com/a/33628202/11524079
-brew install cmake
+sudo pacman -S imagemagick
 
 # macOS .dmg
-# https://cmake.org/download/
 # https://imagemagick.org/script/download.php
 ```
 
@@ -52,16 +45,28 @@ devtools::install_github("darksideoftheshmoo/rcell2")
 
 ```
 
-# Cell-ID & new R-Shiny tools for cytometry data
-
-This package also bundles the CellID image segmentation and analysis program, for microscopy of yeast cells. Utility functions are provided to generate single-cell data from microscopy images and import it directly into R. Optionally, you may specify a path to a Cell-ID binary already installed on your system.
+# New R-Shiny tools for cytometry data
 
 An R-Shiny app will help users filter data graphically, with live image previews.
 While the image part may be tailored for data from fluorescence microscopy experiments, the graphical filter in this app is general purpose (i.e. useful in standard cell cytometry).
 
 There is also another small app to "tag" single cells in the dataset with user defined options.
 
-## Todo
+See:
+
+  * `?rcell2::rcell2::shinyCell()`
+  * `?rcell2::rcell2::tagCell()`
+  * `?rcell2::rcell2::plotApp()`
+
+# New kmeans filtering functions
+
+The kmeans algotrithm helps filter cells based on clustering of CellID's variables computed from morphological and fluorescence information.
+
+Use k-means and check out images of cells in each cluster. Then, filter them easily by cluster number.
+
+See: `?rcell2::kmeans_clustering`
+
+# Todo
 
 * Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage).
 * Generic shiny function for filtering points in a custom ggplot (done!).
