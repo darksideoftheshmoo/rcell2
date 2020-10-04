@@ -1,3 +1,51 @@
+#' Extract info from an ImageJ-style `TIFFTAG_DESCRIPTION`.
+#'
+#' @inheritParams prep_read
+#'
+#' @return A named list with elements `n_imgs`, `n_slices`, `ij_n_ch`, `n_ch`.
+#'
+#' @noRd
+translate_ij_description <- function(tags1) {
+  n_imgs <- NA_integer_
+  n_slices <- NA_integer_
+  ij_n_ch <- FALSE
+  n_ch <- tags1$samples_per_pixel %||% 1
+  if ("description" %in% names(tags1) &&
+      startsWith(tags1$description, "ImageJ")) {
+    ij_description <- tags1$description
+    if (stringr::str_detect(ij_description, "channels=")) {
+      n_ch <- filesstrings::first_number_after_first(
+        ij_description,
+        "channels="
+      )
+      ij_n_ch <- TRUE
+    }
+    n_imgs <- filesstrings::first_number_after_first(ij_description, "images=")
+    n_slices <- calculate_n_slices(ij_description)
+    if ((!is.na(n_slices) && !is.na(n_imgs)) &&
+        ij_n_ch &&
+        n_imgs != n_ch * n_slices) {
+      custom_stop(
+        "
+        The ImageJ-written image you're trying to read says in its
+        TIFFTAG_DESCRIPTION that it has {n_imgs} images of
+        {n_slices} slices of {n_ch} channels. However, with {n_slices}
+        slices of {n_ch} channels, one would expect there to be
+        {n_slices} x {n_ch} = {n_ch * n_slices} images.
+        ", "
+        This discrepancy means that the `ijtiff` package can't read your
+        image correctly.
+        ", "
+        One possible source of this kind of error is that your image
+        is temporal and volumetric. `ijtiff` can handle either
+        time-based or volumetric stacks, but not both."
+      )
+    }
+  }
+  list(n_imgs = n_imgs, n_slices = n_slices, ij_n_ch = ij_n_ch, n_ch = n_ch)
+}
+
+
 #' Check that the `frames` argument has been passed correctly.
 #'
 #' @param frames An integerish vector. The requested frames.
