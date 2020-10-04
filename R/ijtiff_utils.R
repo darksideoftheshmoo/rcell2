@@ -25,7 +25,7 @@ translate_ij_description <- function(tags1) {
     if ((!is.na(n_slices) && !is.na(n_imgs)) &&
         ij_n_ch &&
         n_imgs != n_ch * n_slices) {
-      custom_stop(
+      stop(
         "
         The ImageJ-written image you're trying to read says in its
         TIFFTAG_DESCRIPTION that it has {n_imgs} images of
