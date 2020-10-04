@@ -9,7 +9,8 @@ translate_ij_description <- function(tags1) {
   n_imgs <- NA_integer_
   n_slices <- NA_integer_
   ij_n_ch <- FALSE
-  n_ch <- tags1$samples_per_pixel %||% 1
+  # n_ch <- tags1$samples_per_pixel %||% 1
+  n_ch <- if(is.null(tags1$samples_per_pixel)) {tags1$samples_per_pixel} else {1}
   if ("description" %in% names(tags1) &&
       startsWith(tags1$description, "ImageJ")) {
     ij_description <- tags1$description

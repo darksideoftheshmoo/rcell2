@@ -60,12 +60,9 @@ Imports:
     shinyjs,
     rlang,
     checkmate (>= 1.9.3), 
-    cli, 
     filesstrings (>= 3.1.5), 
     fs (>= 1.3.1), 
-    graphics, 
     magrittr (>= 1.5), 
-    methods, 
     withr (>= 2.1.0)
 Suggests: 
     tidyverse,
