@@ -150,8 +150,8 @@ tif_read <- function(path, frames = "all", list_safety = "error", msg = TRUE) {
 #' )
 #' @export
 read_tags <- function(path, frames = 1, list_safety = "error", msg = TRUE) {
-  frames %<>% prep_frames()
-  path %<>% prep_path()
+  frames <- prep_frames(frames)
+  path <- prep_path(path)
   withr::local_dir(attr(path, "path_dir"))
   if (isTRUE(all.equal(frames, 1,
     check.attributes = FALSE, check.names = FALSE
@@ -162,8 +162,7 @@ read_tags <- function(path, frames = 1, list_safety = "error", msg = TRUE) {
   }
   tags1 <- read_tags(path, frames = 1)[[1]]
   prep <- prep_read(path, frames, tags1, tags = TRUE)
-  out <- .Call("read_tags_C", path, prep$frames, PACKAGE = "rcell2") %>%
-    .[prep$back_map]
+  out <- .Call("read_tags_C", path, prep$frames, PACKAGE = "rcell2")[prep$back_map]
   frame_nums <- prep$frames[prep$back_map]
   if (!is.na(prep$n_slices) && prep$n_dirs != prep$n_slices) {
     frame_nums <- ceiling(frame_nums / prep$n_ch)

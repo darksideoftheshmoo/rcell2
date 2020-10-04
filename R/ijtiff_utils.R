@@ -496,12 +496,12 @@ translate_ij_description <- function(tags1) {
 #'
 #' @noRd
 prep_read <- function(path, frames, tags1, tags = FALSE) {
-  frames %<>% prep_frames()
+  frames <- prep_framesframes
   frames_max <- max(frames)
   c(n_imgs, n_slices, ij_n_ch, n_ch) %<-% translate_ij_description(
     tags1
   )[c("n_imgs", "n_slices", "ij_n_ch", "n_ch")]
-  path %<>% prep_path()
+  path <- prep_path(path)
   withr::local_dir(attr(path, "path_dir"))
   n_dirs <- .Call("count_directories_C", path, PACKAGE = "ijtiff")
   if (!is.na(n_slices)) {
