@@ -66,8 +66,7 @@ Imports:
     graphics, 
     magrittr (>= 1.5), 
     methods, 
-    withr (>= 2.1.0), 
-    zeallot
+    withr (>= 2.1.0)
 Suggests: 
     tidyverse,
     skimr

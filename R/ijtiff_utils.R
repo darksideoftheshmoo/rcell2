@@ -100,9 +100,16 @@ prep_frames <- function(frames) {
 prep_read <- function(path, frames, tags1, tags = FALSE) {
   frames <- prep_framesframes
   frames_max <- max(frames)
-  c(n_imgs, n_slices, ij_n_ch, n_ch) %<-% translate_ij_description(
-    tags1
-  )[c("n_imgs", "n_slices", "ij_n_ch", "n_ch")]
+  
+  # c(n_imgs, n_slices, ij_n_ch, n_ch) %<-% translate_ij_description(
+  #   tags1
+  # )[c("n_imgs", "n_slices", "ij_n_ch", "n_ch")]
+  translated_ij_description <- translate_ij_description(tags1)
+  n_imgs <- translated_ij_description["n_imgs"]
+  n_slices <- translated_ij_description["n_slices"]
+  ij_n_ch <- translated_ij_description["ij_n_ch"]
+  n_ch <- translated_ij_description["n_ch"]
+  
   path <- prep_path(path)
   withr::local_dir(attr(path, "path_dir"))
   n_dirs <- .Call("count_directories_C", path, PACKAGE = "ijtiff")
