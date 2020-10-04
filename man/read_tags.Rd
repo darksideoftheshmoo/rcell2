@@ -2,12 +2,9 @@
 % Please edit documentation in R/ijtiff_read.R
 \name{read_tags}
 \alias{read_tags}
-\alias{tags_read}
 \title{Read TIFF tag information without actually reading the image array.}
 \usage{
 read_tags(path, frames = 1, list_safety = "error", msg = TRUE)
-
-tags_read(path, frames = 1)
 }
 \arguments{
 \item{path}{A string. The path to the tiff file to read.}
@@ -31,10 +28,8 @@ TIFF files contain metadata about images in their _TIFF tags_. This function
 is for reading this information without reading the actual image.
 }
 \examples{
-read_tags(system.file("img", "Rlogo.tif", package = "ijtiff"))
-read_tags(system.file("img", "Rlogo-banana.tif", package = "ijtiff"),
-  frames = c(2, 4)
-)
+rcell2::read_tags(path = "data/image_samples/BF_Position001.tif", frames = 1)
+
 }
 \seealso{
 [read_tif()]
