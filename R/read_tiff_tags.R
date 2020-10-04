@@ -43,22 +43,20 @@ read_description <- function(x){
 
 #' Read TIFF tag information.
 #'
-#' TIFF files contain metadata about images in their _TIFF tags_. This function
+#' TIFF files contain metadata about images in their \emph{TIFF tags}. This function
 #' is for reading this information without reading the actual image. It extends
 #' on the \code{read_tags} function from the \code{ijtiff} package, and extracts
-#' additional information nested within the _description_ attribute of some TIFF
+#' additional information nested within the \code{description} attribute of some TIFF
 #' images.
 #'
 #' @param path A string. The path to the tiff file to read.
 #' @param frames Which frames do you want to read tags from. Default first frame
 #'   only. To read from the 2nd and 7th frames, use `frames = c(2, 7)`, to read
 #'   from all frames, use `frames = "all"`.
-#'
+#'r
 #' @importFrom ijtiff read_tags
 #'
 #' @return A list of lists.
-#'
-#' @author Andreas Constantinou.
 #'
 #' @examples
 #' rcell2::read_tiff_tags(path = "data/image_samples/BF_Position001.tif", frames = 1)
