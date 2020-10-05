@@ -53,7 +53,7 @@ read_description <- function(x){
 #' @param frames Which frames do you want to read tags from. Default first frame
 #'   only. To read from the 2nd and 7th frames, use `frames = c(2, 7)`, to read
 #'   from all frames, use `frames = "all"`.
-#'r
+#'
 #' @importFrom ijtiff read_tags
 #'
 #' @return A list of lists.
