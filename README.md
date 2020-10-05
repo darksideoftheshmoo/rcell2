@@ -4,12 +4,6 @@ Functions to analyze Cell-ID single-cell cytometry data in a tidy and shiny fram
 
 A CellID wrapper is also on the works. Checkout the `cellid_master` branch.
 
-# Branch notes
-
-This branch includes the `ijtiff::read_tags` function.
-
-Install with: `devtools::install_github("darksideoftheshmoo/rcell2", ref = "read_tiff_tags")`
-
 # Installation
 
 ## Dependencies
