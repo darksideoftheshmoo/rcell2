@@ -57,7 +57,8 @@ Imports:
     purrr,
     readr,
     shinyjs,
-    rlang
+    rlang,
+    ijtiff
 Suggests: 
     tidyverse,
     skimr
