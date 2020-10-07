@@ -13,8 +13,8 @@ shinyAppUI <- function(){
                      " (leave blank for all)."
              )),
              # selectInput('ch','Channel:', sort(unique(paths$channel)), "BF.out"),
-             selectInput('x','X variable', names(cdata)[!names(cdata) %in% names(pdata)],"a.tot"),  # Exclude pdata variables for plotting. Note: pos may be useful!
-             selectInput('y','Y variable', names(cdata)[!names(cdata) %in% names(pdata)],"el.p"),
+             selectInput('x','X variable', names(cdata)[!names(cdata) %in% names(pdata)],initial_vars[1]),  # Exclude pdata variables for plotting. Note: pos may be useful!
+             selectInput('y','Y variable', names(cdata)[!names(cdata) %in% names(pdata)],initial_vars[2]),
              hr(),
 
              p(

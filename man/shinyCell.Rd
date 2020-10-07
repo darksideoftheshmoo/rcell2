@@ -10,9 +10,10 @@ shinyCell(
   paths,
   filters = list(),
   filters.init_selected = T,
-  plotType = "Hex",
+  plotType = "Dots",
   seed = 1,
   initial_facet = "",
+  initial_vars = NULL,
   facet_grid_option = TRUE,
   facets_scale_free = NULL,
   n_max = 100,
@@ -34,6 +35,8 @@ shinyCell(
 \item{seed}{Seed value for sampling of cell images.}
 
 \item{initial_facet}{Initial facet formula as a string.}
+
+\item{initial_vars}{Initial cdata variables as a string vector (default NULL, for 'a.tot' and 'fft.stat').}
 
 \item{facet_grid_option}{Use facet_grid (TRUE, default) or facet_wrap.}
 

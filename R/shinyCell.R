@@ -16,6 +16,7 @@
 #' @param plotType "Hex", "Density", and "Dots" are available.
 #' @param seed Seed value for sampling of cell images.
 #' @param initial_facet Initial facet formula as a string.
+#' @param initial_vars Initial cdata variables as a string vector (default NULL, for 'a.tot' and 'fft.stat').
 #' @param facet_grid_option Use facet_grid (TRUE, default) or facet_wrap.
 #' @param facets_scale_free Use facets with fixed scales (NULL, default) or free scales ("free").
 #' @param boxSize Size in pixels for individual cells' images.
@@ -44,15 +45,24 @@ shinyCell <- function(cdata,
                       pdata,
                       paths,
                       filters = list(), filters.init_selected = T,
-                      plotType = "Hex",
+                      plotType = "Dots",
                       seed = 1,
-                      initial_facet = "",
+                      initial_facet = "", initial_vars = NULL,
                       facet_grid_option = TRUE, facets_scale_free = NULL,
                       n_max = 100, boxSize = 50,
                       ...){
     
     if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
 
+    if(!is.null(initial_vars)) {
+        if(!all(initial_vars %in% names(cdata))) stop("Error: cdata does not contain some of the initial_vars")
+        if(!is.character(initial_vars)) stop("Error: initial_vars is not a character vector")
+        if(length(initial_vars) != 2) stop("Error: initial_vars must be of length 2 (for the horizontal and vertical axes).")
+    } else {
+        initial_vars = c("a.tot",
+                         "fft.stat")
+    }
+    
     # To-do
     # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
     # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
