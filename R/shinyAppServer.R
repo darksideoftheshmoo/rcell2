@@ -18,6 +18,8 @@ shinyAppServer <-
       if(!{cdata$t.frame %>% unique() %>% length()} == 1){
         cdata <- mutate(cdata, ucid_time = paste0(ucid, "_", t.frame))
         cdata.cell_unique_id_field <- "ucid_time"
+      } else {
+        cdata.cell_unique_id_field <- "ucid"
       }
       values$cdata <- cdata
       
