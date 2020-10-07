@@ -34,6 +34,15 @@ magickCell <- function(cdata, paths,
   # "100x100" pixels
   if(is.null(cell_resize)) cell_resize <- boxSize
   cell_resize_string <- paste0(cell_resize, "x", cell_resize)
+  
+  # Filter paths by pos and t.frame on cdata
+  paths <- filter(paths, pos %in% cdata[,"pos", drop = T] & t.frame %in% cdata[,"t.frame", drop = T])
+  
+  # Add file path column if absent
+  if(!"file" %in% names(paths)){
+    paths$file <- normalizePath(paste0(paths$path, "/", paths$image))
+    warning("\nWarning (magickCell): 'file' variable absent in paths dataframe. Recreating it from 'path' and 'image' variables.\n")
+  }
 
   # Intento con magick
   # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
