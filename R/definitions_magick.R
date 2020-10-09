@@ -1,3 +1,33 @@
+#' Armar mosaicos cuadrados a partir de un vector de imagenes en magick de cualquier longitud
+#' @param images A magick image vector, with images of the same size preferably.
+#' @return A single magick image of the squared tile.
+# @examples
+# square_tile(images)
+#' @import magick dplyr
+#' @rawNamespace import(foreach, except = c("when", "accumulate"))
+#' @export
+square_tile <- function(images){
+  nRow <- ceiling(sqrt(length(images)))
+  nCol <- ceiling(length(images)/nRow)
+  
+  image.tile <- foreach::foreach(tile_row=0:(nRow-1), .combine=c) %do% {
+    
+    row_images_index = (1 + tile_row * nCol):(tile_row * nCol + nCol)
+    
+    # Important for the last row
+    if(nRow * nCol > length(images)){
+      row_images_index <- row_images_index[row_images_index <= length(images)]
+    }
+    
+    magick::image_append(images[row_images_index])
+  }
+  
+  image.tile <- magick::image_append(image.tile, 
+                                     stack = T)
+  
+  return(image.tile)
+}
+
 #' Funcion copada para mostrar fotos basada en magick
 #'
 #' @param cdata A Rcell data.frame (not the object).
