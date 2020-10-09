@@ -65,8 +65,8 @@ p
 ## Shiny plotApp test
 
 ```{r}
-devtools::document()
-devtools::load_all(recompile = F, reset = T, quiet = T)
+# devtools::document()
+# devtools::load_all(recompile = F, reset = T, quiet = T)
 
 datos <- readRDS("../data/datos.con.todo.RDS")
 
@@ -108,7 +108,10 @@ saved <- rcell2::tagCell(cell.data$d, pdata, paths,
                          # t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
                          # tag_channels_select = NULL,  # c("BF.out", "BF", "YFP", ...)
                          tag_box_size = 75,
-                         tag_ggplot = p)
+                         tag_ggplot = p, 
+                         annotation_params = c(color = "none", 
+                                               background = "none")
+                         )
 
 
 saved

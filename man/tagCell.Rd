@@ -50,6 +50,8 @@ tagCell(
 \item{.normalize}{Use magick's function to "normalize" the images.}
 
 \item{debug_messages}{print debug messages}
+
+\item{...}{arguments for magickCell}
 }
 \value{
 Lots of stuff.
@@ -97,6 +99,8 @@ saved <- rcell2::tagCell(cdata,
                          cell_resize = 300,
                          tag_ggplot = p,
                          tmp_output_file = "../output/annotations/progress.csv", 
-                         debug_messages = F)
+                         debug_messages = F,
+                         annotation_params = c(color = "none", background = "none")
+                         )
                          
 }

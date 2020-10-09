@@ -10,9 +10,8 @@ read_tiff_tags(path, frames = 1)
 \item{path}{A string. The path to the tiff file to read.}
 
 \item{frames}{Which frames do you want to read tags from. Default first frame
-  only. To read from the 2nd and 7th frames, use `frames = c(2, 7)`, to read
-  from all frames, use `frames = "all"`.
-r}
+only. To read from the 2nd and 7th frames, use `frames = c(2, 7)`, to read
+from all frames, use `frames = "all"`.}
 }
 \value{
 A list of lists.

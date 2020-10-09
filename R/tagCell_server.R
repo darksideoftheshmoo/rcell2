@@ -468,7 +468,7 @@ tagCellServer <- function(input, output, session) {
                                  .equalize = .equalize,
                                  .normalize = .normalize,
                                  boxSize = tag_box_size, 
-                                 return_single_imgs = T)
+                                 return_single_imgs = T, ...)
       tmpimage <- magick.cell$img
       if(debug_messages) print(paste("--", magick.cell$ucids))
     } else {

@@ -23,6 +23,7 @@
 #' @param tmp_output_file file path into which tagging information will be dumped by user request
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 #' @param debug_messages print debug messages
+#' @param ... arguments for magickCell 
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 #' @examples
@@ -65,7 +66,9 @@
 #'                          cell_resize = 300,
 #'                          tag_ggplot = p,
 #'                          tmp_output_file = "../output/annotations/progress.csv", 
-#'                          debug_messages = F)
+#'                          debug_messages = F,
+#'                          annotation_params = c(color = "none", background = "none")
+#'                          )
 #'                          
 #' @import shiny ggplot2 magick
 #' @importFrom grDevices rgb

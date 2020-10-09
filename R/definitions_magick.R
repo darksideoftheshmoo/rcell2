@@ -13,6 +13,7 @@
 #' @param seed Seed value for sampling of cell images.
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
+#' @param  annotation_params a named character vector for magick::annotate options (with one or more of the names "color" "background" "size")
 #' @return Lots of stuff.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -28,7 +29,12 @@ magickCell <- function(cdata, paths,
                        .normalize = T,
                        ch = "BF.out",
                        sortVar = "xpos",
-                       seed = 1, .debug=FALSE, return_single_imgs = FALSE){
+                       seed = 1, 
+                       .debug=FALSE, 
+                       return_single_imgs = FALSE,
+                       annotation_params = c(color = "white", 
+                                             background = "black")
+                       ){
   if(.debug) print("F8")
 
   # "100x100" pixels
@@ -43,6 +49,18 @@ magickCell <- function(cdata, paths,
     paths$file <- normalizePath(paste0(paths$path, "/", paths$image))
     warning("\nWarning (magickCell): 'file' variable absent in paths dataframe. Recreating it from 'path' and 'image' variables.\n")
   }
+  
+  # Annotation parameters
+  updateList <- function(l1, l2){
+    common.names <- names(l2)[names(l2) %in% names(l1)]
+    l1[common.names] <- l2[common.names]
+    return(l1)
+  }
+  annotation_params_default = c(color = "white",
+                                background = "black",
+                                size = as.numeric(stringr::str_split(cell_resize_string, "x")[[1]])[1]/7)
+  annotation_params <- updateList(annotation_params_default, annotation_params)
+  
 
   # Intento con magick
   # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -98,16 +116,15 @@ magickCell <- function(cdata, paths,
       magick::image_annotate(text = paste(paste0("Pos", as.character(position)),
                                           paste0("t", t_frame),
                                           ch),
-                             size = as.numeric(stringr::str_split(cell_resize_string, "x")[[1]])[1]/7,
-                             color = "white",
-                             boxcolor = "black",
+                             color = annotation_params["color"],
+                             boxcolor = annotation_params["background"],
+                             size = annotation_params["size"],
                              font = "Comic sans",
                              gravity = "SouthEast") %>%
       magick::image_annotate(text = as.character(ucid),
-                             # text = paste0(as.character(ucid), "t", t_frame),
-                             size = as.numeric(stringr::str_split(cell_resize_string, "x")[[1]])[1]/7,
-                             color = "white",
-                             boxcolor = "black",
+                             color = annotation_params["color"],
+                             boxcolor = annotation_params["background"],
+                             size = annotation_params["size"],
                              font = "Comic sans",
                              gravity = "NorthWest") %>%
       magick::image_border("black","1x1") %>% 

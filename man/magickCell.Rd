@@ -17,7 +17,8 @@ magickCell(
   sortVar = "xpos",
   seed = 1,
   .debug = FALSE,
-  return_single_imgs = FALSE
+  return_single_imgs = FALSE,
+  annotation_params = c(color = "white", background = "black")
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ magickCell(
 \item{.debug}{Print more messages if TRUE.}
 
 \item{return_single_imgs}{If TRUE, return a vector of images instead of a tile.}
+
+\item{annotation_params}{a named character vector for magick::annotate options (with one or more of the names "color" "background" "size")}
 }
 \value{
 Lots of stuff.
