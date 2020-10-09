@@ -24,7 +24,7 @@ magickCell(
 \arguments{
 \item{cdata}{A Rcell data.frame (not the object).}
 
-\item{paths}{Paths a la imagen de cada posición.}
+\item{paths}{A paths dataframe with file path, t.frame, position and channel information of each picture.}
 
 \item{max_composite_size}{Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.}
 
@@ -51,8 +51,21 @@ magickCell(
 \item{annotation_params}{a named character vector for magick::annotate options (with one or more of the names "color" "background" "size")}
 }
 \value{
-Lots of stuff.
+A list of two elements: the magick image and the ucids in the image.
 }
 \description{
 Funcion copada para mostrar fotos basada en magick
+}
+\details{
+Paths dataframe structure. Output example from \code{glimpse(paths)}:
+
+\preformatted{Columns: 6
+$ pos     <int> 1
+$ t.frame <int> 0
+$ channel <chr> "YFP"
+$ image   <chr> "picture_filename.tif"
+$ path    <chr> "/path/to/directory/with/pictures/"
+$ file    <chr> "/path/to/directory/with/pictures/picture_filename.tif"
+$ is.out  <lgl> FALSE
+}
 }

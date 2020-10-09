@@ -29,9 +29,21 @@ square_tile <- function(images){
 }
 
 #' Funcion copada para mostrar fotos basada en magick
+#' @details
+#' Paths dataframe structure. Output example from \code{glimpse(paths)}:
+#' 
+#' \preformatted{Columns: 6
+#' $ pos     <int> 1
+#' $ t.frame <int> 0
+#' $ channel <chr> "YFP"
+#' $ image   <chr> "picture_filename.tif"
+#' $ path    <chr> "/path/to/directory/with/pictures/"
+#' $ file    <chr> "/path/to/directory/with/pictures/picture_filename.tif"
+#' $ is.out  <lgl> FALSE
+#' }
 #'
 #' @param cdata A Rcell data.frame (not the object).
-#' @param paths Paths a la imagen de cada posición.
+#' @param paths A paths dataframe with file path, t.frame, position and channel information of each picture.
 #' @param max_composite_size Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.
 #' @param cell_resize Size of the individual cell images. "100x100" by default.
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
@@ -44,7 +56,7 @@ square_tile <- function(images){
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
 #' @param  annotation_params a named character vector for magick::annotate options (with one or more of the names "color" "background" "size")
-#' @return Lots of stuff.
+#' @return A list of two elements: the magick image and the ucids in the image.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
 #' @import magick dplyr
