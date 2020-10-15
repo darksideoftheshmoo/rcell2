@@ -95,6 +95,18 @@ tagCell <- function(cdata,
   # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
   # Integrate polygon filter functionality, currently the drawn polygons do nothing (except show up).
   
+  ucid_numeric_check <- is.numeric(cdata[["ucid"]])
+  ucid_factor_check <- is.factor(cdata[["ucid"]])
+  if(isFALSE(ucid_numeric_check)){
+    if(isTRUE(ucid_factor_check)){
+      warning("\ntagCell: cohercing factor ucid to integer type")
+      cdata <- mutate(cdata, ucid = as.integer(as.character.factor(ucid)))
+    } else {
+      warning("\ntagCell: cohercing ucid to integer type")
+      cdata <- mutate(cdata, ucid = as.integer(ucid))
+    }
+  }
+  
   environment(tagCellServer) <- environment()
   environment(tagCellUi) <- environment()
   
