@@ -25,6 +25,7 @@ square_tile <- function(images){
   image.tile <- magick::image_append(image.tile, 
                                      stack = T)
   
+  if(length(images) > 50) warning("square_tile says: you have more than 50 images in the input array ¿Are you sure that this is ok?")
   return(image.tile)
 }
 
