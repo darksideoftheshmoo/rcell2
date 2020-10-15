@@ -65,7 +65,7 @@ cell(cell.args = cell.args,
 ### Generate CellID input paths
 
 ```{r}
-path <- "../data/time_series_image_samples/"
+path <- "../data/time_series_image_samples_2/"
 parameters <- "../inst/parameters.txt"
 
 cell.args <- rcell2::cellArgs(path = path,
@@ -82,8 +82,8 @@ rcell2::cellArgs.print(cell.args)  # Para revisar inputs
 
 ```{r, eval = F}
 rcell2::cell(cell.args = cell.args,
-             cell.command = "cellBUILTIN",
-             # cell.command = "~/Software/cellID-linux/cell",
+             # cell.command = "cellBUILTIN",
+             cell.command = "~/Software/cellID-linux/cell",
              position.time.pattern = "time\\d+",
              no_cores = 3, dry = F)
 ```
