@@ -77,12 +77,6 @@ tagCellServer <- function(input, output, session) {
       return(from_array[index])
     }
     
-    # .variables <- list(x = isolate(input$vertex1$x),
-    #                    y = isolate(input$vertex1$y),
-    #                    xvar = quo_name(tag_ggplot$layers[[1]]$mapping$x),
-    #                    yvar = quo_name(tag_ggplot$layers[[1]]$mapping$y))
-    # 
-    # reactive_values$click_vars <- .variables
     if(debug_messages) print(paste("-- Clicked point:", input$plot_click$x))
     
     ith_cell <- reactive_values$ith_cell                                        # Get the current reactive cell number

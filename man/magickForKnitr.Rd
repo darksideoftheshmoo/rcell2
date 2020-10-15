@@ -4,12 +4,14 @@
 \alias{magickForKnitr}
 \title{Display an image in rmarkdown with knitr}
 \usage{
-magickForKnitr(imgs, .resize = "200x200")
+magickForKnitr(imgs, .resize = "200x200", .path = tempdir())
 }
 \arguments{
-\item{imgs}{a cellmagick image}
+\item{imgs}{a magick image or cellMagick output}
 
-\item{.resize}{a cellmagick image resize string (default "200x200").}
+\item{.resize}{a cellMagick image resize string (default "200x200").}
+
+\item{.path}{Directory where the output should be saved.}
 }
 \value{
 An path to a temporary image file.

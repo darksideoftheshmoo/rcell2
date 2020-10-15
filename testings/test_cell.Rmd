@@ -39,8 +39,7 @@ difference <- function(lista) abs(lista[1] - lista[2])
 ```{r}
 path <- "../data/image_samples/"
 path <- "../data/image_samples_x/"
-cell.args <- cellArgs(#path = path,
-                      path = path,
+cell.args <- cellArgs(path = path,
                       parameters = parameters,
                       BF.pattern = "BF_Position\\d+\\.tif$",
                       FP.pattern = "FP_Position\\d*\\.tif$",

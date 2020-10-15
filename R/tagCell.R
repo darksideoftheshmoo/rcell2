@@ -87,7 +87,7 @@ tagCell <- function(cdata,
                     tag_ggplot = NULL,
                     .equalize = F,
                     .normalize = T,
-                    debug_messages = T,
+                    debug_messages = F,
                     ...){
   
   # To-do
@@ -95,28 +95,28 @@ tagCell <- function(cdata,
   # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
   # Integrate polygon filter functionality, currently the drawn polygons do nothing (except show up).
   
-  ucid_numeric_check <- is.numeric(cdata[["ucid"]])
-  ucid_factor_check <- is.factor(cdata[["ucid"]])
-  if(isFALSE(ucid_numeric_check)){
-    if(isTRUE(ucid_factor_check)){
-      warning("\ntagCell: cohercing factor ucid to integer type")
-      cdata <- mutate(cdata, ucid = as.integer(as.character.factor(ucid)))
+  # Check NAs in ucid variable
+  if(any(is.na(cdata[["ucid"]]))) stop("\ntagCell: ucid variable contains NA values")
+  
+  # Check ucid type and convert to integer
+  ucid_class_check <- class(cdata[["ucid"]])
+  if(ucid_class_check != "integer"){
+    warning(paste("\ntagCell: cohercing", ucid_class_check, "ucid to integer type"))
+    
+    if(ucid_class_check == "factor"){
+      cdata <- dplyr::mutate(cdata, ucid = as.integer(as.character.factor(ucid)))
+      
     } else {
-      warning("\ntagCell: cohercing ucid to integer type")
       cdata <- mutate(cdata, ucid = as.integer(ucid))
     }
   }
   
+  # Setup environments for the shiny app, from this environment
   environment(tagCellServer) <- environment()
   environment(tagCellUi) <- environment()
   
   #### RUN APP ####
-  # runApp inicia la app inmediatamente, shinyApp solo no se dispara dentro de una función parece
-  # saved <- runApp(shinyApp(ui, server))
   saved <- shiny::runApp(list(ui = tagCellUi(), server = tagCellServer))
-  
-  # Imprimir cosas antes de cerrar la app
-  print("Chau")
   
   #### RETURN RESULT ####
   # Devolver una lista con los objetos cdata cfilter y los stringFilters

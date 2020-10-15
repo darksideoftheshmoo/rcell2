@@ -18,7 +18,7 @@ tagCell(
   tag_ggplot = NULL,
   .equalize = F,
   .normalize = T,
-  debug_messages = T,
+  debug_messages = F,
   ...
 )
 }
