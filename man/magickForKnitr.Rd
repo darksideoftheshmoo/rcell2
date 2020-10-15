@@ -4,10 +4,12 @@
 \alias{magickForKnitr}
 \title{Display an image in rmarkdown with knitr}
 \usage{
-magickForKnitr(imgs, .resize = "200x200", .path = tempdir())
+magickForKnitr(imgs, .prefix = "tile", .resize = "200x200", .path = tempdir())
 }
 \arguments{
 \item{imgs}{a magick image or cellMagick output}
+
+\item{.prefix}{A string prepended to the file name, "" by default.}
 
 \item{.resize}{a cellMagick image resize string (default "200x200").}
 
