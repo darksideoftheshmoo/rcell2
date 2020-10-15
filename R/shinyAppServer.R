@@ -543,7 +543,9 @@ shinyAppServer <-
           
           
           # Find the closest point
-          d <- hover_closest(ui_input = input, cdata = d)
+          # d <- hover_closest(ui_input = input, cdata = d)
+          print("-- Finding one of nearPoints, probably always by facet")
+          d <- shiny::nearPoints(d, input$hover, maxpoints = 1, xvar = input$x, yvar = input$y)
           
           # Output an image if filtering returns a non-empty selection
           if(nrow(d) > 0) {
