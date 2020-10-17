@@ -11,8 +11,8 @@ magickCell(
   cell_resize = NULL,
   boxSize = 50,
   n = 100,
-  .equalize = F,
-  .normalize = T,
+  equalize_images = F,
+  normalize_images = F,
   ch = "BF.out",
   sortVar = "xpos",
   seed = 1,
@@ -34,9 +34,9 @@ magickCell(
 
 \item{n}{maximum number of cells to display.}
 
-\item{.equalize}{Use magick's function to "equalize" the image when TRUE.}
+\item{equalize_images}{Use magick's function to "equalize" the image when TRUE.}
 
-\item{.normalize}{Use magick's function to "normalize" the image when TRUE.}
+\item{normalize_images}{Use magick's function to "normalize" the image when TRUE.}
 
 \item{ch}{Name of the CellID channel (BF, BF.out, RFP, ...). "BF.out" by default.}
 
@@ -48,7 +48,7 @@ magickCell(
 
 \item{return_single_imgs}{If TRUE, return a vector of images instead of a tile.}
 
-\item{annotation_params}{a named character vector for magick::annotate options (with one or more of the names "color" "background" "size")}
+\item{annotation_params}{a named character vector for magick::annotate options (with one or more of the names "color" "background" "size"). Use NULL to skip annotations.}
 }
 \value{
 A list of two elements: the magick image and the ucids in the image.

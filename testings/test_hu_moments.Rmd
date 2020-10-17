@@ -1,0 +1,83 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+# Rebuild
+
+```{r build, eval=FALSE, message=FALSE, warning=TRUE}
+devtools::document()
+devtools::load_all(recompile = T, reset = T)
+devtools::install(reload = T, build = T,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rcell2)
+
+difference <- function(lista) abs(lista[1] - lista[2])
+```
+
+## Correr cellid mask_mod con series temporales
+
+```{r}
+path <- "../data/time_seres_images_hu_moments/"
+parameters <- "../inst/parameters.txt"
+```
+
+### Generate CellID input paths
+
+```{r}
+cell.args <- rcell2::cellArgs(path = path,
+                              parameters = parameters,
+                              BF.pattern = "BF_Position\\d+_time\\d+\\.tif$",
+                              FP.pattern = "FP_Position\\d*_time\\d+\\.tif$",
+                              O.pattern = ".*(Position\\d+)_time\\d+\\.tif"
+                              )
+
+rcell2::cellArgs.print(cell.args)  # Para revisar inputs
+```
+
+### Run cellid of the mask_mod branch
+
+```{r, eval = F}
+rcell2::cell(cell.args = cell.args,
+             cell.command = "../inst/cellid_mask_mod",
+             position.time.pattern = "time\\d+",
+             no_cores = 1, dry = F)
+```
+
+## Load cell data
+
+```{r}
+path <- "../data/time_seres_images_hu_moments/"
+
+# cell.data.old <- rcell2::cell.load.alt(path =  path)
+cell_data <- rcell2::load_cell_data(path = path)
+```
+
+```{r}
+cdata <- cell_data$data
+paths <- cell_data$images %>% 
+    mutate(file = paste0(path, "/", image))
+```
+
+
+# View images
+
+```{r}
+pic <- tiff::readTIFF(paths$file[7])
+pic_numeric <- pic * (2^16 - 1)
+
+heatmap(pic_numeric[50:150,50:150], Rowv = NA, Colv = NA, scale = "none")
+
+pic_numeric[50:150,50:150] %>% unique()
+```
+
