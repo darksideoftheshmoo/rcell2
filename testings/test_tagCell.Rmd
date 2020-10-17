@@ -1,0 +1,176 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+# Rebuild
+
+```{r build, message=FALSE, warning=TRUE}
+devtools::document()
+devtools::load_all(recompile = F, reset = T, quiet = T)
+devtools::install(reload = T, build = F,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
+# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
+# devtools::check()
+# devtools::build()
+# devtools::build(path="../../test_libtiff.tar.gz")
+# remove.packages("rcell2")
+# install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
+```
+
+```{r setup, message=FALSE, warning=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+# library(rcell2)
+
+path <- "../data/image_samples/"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+
+difference <- function(lista) abs(lista[1] - lista[2])
+```
+
+## Reinstall
+
+```{r, eval=F}
+devtools::install(reload = T, build = T,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
+```
+
+
+# USAGE
+
+## Load data and plot something
+
+```{r}
+cell.data <- rcell2::cell.load.alt(path =  path, cellid.zero.pad = 5)
+
+head(cell.data$d) %>% select(ucid, pos, cellID, t.frame)
+
+#### SETUP PATHS DATAFRAME ####
+paths <- rcell2::magickPaths(cell.data)
+
+p <- cell.data$d %>% ggplot() + 
+  geom_point(aes(x = a.tot, y = fft.stat, color = pos)) +
+  theme(legend.position = "none")
+
+p
+```
+
+## Shiny plotApp test
+
+```{r}
+# devtools::document()
+# devtools::load_all(recompile = F, reset = T, quiet = T)
+
+datos <- readRDS("../data/datos.con.todo.RDS")
+
+p <- datos %>% 
+  mutate(ucid = as.factor(ucid)) %>% 
+  arrange(t.drop, order) %>% 
+  mutate(row_order = 1:n()) %>% 
+  mutate(ucid = forcats::fct_reorder(ucid, row_order)) %>%
+  # select(ucid, t.drop) %>% View()
+  group_by(ucid) %>% mutate(cf.y.scale = scale(cf.y)) %>% 
+  ggplot() +
+    geom_tile(aes(x = t.frame, y = ucid, group = ucid, fill=cf.y.scale)) +
+    geom_point(aes(x = t.drop, y = ucid, group = ucid, fill=cf.y.scale, color = t.drop >= 0)) +
+    # geom_point(aes(x = -1, y = ucid, group = ucid, color=as.factor(cluster))) +
+    # geom_point(aes(x = -1, y = row_order, group = row_order, color=as.factor(genotype))) +
+  scale_y_discrete() + 
+  scale_fill_viridis_c() + 
+  scale_color_manual(values=c("gray", "red")) +
+  #+ facet_wrap(~genotype)
+  ggtitle("scaled.cf.y vs t.frame", "t.drop marked in red")
+
+p
+```
+## Tag cells
+
+```{r}
+devtools::document()
+devtools::load_all(recompile = F, reset = T, quiet = T)
+# ?rcell2::tagCell
+p <- ggplot(mapping = aes(x=t.frame, y=cf.y, group=ucid)) + 
+  geom_line()
+
+saved <- rcell2::tagCell(cell.data$d, pdata, paths, 
+                         cell_tags = list(far1_drop = c(TRUE,
+                                                        FALSE),
+                                          artifact = c("segmentation",
+                                                       "death")
+                                          ),  # list(named_item1 = c(option1, option2, ...), named_item2 ...)
+                         # t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
+                         # tag_channels_select = NULL,  # c("BF.out", "BF", "YFP", ...)
+                         tag_box_size = 75,
+                         tag_ggplot = p, 
+                         annotation_params = c(color = "none", 
+                                               background = "none")
+                         )
+
+
+saved
+```
+
+
+```{r}
+cell.data <- readRDS("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/output/cell.data20200728_a20c377c8979.RDS")
+image.paths <- rcell2::magickPaths(cell.data)
+datos_splines <- readRDS("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/output//datos_splines_20200902_1bd5862e36193.RDS")
+cdata.filtered4 <- readRDS("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/output/cdata.filtered4_20200814_9a43be8ccdb.RDS")
+pdata <- readr::read_csv("~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/data/arresto-lavado/Pre_alphaF/2019_11_20_Exp_Ali.csv")
+```
+
+
+```{r}
+p <- ggplot(cdata.filtered4) + 
+  geom_line(aes(x=t.frame, y=cf.y, group=ucid))
+
+p %+% arrange(cdata.filtered4, ucid)[1:10,]
+```
+
+
+```{r}
+devtools::document()
+devtools::load_all(recompile = F, reset = T, quiet = T)
+saved <- rcell2::tagCell(cdata.filtered4,
+                         pdata, image.paths,
+                         cell_tags = list(far1_drop = c(TRUE,
+                                                        FALSE),  # t.drop aparente pero falso por algun artefacto
+                                          budding =   c("emergence",
+                                                        "division"),
+                                          artifact =  c("segmentation",
+                                                        "out_of_focus",
+                                                        "interesante",
+                                                        "death",
+                                                        "flown_away")
+                                          ),  # list(named_item1 = c(option1, option2, ...), named_item2 ...)
+                         # t_frame_tile = "vertical",  # c("vertical", "horizontal", "animate", "stack")
+                         tag_channels_select = c("BF.out", "YFP"),  # c("BF.out", "BF", "YFP", ...)
+                         n_max = 50,
+                         tag_box_size = 75,
+                         cell_resize = 300,
+                         tag_ggplot = p)
+```
+
+
+```{r}
+saved_data <- shinyCell(cell.data$d, pdata, paths,
+                        plotType = "Dots",
+                        # initial_facet = "pos ~ .",
+                        #filters = saved_data$filters,
+                        facet_grid_option = TRUE,
+                        n_max = 7^2, max_size = 720)
+
+# More plots would be useful
+ggplot(data = subset(saved_data$cdata, filter == T)) +
+  geom_boxplot(aes(y = cf.y, x = factor(pos)), width=0.1) +
+  geom_violin(aes(y = cf.y, x = factor(pos), color = factor(pos)), alpha = 0) +
+  theme_minimal()
+```
+

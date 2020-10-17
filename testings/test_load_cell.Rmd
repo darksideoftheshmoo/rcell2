@@ -1,0 +1,59 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+# Rebuild
+
+```{r build, message=FALSE, warning=TRUE}
+devtools::document()
+devtools::load_all(recompile = T, reset = T, quiet = F)
+devtools::install(reload = T, 
+                  build = T,
+                  quiet = F,
+                  upgrade = "never",
+                  keep_source = T)
+# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
+# devtools::check()
+# devtools::build()
+# devtools::build(path="../../test_libtiff.tar.gz")
+# remove.packages("rcell2")
+# install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
+```
+
+```{r setup, message=FALSE, warning=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+# library(rcell2)
+
+path <- "../data/image_samples/"
+path <- "../data/time_series_image_samples//"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+
+difference <- function(lista) abs(lista[1] - lista[2])
+```
+
+## Reinstall
+
+```{r, eval=F}
+devtools::install(reload = T,
+                  build = T,
+                  quiet = T,
+                  upgrade = "never",
+                  keep_source = T)
+```
+
+
+# USAGE
+
+## Load data and plot something
+
+```{r}
+cell_data <- rcell2::load_cell_data(path =  path)
+cell.data <- rcell2::cell.load.alt(path =  path, cellid.zero.pad = 5)
+```
+

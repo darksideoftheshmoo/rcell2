@@ -24,6 +24,6 @@ i.e. to apply the same area filter but only to cells with f.tot.y values under 5
 call \code{qc_filter(X, a.tot > 100, subset = f.tot.y < 50)}
 }
 \details{
-It does not delete the filtered rows, it only modifies the QC variable. To effectively
+It does not delete the filtered rows, it only modifies the qc variable. To effectively
 remove them, use \link{qc_execute}.
 }

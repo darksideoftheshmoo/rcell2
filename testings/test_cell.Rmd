@@ -1,0 +1,132 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+# Rebuild
+
+```{r build, eval=FALSE, message=FALSE, warning=TRUE}
+
+devtools::document()
+devtools::load_all(recompile = T, reset = T)
+devtools::install(reload = T, build = T,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
+```
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rcell2)
+
+path <- "../data/image_samples/"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+
+difference <- function(lista) abs(lista[1] - lista[2])
+```
+
+# Ejemplo de uso
+
+## Sin tiempo
+
+### Generate CellID input paths
+
+```{r}
+path <- "../data/image_samples/"
+path <- "../data/image_samples_x/"
+cell.args <- cellArgs(path = path,
+                      parameters = parameters,
+                      BF.pattern = "BF_Position\\d+\\.tif$",
+                      FP.pattern = "FP_Position\\d*\\.tif$",
+                      O.pattern = ".*(Position\\d+)\\.tif"
+                      )
+cellArgs.print(cell.args)  # Para revisar inputs
+```
+
+### Run cellid
+
+```{r, eval = F}
+cell(cell.args = cell.args,
+     cell.command = "cellBUILTIN",
+     # cell.command = "~/Software/cellID-linux/cell", 
+     no_cores = 3, 
+     label_cells = 1,  # Label cells? 1 is true
+     bf_out_null_bg = 1
+     )  
+```
+
+## Con series temporales
+
+### Generate CellID input paths
+
+```{r}
+path <- "../data/time_series_image_samples_2/"
+parameters <- "../inst/parameters.txt"
+
+cell.args <- rcell2::cellArgs(path = path,
+                              parameters = parameters,
+                              BF.pattern = "BF_Position\\d+_time\\d+\\.tif$",
+                              FP.pattern = "FP_Position\\d*_time\\d+\\.tif$",
+                              O.pattern = ".*(Position\\d+)_time\\d+\\.tif"
+                              )
+
+rcell2::cellArgs.print(cell.args)  # Para revisar inputs
+```
+
+### Run cellid
+
+```{r, eval = F}
+rcell2::cell(cell.args = cell.args,
+             # cell.command = "cellBUILTIN",
+             cell.command = "~/Software/cellID-linux/cell",
+             position.time.pattern = "time\\d+",
+             no_cores = 3, dry = F)
+```
+
+## Load cell data
+
+```{r}
+path <- "../data/time_series_image_samples/"
+
+cell.data.old <- rcell2::cell.load.alt(path =  path)
+cell_data.new <- rcell2::load_cell_data(path = path)
+```
+
+# Explicación de los time series arguments
+
+En cada archivo tiene que haber una lista con todos los tiempos para una sola posición.
+
+```
+cell -b /home/nicomic/split/Position01/bf_vcellid.txt -f /home/nicomic/split/Position01/fl_vcellid.txt -o /home/nicomic/split/Position01/out -p /home/nicomic/split/Position01/parameters_vcellid_out.txt
+```
+
+En `bf_vcellid.txt` solo van los BF:
+
+    /home/nicomic/split/BF_Position01_time01.tif
+    /home/nicomic/split/BF_Position01_time02.tif
+    /home/nicomic/split/BF_Position01_time03.tif
+
+En `fl_vcellid.txt` se meten todos los canalas de fluorescencia:
+
+    /home/nicomic/split/YFP_Position01_time01.tif
+    /home/nicomic/split/YFP_Position01_time02.tif
+    /home/nicomic/split/YFP_Position01_time03.tif
+
+El argumento de "out" y de los parámetos no cambia:
+
+`parameters_vcellid_out.txt`
+
+     max_split_over_minor 0.66
+     max_dist_over_waist 8.00
+     max_pixels_per_cell 1500
+     min_pixels_per_cell 75
+     background_reject_factor 1.00
+     tracking_comparison 0.20
+     image_type brightfield
+     bf_fl_mapping list
+    
