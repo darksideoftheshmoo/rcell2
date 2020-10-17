@@ -15,6 +15,7 @@ devtools::install(reload = T, build = T,
                   upgrade = "never", keep_source = T)
 ```
 
+# Setup
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -25,14 +26,16 @@ library(rcell2)
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
 
-## Correr cellid mask_mod con series temporales
+# Run cellid mask_mod
+
+## Con series temporales
 
 ```{r}
 path <- "../data/time_seres_images_hu_moments/"
 parameters <- "../inst/parameters.txt"
 ```
 
-### Generate CellID input paths
+## Generate CellID input paths
 
 ```{r}
 cell.args <- rcell2::cellArgs(path = path,
@@ -45,7 +48,7 @@ cell.args <- rcell2::cellArgs(path = path,
 rcell2::cellArgs.print(cell.args)  # Para revisar inputs
 ```
 
-### Run cellid of the mask_mod branch
+## Run cellid of the mask_mod branch
 
 ```{r, eval = F}
 rcell2::cell(cell.args = cell.args,
@@ -54,7 +57,7 @@ rcell2::cell(cell.args = cell.args,
              no_cores = 1, dry = F)
 ```
 
-## Load cell data
+# Load cell data
 
 ```{r}
 path <- "../data/time_seres_images_hu_moments/"
@@ -70,14 +73,315 @@ paths <- cell_data$images %>%
 ```
 
 
-# View images
+# Load images
+
+From `pos 1` and `t.frame 0`:
 
 ```{r}
-pic <- tiff::readTIFF(paths$file[7])
+pic_path <- paths %>% filter(pos == 1, t.frame == 0, channel == "BF.out")
+
+pic_path$image
+```
+
+Also filter cdata for posterior comparison:
+
+```{r}
+cdata_filtered <- filter(cdata, pos == 1, t.frame == 0)
+```
+
+Read the image and plot it:
+
+```{r}
+pic <- tiff::readTIFF(pic_path$file)
 pic_numeric <- pic * (2^16 - 1)
 
 heatmap(pic_numeric[50:150,50:150], Rowv = NA, Colv = NA, scale = "none")
+```
+# Replace background with NA
 
-pic_numeric[50:150,50:150] %>% unique()
+```{r}
+pic_numeric0 <- pic_numeric
+pic_numeric0[pic_numeric0 == 0] <- NA
+
+heatmap(pic_numeric0[50:150,50:150], Rowv = NA, Colv = NA, scale = "none")
+```
+# Convert to dataframe
+
+## as.data.frame
+
+```{r}
+pic_df <- as.data.frame(pic_numeric0)
+
+names(pic_df) <- 1:ncol(pic_df)
+
+head(pic_df)
+```
+## reshape2::melt and manual method
+
+```{r}
+d1 <- reshape2::melt(pic_numeric) %>% 
+  dplyr::rename(y = Var1, x = Var2)
+# as.table(pic_numeric0)
+d2 <- data.frame(y=rep(1:nrow(pic_numeric), ncol(pic_numeric)), 
+                 x=rep(1:ncol(pic_numeric), each = nrow(pic_numeric)),
+                 value=c(pic_numeric))
+
+d1
+d2
+
+if(identical(d1, d2)) "Dataframes are identical!"
+```
+## Use manual method
+
+```{r}
+pic_df <- data.frame(y=rep(1:nrow(pic_numeric0), ncol(pic_numeric0)), 
+                     x=rep(1:ncol(pic_numeric0), each = nrow(pic_numeric0)),
+                     value=c(pic_numeric0))
+
+pic_df <- pic_df[!is.na(pic_df[["value"]]),]
+
+pic_df
+```
+
+# Summarise mask data
+
+```{r}
+pic_df_summary <- pic_df %>% 
+  group_by(value) %>% 
+  summarise(n_values = n(),
+            # xspan = paste(min(x), max(x), sep = "-"),
+            # yspan = paste(min(y), max(y), sep = "-"),
+            xspan = min(x) - max(x),
+            yspan = min(y) - max(y),
+            mean_xpos = round(mean(x)),
+            mean_ypos = round(mean(y))
+            )
+
+pic_df_summary
+```
+
+
+# Convert intensity to CellID
+
+```{r}
+bits <- 16
+
+pic_df <- pic_df %>% 
+  mutate(cellID = (2^bits -1) - value) %>% 
+  arrange(cellID)
+
+pic_df$cellID %>% unique()
+```
+
+```{r}
+bits <- 16
+
+pic_cdata <- pic_df_summary %>% 
+  mutate(cellID = (2^bits -1) - value) %>% 
+  arrange(cellID)
+
+pic_cdata
+```
+
+
+# Compare with cdata
+
+```{r}
+cdata_compare <- cdata_filtered %>% 
+  left_join(select(pic_cdata, 
+                   cellID, mean_xpos, mean_ypos), 
+            by = "cellID")
+
+cdata_compare %>% 
+  ggplot() +
+    geom_point(aes(x = xpos, y = mean_xpos, color = factor(xpos - mean_xpos))) +
+    xlab("cellid xpos") +
+    ylab("rounded mean mask xpos")
+
+cdata_compare %>% 
+  ggplot() +
+    geom_point(aes(x = ypos, y = mean_ypos, color = factor(ypos - mean_ypos))) +
+    xlab("cellid ypos") +
+    ylab("rounded mean mask ypos")
+```
+
+# Test Hu moments function
+
+```{r}
+one_cell.mask <- pic_df %>% nest(-cellID) %>% sample_n(1) %>% unnest()
+
+one_cell.mask
+```
+
+```{r}
+xy <- one_cell.mask %>% 
+  select(x, y) %>% 
+  as.matrix()
+
+colnames(xy) <- c("dim1", "dim2")
+
+xy %>% head()
+```
+
+```{r}
+# source("../R/hu_moments_short.R")
+
+hu.moments(xy)
+```
+
+## Run for all cells and append to cdata
+
+# All-in-one function
+
+```{r}
+# source("../R/hu_moments_short.R")
+
+pic_df_from_tiff <- function(tiff_path, image_bits){
+    # Read masks tiff
+    pic <- tiff::readTIFF(tiff_path)
+    # Convert intensity value to 16-bit integers
+    pic <- pic * (2^image_bits - 1)
+    # Replace zeros with NA
+    pic[pic == 0] <- NA
+    
+    # Convert pic matrix to dataframe of coordinates per mask/value
+    pic_df <- data.frame(y=rep(1:nrow(pic), ncol(pic)), 
+                         x=rep(1:ncol(pic), each = nrow(pic)),
+                         pix_value=c(pic))
+    # Clear NA rows
+    pic_df <- pic_df[!is.na(pic_df[["pix_value"]]),]
+    # Convert integer intensity value to CellID
+    pic_df$cellID <- (2^image_bits -1) - pic_df[["pix_value"]]
+    
+    return(pic_df)
+}
+
+hues_from_xy <-  function(pic_df){
+  # Split the dataframe by cellID
+  pic_df_split <- pic_df %>% mutate(cellID = as.factor(cellID))
+  pic_df_split <- split(pic_df_split, pic_df_split$cellID)
+  
+  # Compute Hu moments for each cellID's boundary mask XY coordinates
+  hues <- lapply(pic_df_split, FUN = function(cell_coords_df){
+    # Convert dataframe to matrix
+    xy <- cell_coords_df %>% 
+          select(x, y) %>% 
+          as.matrix()
+    # Rename XY columns appropriately
+    colnames(xy) <- c("dim1", "dim2")
+    
+    # Return a named vector with the cell ids and the named hu moments
+    c(cellID = unique(cell_coords_df[["cellID"]]), 
+      hu.moments(xy))
+  })
+  
+  # Bind rows from all cellIDs and return
+  return(bind_rows(hues))
+}
+
+append_hues <- function(cell_data, image_bits = 16, return_points = F){
+  paths <- cell_data$images %>% 
+    mutate(file = paste0(path, "/", image)) %>% 
+    filter(channel == "BF.out")
+  
+  # For testing
+  # pic_metadata <- c()
+  # pic_metadata["file"] <- paths[1,]$file
+  # pic_metadata["t.frame"] <- paths[1,]$t.frame
+  # pic_metadata["pos"] <- paths[1,]$pos
+  # image_bits = 16
+  # return_points = T
+  
+  pic.and.hues.dfs <- apply(paths, MARGIN = 1, FUN = function(pic_metadata){
+    # Extract xy coordinates list from the BF.out mask tiff 
+    pic_df <- pic_df_from_tiff(tiff_path = pic_metadata["file"], 
+                               image_bits = image_bits)
+    
+    # Compute Hu moments for each cellID
+    hues_df <- hues_from_xy(pic_df)
+    
+    # Add position and time information
+    hues_df$t.frame <- as.integer(pic_metadata["t.frame"])
+    hues_df$pos <- as.integer(pic_metadata["pos"])
+    pic_df$t.frame <- as.integer(pic_metadata["t.frame"])
+    pic_df$pos <- as.integer(pic_metadata["pos"])
+    
+    # Return the Hu moments and points dataframes
+    list(pic_df = if(return_points) pic_df else NULL, 
+         hues_df = hues_df)
+  })
+  
+  # Bind hues dataframes from all pics
+  hues.df <- bind_rows(
+    lapply(pic.and.hues.dfs, FUN = function(l) l[["hues_df"]])
+  )
+  
+  # Append Hu moment data to cell_data object
+  cell_data[["data"]] <- left_join(cell_data[["data"]],
+                                   hues.df, 
+                                   by = c("cellID", "t.frame", "pos"))
+  
+  if(return_points){
+    masks_df <- bind_rows(
+      lapply(pic.and.hues.dfs, FUN = function(l) l[["pic_df"]])
+    )
+    
+    cell_data[["masks"]] <- masks_df
+  }
+  
+  return(cell_data)
+}
+```
+
+## Run
+
+```{r}
+cell_data2 <- append_hues(cell_data, return_points = T)
+```
+
+## Check
+
+```{r}
+masks_df_summary <- cell_data2$masks %>% 
+  group_by(cellID, t.frame, pos) %>% 
+  summarise(cellID = first(cellID),
+            t.frame = first(t.frame),
+            pos = first(pos),
+            n_values = n(),
+            # xspan = paste(min(x), max(x), sep = "-"),
+            # yspan = paste(min(y), max(y), sep = "-"),
+            xspan = min(x) - max(x),
+            yspan = min(y) - max(y),
+            mean_xpos = round(mean(x)),
+            mean_ypos = round(mean(y))
+            )
+
+masks_df_summary
+```
+```{r}
+cell_data2$masks$cellID %>% range()
+cell_data2$data$cellID %>% range()
+```
+
+
+```{r}
+cdata_compare <- cell_data2$data %>% 
+  left_join(select(masks_df_summary, 
+                   cellID, t.frame, pos, mean_xpos, mean_ypos), 
+            by = c("cellID", "t.frame", "pos"))
+
+cdata_compare %>% 
+  ggplot() +
+    geom_point(aes(x = xpos, y = mean_xpos, color = factor(xpos - mean_xpos))) +
+    facet_grid(pos~t.frame) +
+    xlab("cellid xpos") +
+    ylab("rounded mean mask xpos")
+
+cdata_compare %>% 
+  ggplot() +
+    geom_point(aes(x = ypos, y = mean_ypos, color = factor(ypos - mean_ypos))) +
+    facet_grid(pos~t.frame) +
+    xlab("cellid ypos") +
+    ylab("rounded mean mask ypos")
 ```
 

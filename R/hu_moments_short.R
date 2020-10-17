@@ -1,14 +1,16 @@
 #' Hu moments
+#' 
+#' This function is CellID agnostic.
 #'
 #' @param xy Matriz de dos columnas (dim1 y dim2), con las coordenadas XY del boundary binario. No es importante el orden de los puntos.
-#' @return Los 7 Hu moments + 1 extra (?)
+#' @return Los 7 Hu moments + 1 extra (?) en un named vector
 # @example
 # xy <- EBImage::imageData(readImage("inst/hu_moments_img2.png"))
 # xy <- which(xy>0, arr.ind = TRUE)
 # plot(xy)
 # xy.hu <- hu.moments(xy)
 # xy.hu <- -sign(xy.hu)*log10(abs(xy.hu))
-hu.moments2 <- function(xy){
+hu.moments <- function(xy){
   ## Define function for calculating eta
   eta <- function(xy, i, j){
     ## Calculate central moment mu(i,j)
@@ -53,5 +55,12 @@ hu.moments2 <- function(xy){
   
   #hu <- c(I1, I2, I3, I4, I5, I6, I7, I8)
   #return(-sign(hu)*log10(abs(hu)))
-  return(c(I1, I2, I3, I4, I5, I6, I7, I8))
+  return(c(hum_1 = I1, 
+           hum_2 = I2, 
+           hum_3 = I3, 
+           hum_4 = I4, 
+           hum_5 = I5, 
+           hum_6 = I6, 
+           hum_7 = I7, 
+           hum_8 = I8))
 }
