@@ -10,6 +10,7 @@
 # plot(xy)
 # xy.hu <- hu.moments(xy)
 # xy.hu <- -sign(xy.hu)*log10(abs(xy.hu))
+#' @export
 hu.moments <- function(xy){
   ## Define function for calculating eta
   eta <- function(xy, i, j){
