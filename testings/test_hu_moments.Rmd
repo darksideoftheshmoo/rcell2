@@ -336,10 +336,19 @@ append_hues <- function(cell_data, image_bits = 16, return_points = F){
 ## Run
 
 ```{r}
-cell_data2 <- append_hues(cell_data, return_points = T)
+path <- "../data/time_seres_images_hu_moments/"
+
+cell_data <- rcell2::load_cell_data(path = path)
+
+cell_data2 <- append_hues(cell_data, return_points = T, image_bits = 16)
 ```
 
 ## Check
+
+```{r}
+check_tiff_mask(cell_data2)
+```
+
 
 ```{r}
 masks_df_summary <- cell_data2$masks %>% 
