@@ -231,7 +231,7 @@ hu.moments(xy)
 
 ## Run for all cells and append to cdata
 
-# All-in-one function
+# Abstract all-in-one function
 
 ```{r}
 # source("../R/hu_moments_short.R")
@@ -340,13 +340,13 @@ path <- "../data/time_seres_images_hu_moments/"
 
 cell_data <- rcell2::load_cell_data(path = path)
 
-cell_data2 <- append_hues(cell_data, return_points = T, image_bits = 16)
+cell_data2 <- rcell2::append_hues(cell_data, return_points = T, image_bits = 16)
 ```
 
 ## Check
 
 ```{r}
-check_tiff_mask(cell_data2)
+rcell2:::check_tiff_mask(cell_data2)
 ```
 
 
@@ -392,5 +392,18 @@ cdata_compare %>%
     facet_grid(pos~t.frame) +
     xlab("cellid ypos") +
     ylab("rounded mean mask ypos")
+```
+# Final test code
+
+```{r}
+path <- "../data/time_seres_images_hu_moments/"
+
+cell_data <- rcell2::load_cell_data(path = path)
+
+cell_data <- rcell2::append_hues(cell_data, 
+                                 return_points = T, 
+                                 image_bits = 16)
+
+rcell2:::check_tiff_mask(cell_data)
 ```
 
