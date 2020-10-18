@@ -29,8 +29,8 @@ library(rcell2)
 
 ```{r}
 # path <- "~/Software/cellID-linux/test_data/"
-path <- "/run/media/nicomic/PENDRIVE/"
-parameters <- "/run/media/nicomic/PENDRIVE/parameters_hu.txt"
+path <- "../data/time_seres_images_hu_moments/"
+parameters <- "../data/time_seres_images_hu_moments/parameters_hu.txt"
 
 arguments <- rcell2::cellArgs2(path = path, parameters = parameters)
 arguments
@@ -40,8 +40,7 @@ arguments
 
 ```{r}
 rcell2::cell2(arguments = arguments, 
-              cell.command = "~/Software/cellID-linux/cell",
-              # cell.command = system.file("cell", package = "rcell2", mustWork = T),
+              cell.command = "~/Software/cellID-linux/cell", # cell.command = system.file("cell", package = "rcell2", mustWork = T),
               dry = F, no_cores = 1)
 ```
 
