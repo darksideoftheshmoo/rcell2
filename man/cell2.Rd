@@ -4,7 +4,14 @@
 \alias{cell2}
 \title{Function to run CellID}
 \usage{
-cell2(arguments, cell.command = NULL, no_cores = NULL, debug_flag = 0, dry = F)
+cell2(
+  arguments,
+  cell.command = NULL,
+  no_cores = NULL,
+  debug_flag = 0,
+  dry = F,
+  label_cells_in_bf = F
+)
 }
 \arguments{
 \item{arguments}{An argument data.frame, as built by rcell2::cellArgs2.}
@@ -16,6 +23,8 @@ cell2(arguments, cell.command = NULL, no_cores = NULL, debug_flag = 0, dry = F)
 \item{debug_flag}{Set to 0 to disable CellID printf messages.}
 
 \item{dry}{Do everything without actually running CellID.}
+
+\item{label_cells_in_bf}{Set to TRUE to enable lableing of cells with their CellID in the BF image.}
 }
 \value{
 Nothing :) use rcell2::load_cell_data to get the results from the output at the images path

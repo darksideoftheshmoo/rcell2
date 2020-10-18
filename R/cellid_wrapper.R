@@ -29,6 +29,7 @@ cellid <- function(args, debug_flag=0){
 #' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
 #' @param dry Do everything without actually running CellID.
 #' @param debug_flag Set to 0 to disable CellID printf messages.
+#' @param label_cells_in_bf Set to TRUE to enable lableing of cells with their CellID in the BF image.
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -43,7 +44,8 @@ cell2 <- function(arguments,
                   # cell.command = "~/Projects/Rdevel/rcell2/bin/cell",
                   no_cores = NULL, 
                   debug_flag=0,
-                  dry = F){
+                  dry = F,
+                  label_cells_in_bf = F){
   
   n_positions <- arguments$pos %>% unique() %>% length()
   n_times <- arguments$t.frame %>% unique() %>% length()
@@ -81,7 +83,8 @@ cell2 <- function(arguments,
                      "-b", bf_rcell2,
                      "-f", fl_rcell2,
                      "-o", normalizePath(paste0(arguments_pos$output[1], "/out")),
-                     "-p", arguments_pos$parameters[1]
+                     "-p", arguments_pos$parameters[1],
+                     {if(label_cells_in_bf) "-l" else ""}
     )
     
     if(!dry) system(command = command, wait = T)
