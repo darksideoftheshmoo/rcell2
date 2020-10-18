@@ -49,14 +49,14 @@ square_tile <- function(images){
 #' @param cell_resize Size of the individual cell images. "100x100" by default.
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
 #' @param n maximum number of cells to display.
-#' @param .equalize Use magick's function to "equalize" the image when TRUE.
-#' @param .normalize Use magick's function to "normalize" the image when TRUE.
+#' @param equalize_images Use magick's function to "equalize" the image when TRUE.
+#' @param normalize_images Use magick's function to "normalize" the image when TRUE.
 #' @param ch Name of the CellID channel (BF, BF.out, RFP, ...). "BF.out" by default.
 #' @param sortVar Variable used to sort the cells. "xpos" by default.
 #' @param seed Seed value for sampling of cell images.
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
-#' @param  annotation_params a named character vector for magick::annotate options (with one or more of the names "color" "background" "size")
+#' @param  annotation_params a named character vector for magick::annotate options (with one or more of the names "color" "background" "size"). Use NULL to skip annotations.
 #' @return A list of two elements: the magick image and the ucids in the image.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -68,8 +68,8 @@ magickCell <- function(cdata, paths,
                        cell_resize = NULL,
                        boxSize = 50, 
                        n = 100,
-                       .equalize = F, 
-                       .normalize = T,
+                       equalize_images = F, 
+                       normalize_images = F,
                        ch = "BF.out",
                        sortVar = "xpos",
                        seed = 1, 
@@ -102,7 +102,7 @@ magickCell <- function(cdata, paths,
   annotation_params_default = c(color = "white",
                                 background = "black",
                                 size = as.numeric(stringr::str_split(cell_resize_string, "x")[[1]])[1]/7)
-  annotation_params <- updateList(annotation_params_default, annotation_params)
+  if(!is.null(annotation_params)) annotation_params <- updateList(annotation_params_default, annotation_params)
   
 
   # Intento con magick
@@ -150,26 +150,30 @@ magickCell <- function(cdata, paths,
     stopifnot(length(picPath) == length(ch) & is.character(picPath)) # Checks
 
     magick::image_read(picPath) %>%
-      {if (.normalize) magick::image_normalize(.) else .} %>%
-      {if (.equalize) magick::image_equalize(.) else .} %>%
+      {if (equalize_images) magick::image_normalize(.) else .} %>%
+      {if (normalize_images) magick::image_equalize(.) else .} %>%
       magick::image_crop(getCellGeom(xpos = cdataSample$xpos[i],
                                      ypos = cdataSample$ypos[i],
                                      boxSize)) %>%
       magick::image_resize(cell_resize_string) %>%
-      magick::image_annotate(text = paste(paste0("Pos", as.character(position)),
-                                          paste0("t", t_frame),
-                                          ch),
-                             color = annotation_params["color"],
-                             boxcolor = annotation_params["background"],
-                             size = annotation_params["size"],
-                             font = "Comic sans",
-                             gravity = "SouthEast") %>%
-      magick::image_annotate(text = as.character(ucid),
-                             color = annotation_params["color"],
-                             boxcolor = annotation_params["background"],
-                             size = annotation_params["size"],
-                             font = "Comic sans",
-                             gravity = "NorthWest") %>%
+      {if(is.null(annotation_params)) . else 
+        magick::image_annotate(.,
+                               text = paste(paste0("Pos", as.character(position)),
+                                            paste0("t", t_frame),
+                                            ch),
+                               color = annotation_params["color"],
+                               boxcolor = annotation_params["background"],
+                               size = annotation_params["size"],
+                               font = "Comic sans",
+                               gravity = "SouthEast")} %>%
+      {if(is.null(annotation_params)) . else 
+        magick::image_annotate(.,
+                               text = as.character(ucid),
+                               color = annotation_params["color"],
+                               boxcolor = annotation_params["background"],
+                               size = annotation_params["size"],
+                               font = "Comic sans",
+                               gravity = "NorthWest")} %>%
       magick::image_border("black","1x1") %>% 
       magick::image_append()
     }
