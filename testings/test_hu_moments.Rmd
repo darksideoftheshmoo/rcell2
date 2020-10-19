@@ -75,7 +75,7 @@ rcell2:::check_tiff_mask(cell_data)
 From new -m option
 
 ```{r}
-masks <- read_tsv("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
+masks <- read_tsv("../data/time_seres_images_hu_moments/Position01/out_all_masks.tsv")
 
 masks %>% nrow()
 masks %>% unique() %>% nrow()
@@ -86,13 +86,22 @@ masks.g <- masks %>%
 ```
 
 ```{r}
-p <- ggplot(masks) + geom_tile(aes(x=xpos, y=ypos)) + facet_grid(flag~pixtype)
-p <- masks.g %>% 
-  # filter(cellID == 2) %>%
-  filter(pixtype == "b") %>%
-  ggplot() + geom_point(aes(x=xpos, y=ypos, color = factor(count))) + facet_grid(flag~pixtype)
+# p <- ggplot(masks) + geom_tile(aes(x=xpos, y=ypos)) + facet_grid(flag~pixtype)
+# p <- masks.g %>% 
+#   # filter(cellID == 2) %>%
+#   filter(pixtype == "b") %>%
+#   ggplot() + geom_point(aes(x=xpos, y=ypos, color = factor(count))) + facet_grid(flag~pixtype)
+# 
+# # ggsave("masks.pdf", p, device = "pdf")
+# 
+# p
+```
 
-# ggsave("masks.pdf", p, device = "pdf")
+```{r}
+p <- masks %>% 
+  filter(cellID == 3) %>%
+  filter(pixtype == "b") %>%
+  ggplot() + geom_tile(aes(x=x, y=y, fill = factor(t.frame))) + facet_grid(flag~pixtype)
 
 p
 ```
@@ -101,16 +110,7 @@ p
 p <- masks %>% 
   filter(cellID == 3) %>%
   filter(pixtype == "b") %>%
-  ggplot() + geom_tile(aes(x=xpos, y=ypos, fill = factor(t.frame))) + facet_grid(flag~pixtype)
-
-p
-```
-
-```{r}
-p <- masks %>% 
-  filter(cellID == 3) %>%
-  filter(pixtype == "b") %>%
-  ggplot() + geom_tile(aes(x=xpos, y=ypos, fill = factor(flag))) + facet_grid(t.frame~pixtype)
+  ggplot() + geom_tile(aes(x=x, y=y, fill = factor(flag))) + facet_grid(t.frame~pixtype)
 
 p
 ```
@@ -118,39 +118,103 @@ p
 ## New function
 
 ```{r}
-masks_tsv_path <- c("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
-flags_tsv_path <- c("~/Software/cellID-linux/test_data_tmp/Position01/out_bf_fl_mapping")
+flags_tsv_path <- c("../data/time_seres_images_hu_moments/Position01/out_bf_fl_mapping")
 
-flags_from_m_option_tsv <- function(cell_data, flags_tsv_path){
-  read_tsv(flags_tsv_path) %>% 
-    select(fluor, flag)
+flag_data <- function(cell_data, flags_tsv_path){
+  flags <- read_tsv(flags_tsv_path) %>% 
+    select(fluor, flag) %>% dplyr::rename(file = fluor)
   
   paths <- cell_data$images %>% 
-    mutate(file = paste0(path, "/", image)) %>% 
+    mutate(file = paste0(path, "/", image))
+  
+  left_join(flags, paths, by = "file")
 }
 
-maks_from_m_option_tsv <- function(masks_tsv_path, position, .parallel = F){
-    masks_coords <- read_tsv(masks_tsv_path) %>% 
-      mutate(id = paste(cellID, t.frame, flag, pixtype, sep = "_"))
-    
-    if(.parallel) {
-      hues_df <- hues_from_xy(masks_coords, split_col="id")} else {
-      hues_df <- hues_from_xy2(masks_coords, split_col="id")}
-    
-    hues_by_cell <- masks_coords %>% 
-      select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
-      left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
-      select(-id) %>% mutate(pos = position)
-    
-    return(hues_by_cell)
-}
+flag_data_df <- flag_data(cell_data, flags_tsv_path)
 
-hues_by_cell_df <- maks_from_m_option_tsv(masks_tsv_path = masks_tsv_path, position = 1)
+flag_data_df
 ```
 
 ```{r}
-path <- "~/Software/cellID-linux/test_data_tmp/"
+masks_tsv_path <- c("../data/time_seres_images_hu_moments/Position01/out_all_masks.tsv")
+masks <- read_tsv(masks_tsv_path) %>% 
+  left_join(unique(select(flag_data_df, flag, channel, pos)))
 
+masks
+```
+
+
+```{r}
+maks_from_m_option_tsv <- function(masks_df, position, .parallel = F){
+  # Add "id" column
+  masks_coords <- masks_df %>% 
+    mutate(id = paste(cellID, t.frame, flag, pixtype, sep = "_"))
+  
+  if(!.parallel) {
+    hues_df <- hues_from_xy(masks_coords, split_col="id")
+  } else {
+    print("Parallel Hu")
+    hues_df <- hues_from_xy2(masks_coords, split_col="id")
+  }
+  
+  hues_by_cell <- masks_coords %>% 
+    select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
+    left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
+    select(-id) %>% mutate(pos = position)
+  
+  return(hues_by_cell)
+}
+
+hues_by_cell_df <- maks_from_m_option_tsv(masks_df = masks,
+                                          position = 1, .parallel = T)
+
+hues_by_cell_df
+```
+
+```{r}
+boundary_hues_tfp <- left_join(
+  hues_by_cell_df,
+  select(flag_data_df, flag, t.frame, channel), 
+  by = c("t.frame", "flag")
+) %>% 
+  dplyr::filter(pixtype == "b", channel == "TFP") %>% 
+  select(-pixtype, -channel, -flag)
+
+boundary_hues_tfp
+```
+
+
+```{r}
 cell_data <- rcell2::load_cell_data(path = path)
+
+cell_data$data <- cell_data$data %>% left_join(boundary_hues_tfp)
+
+masks %>% 
+  filter(cellID %in% c(14, 591), pos==1, pixtype=="i", channel=="YFP") %>% 
+  ggplot() + 
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+
+masks %>% 
+  filter(cellID %in% c(14, 591), pos==1, pixtype=="b", channel=="YFP") %>% 
+  ggplot() + 
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+
+cell_data$data %>%
+  filter(cellID %in% c(14, 591)) %>%
+  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL)
+cell_data$data %>%
+  filter(cellID %in% c(14, 591)) %>%
+  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out")
+
+# magick::image_mosaic(c(
+#   cell_data$data %>% 
+#   filter(cellID %in% c(14, 591)) %>% 
+#   rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL) %>% 
+#   .$img,
+# cell_data$data %>% 
+#   filter(cellID %in% c(14, 591)) %>% 
+#   rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out") %>% 
+#   .$img
+# ), operator = "Multiply") %>% magick::image_normalize()
 ```
 
