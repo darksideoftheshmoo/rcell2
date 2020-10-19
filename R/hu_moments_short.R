@@ -82,7 +82,7 @@ pic_df_from_tiff <- function(tiff_path, image_bits){
   # Clear NA rows
   pic_df <- pic_df[!is.na(pic_df[["pix_value"]]),]
   # Convert integer intensity value to CellID
-  pic_df$cellID <- (2^image_bits -1) - pic_df[["pix_value"]]
+  pic_df$cellID <- factor((2^image_bits -1) - pic_df[["pix_value"]])
   
   return(pic_df)
 }
@@ -91,23 +91,27 @@ pic_df_from_tiff <- function(tiff_path, image_bits){
 #' 
 #' This function requires a CellID column to split the coordinates by.
 #' 
-hues_from_xy <-  function(pic_df){
+hues_from_xy <-  function(pic_df, split_col = "cellID"){
   # Split the dataframe by cellID
-  pic_df_split <- pic_df %>% mutate(cellID = as.factor(cellID))
-  pic_df_split <- split(pic_df_split, pic_df_split$cellID)
+  pic_df_split <- split(pic_df, pic_df[[split_col]])
   
   # Compute Hu moments for each cellID's boundary mask XY coordinates
   hues <- lapply(pic_df_split, FUN = function(cell_coords_df){
     # Convert dataframe to matrix
-    xy <- cell_coords_df %>% 
-      select(x, y) %>% 
-      as.matrix()
+    xy <- as.matrix(cell_coords_df[,c("x", "y")])
     # Rename XY columns appropriately
     colnames(xy) <- c("dim1", "dim2")
     
     # Return a named vector with the cell ids and the named hu moments
-    c(cellID = unique(cell_coords_df[["cellID"]]), 
-      hu.moments(xy))
+    return_vector <- c(unique(cell_coords_df[[split_col]]), rcell2::hu.moments(xy))
+    names(return_vector)[1] <- split_col
+    
+    return_vector
+  })
+  
+  # Bind rows from all cellIDs and return
+  return(bind_rows(hues))
+}
   })
   
   # Bind rows from all cellIDs and return
@@ -179,6 +183,51 @@ append_hues <- function(cell_data, image_bits, return_points = F){
   }
   
   return(cell_data)
+}
+
+#' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
+check_tiff_mask <- function(cell_data){
+  
+  options(dplyr.summarise.inform = FALSE)
+  
+  masks_df_summary <- cell_data$masks %>% 
+    group_by(cellID, t.frame, pos) %>% 
+    summarise(cellID = first(cellID),
+              t.frame = first(t.frame),
+              pos = first(pos),
+              n_values = n(),
+              # xspan = paste(min(x), max(x), sep = "-"),
+              # yspan = paste(min(y), max(y), sep = "-"),
+              xspan = min(x) - max(x),
+              yspan = min(y) - max(y),
+              mean_xpos = round(mean(x)),
+              mean_ypos = round(mean(y))
+    )
+  
+  cdata_compare <- left_join(cell_data$data,
+                             select(masks_df_summary, 
+                                    cellID, t.frame, pos, mean_xpos, mean_ypos), 
+                             by = c("cellID", "t.frame", "pos"))
+  p1 <- cdata_compare %>% 
+    ggplot() +
+    geom_point(aes(x = xpos, y = mean_xpos, color = factor(xpos - mean_xpos))) +
+    facet_grid(pos~t.frame) +
+    xlab("cellid xpos") +
+    ylab("rounded mean mask xpos")
+  
+  p2 <- cdata_compare %>% 
+    ggplot() +
+    geom_point(aes(x = ypos, y = mean_ypos, color = factor(ypos - mean_ypos))) +
+    facet_grid(pos~t.frame) +
+    xlab("cellid ypos") +
+    ylab("rounded mean mask ypos")
+  
+  print(p1)
+  print(p2)
+  
+  options(dplyr.summarise.inform = TRUE)
+  
+  return(invisible(NULL))
 }
 
 #' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
