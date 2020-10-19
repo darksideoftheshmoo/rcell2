@@ -20,3 +20,6 @@ data/time_series_image_samples/Position*/out/
 /inst/ijtiff/
 /inst/ijtiff_2.2.0_macOSbin.tgz
 /data/time_series_image_samples_2
+/data/time_seres_images_hu_moments/
+/data/time_series_image_samples_bf_as_fl/
+/src/cellIDnoglib/.deps/

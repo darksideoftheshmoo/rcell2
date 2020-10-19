@@ -10,21 +10,27 @@ cell2(
   no_cores = NULL,
   debug_flag = 0,
   dry = F,
-  label_cells_in_bf = F
+  label_cells_in_bf = F,
+  fill_interior_pixels = F,
+  output_coords_to_tsv = F
 )
 }
 \arguments{
 \item{arguments}{An argument data.frame, as built by rcell2::cellArgs2.}
 
-\item{cell.command}{the CellID command, either "cellBUILTIN" for the builtin binary, a path to the binary executable (get if from https://github.com/naikymen/cellID-linux).}
+\item{cell.command}{Path to the binary executable (get if from https://github.com/darksideoftheshmoo/cellID-linux). Or "cellBUILTIN" for the builtin binary.}
 
 \item{no_cores}{Position-wise parallelization,internally capped to number of positions in cell.args.}
 
-\item{debug_flag}{Set to 0 to disable CellID printf messages.}
+\item{debug_flag}{Set to 0 to disable CellID printf messages (builtin CellID only).}
 
-\item{dry}{Do everything without actually running CellID.}
+\item{dry}{Do everything without actually running CellID, print the commands that would have been issued.}
 
-\item{label_cells_in_bf}{Set to TRUE to enable lableing of cells with their CellID in the BF image.}
+\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF outpu image.}
+
+\item{fill_interior_pixels}{Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels.}
+
+\item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory.}
 }
 \value{
 Nothing :) use rcell2::load_cell_data to get the results from the output at the images path

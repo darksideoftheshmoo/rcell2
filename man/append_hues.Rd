@@ -4,12 +4,14 @@
 \alias{append_hues}
 \title{Append Hu moments columns to data on a cell_data object}
 \usage{
-append_hues(cell_data, image_bits, return_points = F)
+append_hues(cell_data, image_bits, cell_id_offset = -1, return_points = F)
 }
 \arguments{
 \item{cell_data}{a cell_data object as loaded by rcell2::load_cell_data}
 
-\item{image_bits}{an integer indicating the bit-depth on the TIFF images.}
+\item{image_bits}{an integer indicating the bit-depth on the TIFF images, such that maximum intensity is \code{image_bits^2 -1} and minimum is zero.}
+
+\item{cell_id_offset}{the offset respect to maximum pixel intensity, such that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.}
 
 \item{return_points}{if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.}
 }

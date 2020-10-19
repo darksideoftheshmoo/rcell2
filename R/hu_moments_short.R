@@ -41,18 +41,18 @@ hu.moments <- function(xy){
   I3 <- (eta(xy,3,0) - 3*eta(xy,1,2))**2 + (3*eta(xy,2,1) - eta(xy,0,3))**2 #not very useful?
   I4 <- (eta(xy,3,0) + eta(xy,1,2))**2 + (eta(xy,2,1) + eta(xy,0,3))**2
   I5 <- (eta(xy,3,0) - 3*eta(xy,1,2))*(eta(xy,3,0) + eta(xy,1,2))*
-    ((eta(xy,3,0) + eta(xy,1,2))**2 - 3*(eta(xy,2,1) + eta(xy,0,3))**2) +
-    (3*eta(xy,2,1) - eta(xy,0,3)) * (eta(xy,2,1) + eta(xy,0,3)) *
-    (3*(eta(xy,3,0) + eta(xy,1,2))**2 - (eta(xy,2,1) + eta(xy,0,3))**2)
+        ((eta(xy,3,0) + eta(xy,1,2))**2 - 3*(eta(xy,2,1) + eta(xy,0,3))**2) +
+        (3*eta(xy,2,1) - eta(xy,0,3)) * (eta(xy,2,1) + eta(xy,0,3)) *
+        (3*(eta(xy,3,0) + eta(xy,1,2))**2 - (eta(xy,2,1) + eta(xy,0,3))**2)
   I6 <- (eta(xy,2,0) - eta(xy,0,2)) * ((eta(xy,3,0) + eta(xy,1,2))**2 -
-                                         (eta(xy,2,1) + eta(xy,0,3))**2) +
-    4*eta(xy,1,1) * (eta(xy,3,0) + eta(xy,1,2)) * (eta(xy,2,1) + eta(xy,0,3))
+                                       (eta(xy,2,1) + eta(xy,0,3))**2) +
+        4*eta(xy,1,1) * (eta(xy,3,0) + eta(xy,1,2)) * (eta(xy,2,1) + eta(xy,0,3))
   I7 <- (3*eta(xy,2,1) - eta(xy,0,3)) * (eta(xy,3,0) + eta(xy,1,2)) *
-    ((eta(xy,3,0) + eta(xy,1,2))**2 - 3*(eta(xy,2,1) + eta(xy,0,3))**2) -
-    (eta(xy,3,0) - 3*eta(xy,1,2)) * (eta(xy,2,1) + eta(xy,0,3)) *
-    (3*(eta(xy,3,0) + eta(xy,1,2))**2 - (eta(xy,2,1) + eta(xy,0,3))**2)
+        ((eta(xy,3,0) + eta(xy,1,2))**2 - 3*(eta(xy,2,1) + eta(xy,0,3))**2) -
+        (eta(xy,3,0) - 3*eta(xy,1,2)) * (eta(xy,2,1) + eta(xy,0,3)) *
+        (3*(eta(xy,3,0) + eta(xy,1,2))**2 - (eta(xy,2,1) + eta(xy,0,3))**2)
   I8 <- eta(xy,1,1) * ((eta(xy,3,0) + eta(xy,1,2))**2 - (eta(xy,0,3) + eta(xy,2,1))**2) -
-    (eta(xy,2,0) - eta(xy,0,2)) * (eta(xy,3,0) + eta(xy,1,2)) * (eta(xy,0,3) + eta(xy,2,1))
+        (eta(xy,2,0) - eta(xy,0,2)) * (eta(xy,3,0) + eta(xy,1,2)) * (eta(xy,0,3) + eta(xy,2,1))
   
   #hu <- c(I1, I2, I3, I4, I5, I6, I7, I8)
   #return(-sign(hu)*log10(abs(hu)))
@@ -67,7 +67,7 @@ hu.moments <- function(xy){
 }
 
 #' Generate a dataframe with boundary coordinates from mask tiff file
-pic_df_from_tiff <- function(tiff_path, image_bits){
+pic_df_from_tiff <- function(tiff_path, image_bits, cell_id_offset = -1){
   # Read masks tiff
   pic <- tiff::readTIFF(tiff_path)
   # Convert intensity value to 16-bit integers
@@ -82,7 +82,7 @@ pic_df_from_tiff <- function(tiff_path, image_bits){
   # Clear NA rows
   pic_df <- pic_df[!is.na(pic_df[["pix_value"]]),]
   # Convert integer intensity value to CellID
-  pic_df$cellID <- factor((2^image_bits -1) - pic_df[["pix_value"]])
+  pic_df$cellID <- factor((2^image_bits -1) - pic_df[["pix_value"]] + cell_id_offset)
   
   return(pic_df)
 }
@@ -153,11 +153,12 @@ hues_from_xy2 <-  function(pic_df, split_col = "cellID"){
 #' Or if you want to skip calculation of the Hu moments, checkout \code{rcell2:::pic_df_from_tiff}.
 #' 
 #' @param cell_data a cell_data object as loaded by rcell2::load_cell_data
-#' @param image_bits an integer indicating the bit-depth on the TIFF images.
+#' @param image_bits an integer indicating the bit-depth on the TIFF images, such that maximum intensity is \code{image_bits^2 -1} and minimum is zero.
+#' @param cell_id_offset the offset respect to maximum pixel intensity, such that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.
 #' @param return_points if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.
 #' @export
 #' 
-append_hues <- function(cell_data, image_bits, return_points = F){
+append_hues <- function(cell_data, image_bits, cell_id_offset = -1, return_points = F){
   paths <- cell_data$images %>% 
     mutate(file = paste0(path, "/", image)) %>% 
     filter(channel == "BF.out")
@@ -171,9 +172,10 @@ append_hues <- function(cell_data, image_bits, return_points = F){
   # return_points = T
   
   pic.and.hues.dfs <- apply(paths, MARGIN = 1, FUN = function(pic_metadata){
-    # Extract xy coordinates list from the BF.out mask tiff 
+    # Extract xy coordinates list from the BF.out mask tiff and derive cellID from the intensities
     pic_df <- pic_df_from_tiff(tiff_path = pic_metadata["file"], 
-                               image_bits = image_bits)
+                               image_bits = image_bits, 
+                               cell_id_offset = cell_id_offset)
     
     # Compute Hu moments for each cellID
     hues_df <- hues_from_xy(pic_df)
@@ -229,7 +231,7 @@ check_tiff_mask <- function(cell_data){
               mean_ypos = round(mean(y))
     )
   
-  cdata_compare <- left_join(cell_data$data,
+  cdata_compare <- left_join(mutate(cell_data$data, cellID = as.factor(cellID)),
                              select(masks_df_summary, 
                                     cellID, t.frame, pos, mean_xpos, mean_ypos), 
                              by = c("cellID", "t.frame", "pos"))
@@ -256,7 +258,7 @@ check_tiff_mask <- function(cell_data){
 }
 
 #' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
-check_tiff_mask <- function(cell_data){
+check_tiff_mask2 <- function(cell_data){
   
   options(dplyr.summarise.inform = FALSE)
   
@@ -274,7 +276,7 @@ check_tiff_mask <- function(cell_data){
               mean_ypos = round(mean(y))
     )
   
-  cdata_compare <- left_join(cell_data$data,
+  cdata_compare <- left_join(mutate(cell_data$data, cellID = as.factor(cellID)),
                              select(masks_df_summary, 
                                     cellID, t.frame, pos, mean_xpos, mean_ypos), 
                              by = c("cellID", "t.frame", "pos"))

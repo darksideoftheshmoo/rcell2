@@ -4,7 +4,7 @@
 \alias{pic_df_from_tiff}
 \title{Generate a dataframe with boundary coordinates from mask tiff file}
 \usage{
-pic_df_from_tiff(tiff_path, image_bits)
+pic_df_from_tiff(tiff_path, image_bits, cell_id_offset = -1)
 }
 \description{
 Generate a dataframe with boundary coordinates from mask tiff file

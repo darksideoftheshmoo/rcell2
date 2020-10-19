@@ -25,11 +25,13 @@ cellid <- function(args, debug_flag=0){
 #' Function to run CellID
 #'
 #' @param arguments An argument data.frame, as built by rcell2::cellArgs2.
-#' @param cell.command the CellID command, either "cellBUILTIN" for the builtin binary, a path to the binary executable (get if from https://github.com/naikymen/cellID-linux).
+#' @param cell.command Path to the binary executable (get if from https://github.com/darksideoftheshmoo/cellID-linux). Or "cellBUILTIN" for the builtin binary.
 #' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
-#' @param dry Do everything without actually running CellID.
-#' @param debug_flag Set to 0 to disable CellID printf messages.
-#' @param label_cells_in_bf Set to TRUE to enable lableing of cells with their CellID in the BF image.
+#' @param dry Do everything without actually running CellID, print the commands that would have been issued.
+#' @param debug_flag Set to 0 to disable CellID printf messages (builtin CellID only).
+#' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF outpu image.
+#' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels.
+#' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory.
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -45,7 +47,9 @@ cell2 <- function(arguments,
                   no_cores = NULL, 
                   debug_flag=0,
                   dry = F,
-                  label_cells_in_bf = F){
+                  label_cells_in_bf = F,
+                  fill_interior_pixels = F,
+                  output_coords_to_tsv = F){
   
   n_positions <- arguments$pos %>% unique() %>% length()
   n_times <- arguments$t.frame %>% unique() %>% length()
@@ -79,12 +83,14 @@ cell2 <- function(arguments,
     
     if(is.null(cell.command)) cell.command <- system.file("cell", package = "rcell2", mustWork = T)
     
-    command <- paste(normalizePath(cell.command),
-                     "-b", bf_rcell2,
-                     "-f", fl_rcell2,
-                     "-o", normalizePath(paste0(arguments_pos$output[1], "/out")),
-                     "-p", arguments_pos$parameters[1],
-                     {if(label_cells_in_bf) "-l" else ""}
+    command <- paste0(normalizePath(cell.command),
+                      " -b ", bf_rcell2,
+                      " -f ", fl_rcell2,
+                      " -o ", normalizePath(paste0(arguments_pos$output[1], "/out")),
+                      " -p ", arguments_pos$parameters[1],
+                      {if(label_cells_in_bf) " -l" else ""},
+                      {if(output_coords_to_tsv) " -m" else ""},
+                      {if(fill_interior_pixels) " -i" else ""}
     )
     
     if(!dry) system(command = command, wait = T)
