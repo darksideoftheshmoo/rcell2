@@ -76,26 +76,9 @@ From new -m option
 
 ```{r}
 masks <- read_tsv("../data/time_seres_images_hu_moments/Position01/out_all_masks.tsv")
-
-masks %>% nrow()
-masks %>% unique() %>% nrow()
-
-masks.g <- masks %>% 
-  group_by_all() %>% 
-  summarise(count = n())
 ```
 
-```{r}
-# p <- ggplot(masks) + geom_tile(aes(x=xpos, y=ypos)) + facet_grid(flag~pixtype)
-# p <- masks.g %>% 
-#   # filter(cellID == 2) %>%
-#   filter(pixtype == "b") %>%
-#   ggplot() + geom_point(aes(x=xpos, y=ypos, color = factor(count))) + facet_grid(flag~pixtype)
-# 
-# # ggsave("masks.pdf", p, device = "pdf")
-# 
-# p
-```
+## Chequear mascaras del TSV output
 
 ```{r}
 p <- masks %>% 
@@ -114,8 +97,49 @@ p <- masks %>%
 
 p
 ```
+```{r}
+masks %>% 
+  filter(cellID %in% c(14, 591), pixtype=="i", channel=="YFP") %>% 
+  ggplot() + 
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
 
-## New function
+masks %>% 
+  filter(cellID %in% c(14, 591), pixtype=="b", channel=="YFP") %>% 
+  ggplot() + 
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+
+cell_data$data %>%
+  filter(cellID %in% c(14, 591)) %>%
+  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL)
+cell_data$data %>%
+  filter(cellID %in% c(14, 591)) %>%
+  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out")
+```
+
+```{r}
+cids <- c(140)
+
+p <- masks %>% 
+  filter(cellID %in% cids, pixtype=="i", channel=="YFP") %>% 
+  ggplot() + 
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+plotly::ggplotly(p)
+
+p <- masks %>% 
+  filter(cellID %in% cids, pixtype=="b", channel=="YFP") %>% 
+  ggplot() + 
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+plotly::ggplotly(p)
+
+cell_data$data %>%
+  filter(cellID %in% cids) %>%
+  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL)
+cell_data$data %>%
+  filter(cellID %in% cids) %>%
+  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out")
+```
+
+## Develop new function to load TSV outputs
 
 ```{r}
 flags_tsv_path <- c("../data/time_seres_images_hu_moments/Position01/out_bf_fl_mapping")
@@ -189,59 +213,9 @@ cell_data <- rcell2::load_cell_data(path = path)
 
 cell_data$data <- cell_data$data %>% left_join(boundary_hues_tfp)
 ```
-# Bug: las boundaries parecen "abiertas"
 
-Parece que faltan pixeles en el boundary, sea por que hay dos celulas pegadas o no:
+## Possible BUG ¿tres fotos y solo dos flags?
 
-```{r}
-masks %>% 
-  filter(cellID %in% c(14, 591), pos==1, pixtype=="i", channel=="YFP") %>% 
-  ggplot() + 
-  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+Hay dos flags pero tres fotos. Quizas las boundaries que estoy cargando ahora como si fueran de dos canales diferentes, son realmente solo del BF.
 
-masks %>% 
-  filter(cellID %in% c(14, 591), pos==1, pixtype=="b", channel=="YFP") %>% 
-  ggplot() + 
-  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
-
-cell_data$data %>%
-  filter(cellID %in% c(14, 591)) %>%
-  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL)
-cell_data$data %>%
-  filter(cellID %in% c(14, 591)) %>%
-  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out")
-```
-
-```{r}
-cids <- c(140)
-
-p <- masks %>% 
-  filter(cellID %in% cids, pos==1, pixtype=="i", channel=="YFP") %>% 
-  ggplot() + 
-  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
-plotly::ggplotly(p)
-
-p <- masks %>% 
-  filter(cellID %in% cids, pos==1, pixtype=="b", channel=="YFP") %>% 
-  ggplot() + 
-  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
-plotly::ggplotly(p)
-
-cell_data$data %>%
-  filter(cellID %in% cids) %>%
-  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL)
-cell_data$data %>%
-  filter(cellID %in% cids) %>%
-  rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out")
-```
-
-### TODO - cosas para probar
-
-De hecho los puntos en el TIFF son puestos por `add_boundary_points_to_data` indirectamente.
-
-Hace una cuentita con ellos para ponerlos en el array `d` (que tiene las "dimensiones" del TIFF).
-
-Hay dos opciones, la primera es que no estoy haciendo el "full circuit", que en esa función dice que se hace con `if(p2==NULL) p2=p_start; //So make full circuit`.
-
-La segunda es que el resto de las cuentitas son una interpolación de los puntos en `cellblob->boundary`.
-
+En ese caso si las boundaries se alinean con el FL o lo que sea, sus nuevas posiciones no se guardan en el cell "blob".
