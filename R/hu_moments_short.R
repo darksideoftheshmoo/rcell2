@@ -112,7 +112,32 @@ hues_from_xy <-  function(pic_df, split_col = "cellID"){
   # Bind rows from all cellIDs and return
   return(bind_rows(hues))
 }
+
+#' Generate Hu moments from XY coordinates dataframe
+#' 
+#' This function requires a CellID column to split the coordinates by.
+#' 
+hues_from_xy2 <-  function(pic_df, split_col = "cellID"){
+  # Split the dataframe by cellID
+  pic_df_split <- split(pic_df, pic_df[[split_col]])
+  
+  # Compute Hu moments for each cellID's boundary mask XY coordinates
+  cl <- parallel::makeCluster(max(1, parallel::detectCores() - 1))
+  hues <- parallel::parLapply(cl, 
+                              pic_df_split, 
+                              fun = function(cell_coords_df){
+    # Convert dataframe to matrix
+    xy <- as.matrix(cell_coords_df[,c("x", "y")])
+    # Rename XY columns appropriately
+    colnames(xy) <- c("dim1", "dim2")
+    
+    # Return a named vector with the cell ids and the named hu moments
+    return_vector <- c(unique(cell_coords_df[[split_col]]), rcell2::hu.moments(xy))
+    names(return_vector)[1] <- split_col
+    
+    return_vector
   })
+  parallel::stopCluster(cl)
   
   # Bind rows from all cellIDs and return
   return(bind_rows(hues))
