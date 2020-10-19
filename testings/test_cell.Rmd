@@ -28,9 +28,10 @@ library(rcell2)
 ### Generar arguments
 
 ```{r}
-# path <- "~/Software/cellID-linux/test_data/"
-path <- "../data/time_seres_images_hu_moments/"
-parameters <- "../data/time_seres_images_hu_moments/parameters_hu.txt"
+path <- "~/Software/cellID-linux/test_data_tmp/"
+parameters <- "~/Software/cellID-linux/parameters_example.txt"
+# path <- "../data/time_series_image_samples_bf_as_fl/"
+# parameters <- "../data/time_series_image_samples_bf_as_fl/parameters.txt"
 
 arguments <- rcell2::cellArgs2(path = path, parameters = parameters)
 arguments
@@ -52,3 +53,22 @@ path <- "../data/time_series_image_samples/"
 cell.data.old <- rcell2::cell.load.alt(path =  path)
 cell_data.new <- rcell2::load_cell_data(path = path)
 ```
+
+# Load cell mask coords
+
+From new -m option
+
+```{r}
+masks <- read_tsv("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
+
+masks
+```
+
+```{r}
+p <- ggplot(masks) + geom_tile(aes(x=xpos, y=ypos)) + facet_grid(flag~pixtype)
+
+ggsave("masks.pdf", p, device = "pdf")
+
+p
+```
+

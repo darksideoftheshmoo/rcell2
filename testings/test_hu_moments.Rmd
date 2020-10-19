@@ -407,3 +407,87 @@ cell_data <- rcell2::append_hues(cell_data,
 rcell2:::check_tiff_mask(cell_data)
 ```
 
+# Mask coords from new CellID "-m" option
+
+From new -m option
+
+```{r}
+masks <- read_tsv("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
+
+masks %>% nrow()
+masks %>% unique() %>% nrow()
+
+masks.g <- masks %>% 
+  group_by_all() %>% 
+  summarise(count = n())
+```
+
+```{r}
+p <- ggplot(masks) + geom_tile(aes(x=xpos, y=ypos)) + facet_grid(flag~pixtype)
+p <- masks.g %>% 
+  # filter(cellID == 2) %>%
+  filter(pixtype == "b") %>%
+  ggplot() + geom_point(aes(x=xpos, y=ypos, color = factor(count))) + facet_grid(flag~pixtype)
+
+# ggsave("masks.pdf", p, device = "pdf")
+
+p
+```
+
+```{r}
+p <- masks %>% 
+  filter(cellID == 3) %>%
+  filter(pixtype == "b") %>%
+  ggplot() + geom_tile(aes(x=xpos, y=ypos, fill = factor(t.frame))) + facet_grid(flag~pixtype)
+
+p
+```
+
+```{r}
+p <- masks %>% 
+  filter(cellID == 3) %>%
+  filter(pixtype == "b") %>%
+  ggplot() + geom_tile(aes(x=xpos, y=ypos, fill = factor(flag))) + facet_grid(t.frame~pixtype)
+
+p
+```
+
+## New function
+
+```{r}
+masks_tsv_path <- c("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
+flags_tsv_path <- c("~/Software/cellID-linux/test_data_tmp/Position01/out_bf_fl_mapping")
+
+flags_from_m_option_tsv <- function(cell_data, flags_tsv_path){
+  read_tsv(flags_tsv_path) %>% 
+    select(fluor, flag)
+  
+  paths <- cell_data$images %>% 
+    mutate(file = paste0(path, "/", image)) %>% 
+}
+
+maks_from_m_option_tsv <- function(masks_tsv_path, position, .parallel = F){
+    masks_coords <- read_tsv(masks_tsv_path) %>% 
+      mutate(id = paste(cellID, t.frame, flag, pixtype, sep = "_"))
+    
+    if(.parallel) {
+      hues_df <- hues_from_xy(masks_coords, split_col="id")} else {
+      hues_df <- hues_from_xy2(masks_coords, split_col="id")}
+    
+    hues_by_cell <- masks_coords %>% 
+      select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
+      left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
+      select(-id) %>% mutate(pos = position)
+    
+    return(hues_by_cell)
+}
+
+hues_by_cell_df <- maks_from_m_option_tsv(masks_tsv_path = masks_tsv_path, position = 1)
+```
+
+```{r}
+path <- "~/Software/cellID-linux/test_data_tmp/"
+
+cell_data <- rcell2::load_cell_data(path = path)
+```
+
