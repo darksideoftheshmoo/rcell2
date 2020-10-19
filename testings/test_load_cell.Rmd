@@ -29,11 +29,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 # library(rcell2)
 
-path <- "../data/image_samples/"
-path <- "../data/time_series_image_samples//"
-path.pdata <- paste0(path, "pdata.csv")
-parameters <- "../inst/parameters.txt"
-
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
 
@@ -53,7 +48,13 @@ devtools::install(reload = T,
 ## Load data and plot something
 
 ```{r}
+path <- "/home/nicomic/Software/cellID-linux/test_data_tmp/"
+
 cell_data <- rcell2::load_cell_data(path =  path)
 cell.data <- rcell2::cell.load.alt(path =  path, cellid.zero.pad = 5)
+```
+
+```{r}
+cell_data$data %>% ggplot() + geom_point(aes(x=a.tot, y=fft.stat, color = factor(ucid))) + theme(legend.position = "none")
 ```
 
