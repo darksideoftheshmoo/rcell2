@@ -18,7 +18,7 @@ magickCell(
   seed = 1,
   .debug = FALSE,
   return_single_imgs = FALSE,
-  annotation_params = c(color = "white", background = "black")
+  annotation_params = list(color = "white", background = "black")
 )
 }
 \arguments{
@@ -48,7 +48,7 @@ magickCell(
 
 \item{return_single_imgs}{If TRUE, return a vector of images instead of a tile.}
 
-\item{annotation_params}{a named character vector for magick::annotate options (with one or more of the names "color" "background" "size"). Use NULL to skip annotations.}
+\item{annotation_params}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
 }
 \value{
 A list of two elements: the magick image and the ucids in the image.

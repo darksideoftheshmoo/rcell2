@@ -56,7 +56,7 @@ square_tile <- function(images){
 #' @param seed Seed value for sampling of cell images.
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
-#' @param  annotation_params a named character vector for magick::annotate options (with one or more of the names "color" "background" "size"). Use NULL to skip annotations.
+#' @param  annotation_params Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.
 #' @return A list of two elements: the magick image and the ucids in the image.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -75,8 +75,8 @@ magickCell <- function(cdata, paths,
                        seed = 1, 
                        .debug=FALSE, 
                        return_single_imgs = FALSE,
-                       annotation_params = c(color = "white", 
-                                             background = "black")
+                       annotation_params = list(color = "white", 
+                                                background = "black")
                        ){
   if(.debug) print("F8")
 
@@ -95,14 +95,17 @@ magickCell <- function(cdata, paths,
   
   # Annotation parameters
   updateList <- function(l1, l2){
+    if(!is.list(l2) | !is.list(l1)) stop("Error: annotation_params must be a named list.")
     common.names <- names(l2)[names(l2) %in% names(l1)]
     l1[common.names] <- l2[common.names]
     return(l1)
   }
-  annotation_params_default = c(color = "white",
-                                background = "black",
-                                size = as.numeric(stringr::str_split(cell_resize_string, "x")[[1]])[1]/7)
-  if(!is.null(annotation_params)) annotation_params <- updateList(annotation_params_default, annotation_params)
+  # annotation_params = list(size = 2, color = NULL)
+  annotation_params_default = list(color = "white",
+                                   background = "black",
+                                   size = cell_resize/7)
+  if(!is.null(annotation_params)) annotation_params <- updateList(annotation_params_default, 
+                                                                  annotation_params)
   
 
   # Intento con magick
@@ -168,17 +171,17 @@ magickCell <- function(cdata, paths,
                                text = paste(paste0("Pos", as.character(position)),
                                             paste0("t", t_frame),
                                             ch),
-                               color = annotation_params["color"],
-                               boxcolor = annotation_params["background"],
-                               size = annotation_params["size"],
+                               color = annotation_params[["color"]],
+                               boxcolor = annotation_params[["background"]],
+                               size = annotation_params[["size"]],
                                font = "Comic sans",
                                gravity = "SouthEast")} %>%
       {if(is.null(annotation_params)) . else 
         magick::image_annotate(.,
                                text = as.character(ucid),
-                               color = annotation_params["color"],
-                               boxcolor = annotation_params["background"],
-                               size = annotation_params["size"],
+                               color = annotation_params[["color"]],
+                               boxcolor = annotation_params[["background"]],
+                               size = annotation_params[["size"]],
                                font = "Comic sans",
                                gravity = "NorthWest")} %>%
       # Add black border
