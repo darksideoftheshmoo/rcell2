@@ -155,7 +155,14 @@ magickCell <- function(cdata, paths,
       magick::image_crop(getCellGeom(xpos = cdataSample$xpos[i],
                                      ypos = cdataSample$ypos[i],
                                      boxSize)) %>%
+      # Add square black box
+      {magick::image_composite(
+        magick::image_blank(boxSize, boxSize, "black"),
+        ., gravity = "Center"
+      )} %>% 
+      # Resize
       magick::image_resize(cell_resize_string) %>%
+      # Annotate
       {if(is.null(annotation_params)) . else 
         magick::image_annotate(.,
                                text = paste(paste0("Pos", as.character(position)),
@@ -174,7 +181,9 @@ magickCell <- function(cdata, paths,
                                size = annotation_params["size"],
                                font = "Comic sans",
                                gravity = "NorthWest")} %>%
+      # Add black border
       magick::image_border("black","1x1") %>% 
+      # Tile horizontally
       magick::image_append()
     }
 
