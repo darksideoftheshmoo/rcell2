@@ -29,9 +29,10 @@ cellid <- function(args, debug_flag=0){
 #' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
 #' @param dry Do everything without actually running CellID, print the commands that would have been issued.
 #' @param debug_flag Set to 0 to disable CellID printf messages (builtin CellID only).
-#' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF outpu image.
+#' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF output image.
 #' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels.
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory.
+#' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs.
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -49,7 +50,10 @@ cell2 <- function(arguments,
                   dry = F,
                   label_cells_in_bf = F,
                   fill_interior_pixels = F,
-                  output_coords_to_tsv = F){
+                  output_coords_to_tsv = F,
+                  encode_cellID_in_pixels = F){
+  
+  if(encode_cellID_in_pixels) stop("cell2 error: encode_cellID_in_pixels is not yet supported as an Rcell2 option.")
   
   positions <- arguments$pos %>% unique()
   n_positions <- positions %>% length()

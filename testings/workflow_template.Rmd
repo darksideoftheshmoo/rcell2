@@ -1,0 +1,159 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rcell2)
+```
+
+# Ejemplo de uso con nuevo arguments2
+
+### CellID parameters
+
+```{r}
+parameters <- "parameters_test.txt"
+
+param_array <- c(
+  "max_split_over_minor 0.50",
+  "max_dist_over_waist 8.00",
+  "max_pixels_per_cell 2000",
+  "min_pixels_per_cell 75",
+  "background_reject_factor 0.5",
+  "tracking_comparison 0.20",
+  # "align_individual_cells",  # tambien se puede deshabilitar con un "#" en el mismo parameters.txt
+  "align_fl_to_bf",
+  "image_type brightfield",
+  "bf_fl_mapping list")
+
+write(param_array, file = parameters)
+```
+
+Imprimir contenidos del parameters.txt que generamos arriba:
+
+```{r}
+writeLines(readLines(parameters))
+```
+
+### Generar arguments
+
+Es un dataframe con información para CellID.
+
+La opción más importante es `file.pattern` que es una expresión regular para encontrar archivos de imágenes en el `path`.
+
+Por defecto es:
+
+    "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"
+
+Entre paréntesis están los "grupos de captura" de la expresión regular, donde se espera que esté la siguiente información:
+
+1. Canal
+2. Número de posición
+3. Número de tiempo
+
+Para no usar tiempo solo hay que borrar la parte del tiempo, dejando un paréntesis vacío en su lugar `()`:
+
+    "^(BF|[A-Z]FP)_Position(\\d+)().tif$"
+
+Se puede "filtrar" posiciones y tiempos directo desde la regex, o posteriormente usando las funciones de R usuales. Para usar solo la posicion 2, y los tiempos 4, 2 y 3, la regex sería:
+
+    "^(BF|[A-Z]FP)_Position(?0+2)_time(?0+[423]).tif$"
+
+Noten el `0+?` enfrente del número, que indica que puede haber un cero o más frente al numerito de posición o tiempo en el nombre del archivo.
+
+```{r}
+path <- "/home/nicomic/Software/cellID-linux/test_data_andy/"
+
+arguments <- rcell2::cellArgs2(path = path, 
+                               file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
+                               parameters = parameters)
+arguments
+```
+
+Lo anterior sería lo mismo que filtrar con `dplyr`:
+
+```{r}
+arguments %>% filter(pos == 2, t.frame %in% c(4,2,3))
+```
+
+
+### Correr CellID
+
+La función `cell2` genera comandos para llamar a CellID por línea de comandos y los ejecuta en paralelo.
+
+La opción `dry = T` indica a la función hacer "todo" menos ejecutar CellID, e imprime los comandos que habría usado.
+
+Para correr los comandos, usen `dry = F` (aunque tambien pueden copiarlos y pegarlos en una terminal, si están en Linux o Mac OS).
+
+```{r}
+rcell2::cell2(arguments = arguments, 
+              cell.command = "~/Software/cellID-linux/cell",
+              dry = T, no_cores = 2)
+```
+
+# Cargar CellID data
+
+Esto se hace con la función `load_cell_data`:
+
+```{r}
+# cell.data.old <- rcell2::cell.load.alt(path =  path)
+cell_data.new <- rcell2::load_cell_data(path = path)
+```
+
+Si esa no funciona, pueden intentar con `cell.load.alt`, aunque esta función no está tan probada.
+
+# Datos de máscaras
+
+## TIFF pixel ID
+
+Si especificaron la opción `encode_cellID_in_pixels` en `cell2`, el CellID está codificado en la intensidad de pixel de las fotos de `BF.out`, y se puede cargar usando la funcion `pic_df_from_tiff`.
+
+```{r}
+rcell2:::pic_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", image_bits = 16)
+```
+
+## TSV output
+
+Si especificaron la opción `output_coords_to_tsv` en `cell2`, hay un archivo TSV por posición con las coordenadas de los bordes y del interior todas las células en esa posición.
+
+Pueden cargarlo y revisarlo así:
+
+```{r}
+masks <- read_tsv("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
+
+masks
+```
+
+Por ejemplo:
+
+```{r}
+p1 <- ggplot(masks) + geom_tile(aes(x=x, y=y)) + facet_grid(flag~pixtype) + ggtitle("Todas las celulas")
+p2 <- masks %>% filter(cellID == 0, t.frame == 0) %>% ggplot() + geom_tile(aes(x=x, y=y)) + facet_grid(flag~pixtype) + ggtitle("Una celula")
+
+p1
+p2
+```
+
+## Usar datos de máscaras con Hu Moments
+
+Para usar los datos de los TIFF, solo hace falta correr lo siguiente:
+
+```{r}
+cell_data <- rcell2::append_hues(cell_data = cell_data, 
+                                 return_points = T, 
+                                 image_bits = 16)
+
+rcell2:::check_tiff_mask(cell_data)
+```
+ 
+Para usar los TFP:
+
+```{r}
+"test_hu_moments.Rmd"
+```
+

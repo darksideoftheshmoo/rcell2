@@ -12,7 +12,8 @@ cell2(
   dry = F,
   label_cells_in_bf = F,
   fill_interior_pixels = F,
-  output_coords_to_tsv = F
+  output_coords_to_tsv = F,
+  encode_cellID_in_pixels = F
 )
 }
 \arguments{
@@ -26,11 +27,13 @@ cell2(
 
 \item{dry}{Do everything without actually running CellID, print the commands that would have been issued.}
 
-\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF outpu image.}
+\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF output image.}
 
 \item{fill_interior_pixels}{Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels.}
 
 \item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory.}
+
+\item{encode_cellID_in_pixels}{Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs.}
 }
 \value{
 Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
