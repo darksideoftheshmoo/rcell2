@@ -51,7 +51,8 @@ cell2 <- function(arguments,
                   fill_interior_pixels = F,
                   output_coords_to_tsv = F){
   
-  n_positions <- arguments$pos %>% unique() %>% length()
+  positions <- arguments$pos %>% unique()
+  n_positions <- positions %>% length()
   n_times <- arguments$t.frame %>% unique() %>% length()
   
   # Create output directories
@@ -67,7 +68,7 @@ cell2 <- function(arguments,
   
   doParallel::registerDoParallel(cl)
   
-  sent_commands <- foreach::foreach(pos=1:n_positions) %dopar% {
+  sent_commands <- foreach::foreach(pos=positions) %dopar% {
     
     arguments_pos <- arguments[arguments$pos == pos,]
     
@@ -78,8 +79,8 @@ cell2 <- function(arguments,
                           fileext = ".txt",
                           pattern = "fl_rcell2")
     
-    write(x = paste0(arguments_pos$path, "/", arguments_pos$bf), file = bf_rcell2)
-    write(x = paste0(arguments_pos$path, "/", arguments_pos$image), file = fl_rcell2)
+    base::write(x = paste0(arguments_pos$path, "/", arguments_pos$bf), file = bf_rcell2)
+    base::write(x = paste0(arguments_pos$path, "/", arguments_pos$image), file = fl_rcell2)
     
     if(is.null(cell.command)) cell.command <- system.file("cell", package = "rcell2", mustWork = T)
     
@@ -107,6 +108,21 @@ cell2 <- function(arguments,
   return(invisible(NULL))
 }
 
+#' Cluster test
+cluster_test <- function(){
+  cl <- parallel::makeCluster(2)
+  
+  doParallel::registerDoParallel(cl)
+  
+  # Prueba con base
+  parallel::parLapply(cl, list(1,2), function(x) print(x))
+  
+  # Prueba con foreach
+  library(foreach)
+  foreach(x=list(1,2)) %dopar% print(x)
+  
+  parallel::stopCluster(cl)
+}
 
 #' Obtener argumentos para CellID
 #'
@@ -118,6 +134,7 @@ cell2 <- function(arguments,
 #' @param out.dir name for output directories paths "out"
 #' @param tiff.ext regex pattern for the tif file extension
 #' @return a data.frame with all the information needed to run CellID
+#' @import dplyr tidyr
 # @examples
 # cell.args <- cellArgs(path = path)
 #' @export
@@ -144,14 +161,14 @@ cellArgs2 <- function(path,
                    regex = file.pattern, 
                    remove = F)
   
-  arguments <- left_join(
+  arguments <- dplyr::left_join(
     pics_df %>% filter(str_detect(string = image,
                                   pattern = BF.pattern, 
                                   negate = T)),
     
-    pics_df %>% filter(str_detect(string = image,
-                                  pattern = BF.pattern)) %>% 
-      dplyr::rename(bf = image) %>% select(pos, t.frame, bf),
+    pics_df %>% dplyr::filter(str_detect(string = image,
+                                         pattern = BF.pattern)) %>% 
+      dplyr::rename(bf = image) %>% dplyr::select(pos, t.frame, bf),
     by = c("pos", "t.frame")
   )
   
