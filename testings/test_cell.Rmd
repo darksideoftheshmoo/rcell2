@@ -25,15 +25,43 @@ library(rcell2)
 
 # Ejemplo de uso con nuevo arguments2
 
+### CellID parameters
+
+Deshabilitar `align_individual_cells`, generaba artefactos en la fluorescencia de Far1.
+
+```{r}
+# parameters <- "~/Software/cellID-linux/test_data_tmp2/parameters_example2.txt"
+# parameters <- "../data/time_series_image_samples_bf_as_fl/parameters.txt"
+# parameters <- "/home/nicomic/Software/cellID-linux/test_data_andy/Position001/parameters_vcellid_out.txt"
+parameters <- "../inst/parameters_test.txt"
+
+param_array <- c(
+  "max_split_over_minor 0.50",
+  "max_dist_over_waist 8.00",
+  "max_pixels_per_cell 2000",
+  "min_pixels_per_cell 75",
+  "background_reject_factor 0.5",
+  "tracking_comparison 0.20",
+  # "align_individual_cells",  # tambien se puede deshabilitar con un "#" en el mismo parameters.txt
+  "align_fl_to_bf",
+  "image_type brightfield",
+  "bf_fl_mapping list")
+
+write(param_array, file = parameters)
+```
+
+Imprimir contenidos del parameters.txt:
+
+```{r}
+writeLines(readLines(parameters))
+```
+
 ### Generar arguments
 
 ```{r}
 # path <- "~/Software/cellID-linux/test_data_tmp2/"
-# parameters <- "~/Software/cellID-linux/test_data_tmp2/parameters_example2.txt"
 # path <- "../data/time_series_image_samples_bf_as_fl/"
-# parameters <- "../data/time_series_image_samples_bf_as_fl/parameters.txt"
 path <- "/home/nicomic/Software/cellID-linux/test_data_andy/"
-parameters <- "/home/nicomic/Software/cellID-linux/test_data_andy/Position001/parameters_vcellid_out.txt"
 
 arguments <- rcell2::cellArgs2(path = path, parameters = parameters)
 arguments
@@ -43,7 +71,8 @@ arguments
 
 ```{r}
 rcell2::cell2(arguments = arguments, 
-              cell.command = "~/Software/cellID-linux/cell", # cell.command = system.file("cell", package = "rcell2", mustWork = T),
+              cell.command = "~/Software/cellID-linux/cell",
+              # cell.command = system.file("cell", package = "rcell2", mustWork = T),
               dry = F, no_cores = 2)
 ```
 
@@ -81,6 +110,8 @@ p
 
 # Sin tframes
 
+## Arguments setup
+
 ```{r}
 path <- "/home/nicomic/Projects/Rdevel/rcell2/data/image_samples/"
 # path <- "/home/nicomic/Projects/Rdevel/rcell2/data/time_series_image_samples/"
@@ -91,6 +122,7 @@ arguments <- rcell2::cellArgs2(path = path, parameters = parameters,
 arguments
 ```
 
+## Run CellID
 
 ```{r}
 rcell2::cell2(arguments = arguments, 
