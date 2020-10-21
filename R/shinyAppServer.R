@@ -380,8 +380,8 @@ shinyAppServer <-
                                        sortVar = input$x, 
                                        seed = values$seed, 
                                        n = n_max, 
-                                       .equalize = input$equalize_pics,
-                                       .normalize = input$normalize_pics,
+                                       equalize_images = input$equalize_pics,
+                                       normalize_images = input$normalize_pics,
                                        boxSize = boxSize)
             tmpimage <- magick.cell$img
             print(magick.cell$ucids)
@@ -458,8 +458,8 @@ shinyAppServer <-
                                     sortVar = input$x, 
                                     seed = values$seed, 
                                     n = n_max, 
-                                    .equalize = input$equalize_pics,
-                                    .normalize = input$normalize_pics,
+                                    equalize_images = input$equalize_pics,
+                                    normalize_images = input$normalize_pics,
                                     boxSize = boxSize)
           tmpimage <- magick.cell$img
         } else {
@@ -554,8 +554,8 @@ shinyAppServer <-
                                        sortVar = input$x, 
                                        seed = values$seed, 
                                        n = 1, 
-                                       .equalize = input$equalize_pics,
-                                       .normalize = input$normalize_pics,
+                                       equalize_images = input$equalize_pics,
+                                       normalize_images = input$normalize_pics,
                                        boxSize = boxSize)
             tmpimage <- magick.cell$img
             print(magick.cell$ucids)

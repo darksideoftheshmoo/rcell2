@@ -13,11 +13,12 @@
 #' @param pdata dataframe "position data"
 #' @param paths dataframe of image paths 
 #' @param cell_tags list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...)
+#' @param randomize_ucids Randomize ucid order.
 #' @param tag_box_size size of the image crop in pixels
 #' @param cell_resize resize of the image crop in pixels
 #' @param tag_channels_select a vector giving names for the image channels: c("BF", "YFP.out", etc....)
-#' @param .equalize Use magick's function to "equalize" the images.
-#' @param .normalize Use magick's function to "normalize" the images.
+#' @param equalize_images Use magick's function to "equalize" the images.
+#' @param normalize_images Use magick's function to "normalize" the images.
 #' @param n_max max number of boxes in the image
 #' @param seed seed for random sampling of images
 #' @param tmp_output_file file path into which tagging information will be dumped by user request
@@ -78,6 +79,7 @@ tagCell <- function(cdata,
                     pdata,
                     paths,
                     cell_tags,
+                    randomize_ucids = FALSE,
                     tag_box_size = 50,
                     cell_resize=100,
                     tag_channels_select=c("BF"),
@@ -85,8 +87,8 @@ tagCell <- function(cdata,
                     seed = 1,
                     tmp_output_file=NULL,
                     tag_ggplot = NULL,
-                    .equalize = F,
-                    .normalize = T,
+                    equalize_images = F,
+                    normalize_images = F,
                     debug_messages = F,
                     ...){
   

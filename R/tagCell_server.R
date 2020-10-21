@@ -14,7 +14,12 @@ tagCellServer <- function(input, output, session) {
   dir.create(dirname(normalizePath(tmp_output_file)), recursive = T)
   # write("", file=tmp_output_file)
   
-  d <- cdata %>% dplyr::arrange(ucid, t.frame) %>% 
+  d <- cdata %>% 
+    dplyr::arrange(ucid, t.frame) %>% 
+    {if(randomize_ucids) 
+      sample(x = split(., .$ucid), 
+             size = length(unique(cdata$ucid))) %>% 
+        bind_rows() else .} %>% 
     mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_")) %>% 
     mutate(
       cellID = as.integer(cellID),
@@ -25,7 +30,8 @@ tagCellServer <- function(input, output, session) {
   
   ucid.unique <- unique(d$ucid)
   
-  reactive_values <- shiny::reactiveValues(ith_cell = 1, ith_ucid = numeric(),
+  reactive_values <- shiny::reactiveValues(ith_cell = 1, # row index used to order dataframe rows
+                                           ith_ucid = numeric(),
                                            i_line = 1,
                                            other_reactive_values = c(),
                                            selected_cell_tags = list(),
@@ -459,8 +465,8 @@ tagCellServer <- function(input, output, session) {
                                  cell_resize=cell_resize,
                                  ch=tag_channels_select, 
                                  n = n_max, 
-                                 .equalize = .equalize,
-                                 .normalize = .normalize,
+                                 equalize_images = equalize_images,
+                                 normalize_images = normalize_images,
                                  boxSize = tag_box_size, 
                                  return_single_imgs = T, ...)
       tmpimage <- magick.cell$img
