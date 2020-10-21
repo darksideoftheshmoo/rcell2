@@ -152,7 +152,8 @@ cellArgs2 <- function(path,
   
   path <- normalizePath(path)
   
-  pic_files <- dir(path, pattern = file.pattern)  
+  pic_files <- dir(path, pattern = file.pattern)
+  if(length(pic_files) == 0) stop(paste("cellArgs2 error: no image files retrieved using file pattern:", file.pattern))
   
   pics_df <- data.frame(image = pic_files,
                         path = path) %>% 
@@ -187,6 +188,14 @@ cellArgs2 <- function(path,
   }
   
   arguments <- arguments %>% mutate(parameters = normalizePath(parameters))
+  
+  if(all(is.na(arguments$t.frame))){
+    warning("cellArgs2 warning: No t.frame data extracted, replacing all NAs with '1'. Check your directories and file.pattern if this is unexpected.")
+    arguments$t.frame <- 1
+  } else if(any(is.na(arguments))){
+    print(arguments)
+    stop("cellArgs2 error: at least one of the values in the arguments dataframe is missing, check your directories and file.pattern")
+  }
   
   return(arguments)
 }
