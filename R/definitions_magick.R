@@ -56,6 +56,7 @@ square_tile <- function(images){
 #' @param seed Seed value for sampling of cell images.
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
+#' @param return_ucid_df If TRUE, return is a list of magick images and ucid dataframes.
 #' @param  annotation_params Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.
 #' @return A list of two elements: the magick image and the ucids in the image.
 # @examples
@@ -74,7 +75,7 @@ magickCell <- function(cdata, paths,
                        sortVar = "xpos",
                        seed = 1, 
                        .debug=FALSE, 
-                       return_single_imgs = FALSE,
+                       return_single_imgs = FALSE, return_ucid_df = F,
                        annotation_params = list(color = "white", 
                                                 background = "black")
                        ){
@@ -192,9 +193,14 @@ magickCell <- function(cdata, paths,
 
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
   
-  if(return_single_imgs) return(list("img" = imga,
-                                     "ucids" = cdataSample$ucid))
-
+  if(return_single_imgs) {
+    if(return_ucid_df) {
+      return(list("img" = imga, "ucids" = cdataSample$ucid))
+    } else {
+      return(imga)
+    }
+  }
+  
   nRow <- ceiling(sqrt(n))
   nCol <- ceiling(n/nRow)
 
@@ -216,8 +222,11 @@ magickCell <- function(cdata, paths,
     imgb <- magick::image_resize(imgb, resize_string)
   }
 
-  return(list("img" = imgb,
-              "ucids" = cdataSample$ucid))
+  
+  if(return_ucid_df)
+    return(list("img" = imgb,
+                "ucids" = cdataSample$ucid))
+  else return(imgb)
 }
 
 #' Funcion copada para mostrar fotos basada en magick

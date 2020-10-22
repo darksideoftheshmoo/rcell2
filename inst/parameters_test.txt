@@ -1,0 +1,9 @@
+max_split_over_minor 0.50
+max_dist_over_waist 8.00
+max_pixels_per_cell 2000
+min_pixels_per_cell 75
+background_reject_factor 0.5
+tracking_comparison 0.20
+align_fl_to_bf
+image_type brightfield
+bf_fl_mapping list

@@ -18,6 +18,7 @@ magickCell(
   seed = 1,
   .debug = FALSE,
   return_single_imgs = FALSE,
+  return_ucid_df = F,
   annotation_params = list(color = "white", background = "black")
 )
 }
@@ -47,6 +48,8 @@ magickCell(
 \item{.debug}{Print more messages if TRUE.}
 
 \item{return_single_imgs}{If TRUE, return a vector of images instead of a tile.}
+
+\item{return_ucid_df}{If TRUE, return is a list of magick images and ucid dataframes.}
 
 \item{annotation_params}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
 }
