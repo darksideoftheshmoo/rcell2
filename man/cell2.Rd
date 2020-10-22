@@ -33,7 +33,7 @@ cell2(
 
 \item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').}
 
-\item{encode_cellID_in_pixels}{Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs (CellID option '-s').}
+\item{encode_cellID_in_pixels}{Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').}
 }
 \value{
 Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
