@@ -240,7 +240,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
     k.labs.current <- k.labs
     
     ## Print progress
-    cat("\r  Iteration #",i.count," (",max_iter,")",". Re-assignments: ",i.diff," ",sep="")
+    cat("\r  Iteration #",i.count," (",max_iter,")",". Re-assignments: ",i.diff,"           ",sep="")
     flush.console() 
     
     if(i.diff==0){
