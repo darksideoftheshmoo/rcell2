@@ -32,7 +32,7 @@ cellid <- function(args, debug_flag=0){
 #' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l').
 #' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
-#' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs (CellID option '-s').
+#' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -52,8 +52,6 @@ cell2 <- function(arguments,
                   fill_interior_pixels = F,
                   output_coords_to_tsv = F,
                   encode_cellID_in_pixels = F){
-  
-  if(encode_cellID_in_pixels) stop("cell2 error: encode_cellID_in_pixels is not yet supported as an Rcell2 option.")
   
   positions <- arguments$pos %>% unique()
   n_positions <- positions %>% length()
