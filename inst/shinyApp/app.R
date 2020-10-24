@@ -1,29 +1,21 @@
+# A script to run rcell2's shinyApp for filtering cell data
+# Set the appropriate paths and execute from the commandline (using Rscript) or from RStudio
+
+library(rcell2)
 options(shiny.reactlog = TRUE)
 
-# this will not work as is
-d <- readRDS("data/celldata.RDS")
-pdata <- readr::read_csv("data/pdata.csv")
+# Load "cell data"
+cell_data <- rcell2::load_cell_data("~/Projects/Programación/Rdevel/rcell2/data/image_samples/")
+cdata <- cell_data$data
 
-# extract cellid dataframe
-cdata <- d$data
-cdata <- merge(cdata, pdata, by = "pos")
+# Load "pdata"
+pdata <- readr::read_csv("~/Projects/Programación/Rdevel/rcell2/data/image_samples/pdata.csv")
 
 # extract image paths and channels from cell.data
-paths <- d$images
-paths$path <- "data/20191121_experiment/"
-paths$file <- sub("//", "/", paste(paste(paths$path, "/", paths$image, sep = "")))  # make complete (not full) paths
-
-# not really necessary I think.
-channels <- d$channels
+paths <- cell_data$images
 
 # run shinyCell. Filtered output would be saved in saved_data
 # A usage example follows:
-saved_data <- cellMagick::shinyCell(cdata, pdata, paths,
-                                    # filters = saved_data$filters,
-                                    plotType = "Hex", facet_grid_option = T, facets_scale_free = "free")
-
-# saveRDS(saved_data, "data/saved_magick.RDS")
-saved_data <- readRDS("data/saved_magick.RDS")
-saved_data <- cellMagick::shinyCell(cdata, pdata, paths, #initial_facet = "strain~alphaF",
-                                    filters = saved_data$filters,
-                                    plotType = "Dots", facet_grid_option = T, facets_scale_free = "free")
+saved_data <- rcell2::shinyCell(cdata, pdata, paths,
+                                # filters = saved_data$filters,
+                                plotType = "Dots", facet_grid_option = T, facets_scale_free = "free")
