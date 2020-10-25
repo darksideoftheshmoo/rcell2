@@ -49,11 +49,11 @@ square_tile <- function(images){
 #' @param cell_resize Size of the individual cell images. "100x100" by default.
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
 #' @param n maximum number of cells to display.
-#' @param equalize_images Use magick's function to "equalize" the image when TRUE.
-#' @param normalize_images Use magick's function to "normalize" the image when TRUE.
-#' @param ch Name of the CellID channel (BF, BF.out, RFP, ...). "BF.out" by default.
-#' @param sortVar Variable used to sort the cells. "xpos" by default.
-#' @param seed Seed value for sampling of cell images.
+#' @param equalize_images Use magick's function to "equalize" the image when TRUE (FALSE by default).
+#' @param normalize_images Use magick's function to "normalize" the image when TRUE (FALSE by default).
+#' @param ch Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
+#' @param sortVar Variable used to sort the cells. NULL by default, to preserve the original order.
+#' @param seed Seed value for sampling of cell images. NULL by default, to disable sampling.
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
 #' @param return_ucid_df If TRUE, return is a list of magick images and ucid dataframes.
@@ -72,8 +72,8 @@ magickCell <- function(cdata, paths,
                        equalize_images = F, 
                        normalize_images = F,
                        ch = "BF.out",
-                       sortVar = "xpos",
-                       seed = 1, 
+                       sortVar = NULL,
+                       seed = NULL, 
                        .debug=FALSE, 
                        return_single_imgs = FALSE, return_ucid_df = F,
                        annotation_params = list(color = "white", 
@@ -135,11 +135,14 @@ magickCell <- function(cdata, paths,
   ## https://rdrr.io/cran/ks/man/binning.html
   ## https://www.rdocumentation.org/packages/npsp/versions/0.7-5/topics/binning
 
-  # Sample first
-  set.seed(seed)
-  .cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
-  cdataSample <- .cdataSample[order(.cdataSample[[sortVar]]),  # sort the sample
-                              unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
+  # Sample the cdata dataframe
+  cdataSample <- cdata[,unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
+  if(!is.null(seed)){
+    set.seed(seed)
+    cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
+  }
+  # Sort cdata
+  if(!is.null(sortVar)) cdataSample <- cdataSample[order(cdataSample[[sortVar]]),]  # sort the sample by "sortVar"
 
   imga <-
     foreach::foreach(i=1:nrow(cdataSample), .combine=c) %do% {

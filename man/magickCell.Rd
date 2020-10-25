@@ -14,8 +14,8 @@ magickCell(
   equalize_images = F,
   normalize_images = F,
   ch = "BF.out",
-  sortVar = "xpos",
-  seed = 1,
+  sortVar = NULL,
+  seed = NULL,
   .debug = FALSE,
   return_single_imgs = FALSE,
   return_ucid_df = F,
@@ -35,15 +35,15 @@ magickCell(
 
 \item{n}{maximum number of cells to display.}
 
-\item{equalize_images}{Use magick's function to "equalize" the image when TRUE.}
+\item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default).}
 
-\item{normalize_images}{Use magick's function to "normalize" the image when TRUE.}
+\item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default).}
 
-\item{ch}{Name of the CellID channel (BF, BF.out, RFP, ...). "BF.out" by default.}
+\item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
 
-\item{sortVar}{Variable used to sort the cells. "xpos" by default.}
+\item{sortVar}{Variable used to sort the cells. NULL by default, to preserve the original order.}
 
-\item{seed}{Seed value for sampling of cell images.}
+\item{seed}{Seed value for sampling of cell images. NULL by default, to disable sampling.}
 
 \item{.debug}{Print more messages if TRUE.}
 

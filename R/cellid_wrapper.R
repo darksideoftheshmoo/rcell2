@@ -33,6 +33,7 @@ cellid <- function(args, debug_flag=0){
 #' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
 #' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').
+#' @param ignore.stdout Set to FALSE to see CellID output from a system call.
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -51,7 +52,8 @@ cell2 <- function(arguments,
                   label_cells_in_bf = F,
                   fill_interior_pixels = F,
                   output_coords_to_tsv = F,
-                  encode_cellID_in_pixels = F){
+                  encode_cellID_in_pixels = F,
+                  ignore.stdout = T){
   
   positions <- arguments$pos %>% unique()
   n_positions <- positions %>% length()
@@ -97,7 +99,8 @@ cell2 <- function(arguments,
                       {if(encode_cellID_in_pixels) " -s" else ""}
     )
     
-    if(!dry) system(command = command, wait = T)
+    if(ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
+    if(!dry) system(command = command, wait = T, ignore.stdout = ignore.stdout)
     
     print("---- Done with this position.")
     command
