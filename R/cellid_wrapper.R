@@ -95,8 +95,8 @@ cell2 <- function(arguments,
                       " -p ", arguments_pos$parameters[1],
                       {if(label_cells_in_bf) " -l" else ""},
                       {if(output_coords_to_tsv) " -t" else ""},
-                      {if(fill_interior_pixels) " -i" else ""},
-                      {if(encode_cellID_in_pixels) " -m" else ""}
+                      {if(encode_cellID_in_pixels) " -m" else ""},
+                      {if(fill_interior_pixels) {if(encode_cellID_in_pixels) " -i" else " -m -i"} else ""}
     )
     
     if(ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
