@@ -134,9 +134,9 @@ cluster_test <- function(){
 #'
 #' @param path directory where images are stored, full path.
 #' @param parameters path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.
-#' @param BF.pattern regex pattern to BF images.
-#' @param file.pattern regex pattern for all tif files, with one group for each of: c("ch", "pos", "t.frame")
-#' @param file.pattern.groups.order a character vector of components c("ch", "pos", "t.frame") with order corresponding to the order of groups in file.pattern
+#' @param BF.pattern regex pattern to BF images. Defaults to: \code{"^BF"}
+#' @param file.pattern regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.
+#' @param file.pattern.groups.order a character vector of components \code{c("ch", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.
 #' @param out.dir name for output directories paths "out"
 #' @param tiff.ext regex pattern for the tif file extension
 #' @return a data.frame with all the information needed to run CellID

@@ -60,11 +60,13 @@ writeLines(readLines(parameters))
 
 ```{r}
 # path <- "~/Software/cellID-linux/test_data_tmp2/"
+path <- "../data/image_samples/"
 # path <- "../data/time_series_image_samples_bf_as_fl/"
 # path <- "/home/nicomic/Software/cellID-linux/test_data_andy/"
-path <- "/home/nicomic/Software/cellID-linux/test_data_rtcc/"
+# path <- "/home/nicomic/Software/cellID-linux/test_data_rtcc/"
 
-arguments <- rcell2::cellArgs2(path = path, parameters = parameters)
+arguments <- rcell2::cellArgs2(path = path, parameters = parameters, file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$")
+
 arguments
 ```
 

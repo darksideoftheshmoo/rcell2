@@ -19,11 +19,11 @@ cellArgs2(
 
 \item{parameters}{path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.}
 
-\item{BF.pattern}{regex pattern to BF images.}
+\item{BF.pattern}{regex pattern to BF images. Defaults to: \code{"^BF"}}
 
-\item{file.pattern}{regex pattern for all tif files, with one group for each of: c("ch", "pos", "t.frame")}
+\item{file.pattern}{regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.}
 
-\item{file.pattern.groups.order}{a character vector of components c("ch", "pos", "t.frame") with order corresponding to the order of groups in file.pattern}
+\item{file.pattern.groups.order}{a character vector of components \code{c("ch", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.}
 
 \item{out.dir}{name for output directories paths "out"}
 
