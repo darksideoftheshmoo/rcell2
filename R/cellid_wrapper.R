@@ -168,17 +168,26 @@ cellArgs2 <- function(path,
                    regex = file.pattern, 
                    remove = F)
   
+  fluor_pics <- pics_df %>% 
+    filter(str_detect(string = image,
+                               pattern = BF.pattern, 
+                               negate = T))
+  if(nrow(fluor_pics) == 0) stop("Fluorescence images missing, Check your directories and file.pattern.")
+  
+  brihtfield_pics <- pics_df %>% 
+    dplyr::filter(str_detect(string = image,
+                             pattern = BF.pattern)) %>% 
+    dplyr::rename(bf = image) %>% 
+    dplyr::select(pos, t.frame, bf)
+  if(nrow(fluor_pics) == 0) stop("Brightfield images missing, Check your directories and file.pattern.")
+  
+  
   arguments <- dplyr::left_join(
-    pics_df %>% filter(str_detect(string = image,
-                                  pattern = BF.pattern, 
-                                  negate = T)),
-    
-    pics_df %>% dplyr::filter(str_detect(string = image,
-                                         pattern = BF.pattern)) %>% 
-      dplyr::rename(bf = image) %>% dplyr::select(pos, t.frame, bf),
+    fluor_pics,
+    brihtfield_pics,
     by = c("pos", "t.frame")
   )
-  
+  # Add output column and arrange by position and t.frame
   arguments <- arguments %>% 
     mutate(output = paste0(path, "/Position", pos)) %>% 
     mutate(pos = as.integer(pos),

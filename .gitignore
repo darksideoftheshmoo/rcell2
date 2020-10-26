@@ -23,3 +23,7 @@ data/time_series_image_samples/Position*/out/
 /data/time_seres_images_hu_moments/
 /data/time_series_image_samples_bf_as_fl/
 /src/cellIDnoglib/.deps/
+/data/image_samples/*
+/data/time_series_image_samples2/*
+/data/time_series_image_samples3*
+/data/time_series_image_samples4*
