@@ -131,6 +131,7 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
   
   # Compute Hu moments for each cellID's boundary mask XY coordinates
   cl <- parallel::makeCluster(max(1, parallel::detectCores() - 1))
+  parallel::clusterExport(cl, "split_col")
   hues <- parallel::parLapply(cl, 
                               pic_df_split, 
                               fun = function(cell_coords_df){
@@ -214,23 +215,23 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
   if(!is.data.frame(tsv_files_df)) stop("Input error: tsv_files_df is not a data.frame.")
   if(!all(c("pos", "path") %in% names(tsv_files_df))) stop("Input error: names 'pos' and 'path' not found.")
   
-  hues_df <- 
-    foreach(position=tsv_files_df[["pos"]], .combine = bind_rows) %do% {
-      # print(cat("\rComputing Hu moments for position", position, "    "))
-      
-      hues_df <- tsv_files_df %>% 
-        filter(pos == position)%>% 
-        .[,"path", drop = TRUE] %>% 
-        {if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") else .} %>% 
-        hues_from_tsv2(.parallel = parralellize, 
-                       shape_pixtype = shape_pixtype, 
-                       shape_flagtype = shape_flagtype) %>% 
-        mutate(pos = position)
-      
-      hues_df
-    }
+  hues_df_list <- list()
+  for(position in tsv_files_df[["pos"]]) {
+    # print(cat("\rComputing Hu moments for position", position, "    "))
+    
+    hues_df <- tsv_files_df %>% 
+      filter(pos == position)%>% 
+      .[,"path", drop = TRUE] %>% 
+      {if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") else .} %>% 
+      hues_from_tsv2(.parallel = parralellize, 
+                     shape_pixtype = shape_pixtype, 
+                     shape_flagtype = shape_flagtype) %>% 
+      mutate(pos = position)
+    
+    hues_df_list[position] <- hues_df
+  }
   
-  return(hues_df)
+  return(bind_rows(hues_df))
 }
 
 
