@@ -76,13 +76,18 @@ From new -m option
 
 ```{r}
 masks <- read_tsv("../data/time_seres_images_hu_moments/Position01/out_all_masks.tsv")
+
+mask_tsv__path <- "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all/Position02/out_all_masks.tsv"
+masks <- read_tsv(mask_tsv__path)
 ```
 
 ## Chequear mascaras del TSV output
 
 ```{r}
+.cellid <- 325
+
 p <- masks %>% 
-  filter(cellID == 3) %>%
+  filter(cellID == .cellid) %>%
   filter(pixtype == "b") %>%
   ggplot() + geom_tile(aes(x=x, y=y, fill = factor(t.frame))) + facet_grid(flag~pixtype)
 
@@ -90,29 +95,43 @@ p
 ```
 
 ```{r}
+cell.pos <- masks %>% filter(cellID == .cellid) %>% summarise(xpos = mean(x), ypos = mean(y))
+
+i <- c(
+  "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all/BF_Position02_time03.tif.out.tif",
+  "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all/BF_Position02_time02.tif.out.tif",
+  "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all/BF_Position02_time01.tif.out.tif"
+) %>%  magick::image_read() %>% 
+  magick::image_crop(geometry = magick::geometry_area(50, 50, cell.pos$xpos-25, cell.pos$ypos-25)) %>% 
+  magick::image_resize("200x200")
+
+i
+```
+
+
+```{r}
 p <- masks %>% 
-  filter(cellID == 3) %>%
+  filter(cellID == .cellid) %>%
   filter(pixtype == "b") %>%
   ggplot() + geom_tile(aes(x=x, y=y, fill = factor(flag))) + facet_grid(t.frame~pixtype)
 
 p
 ```
+
 ```{r}
 masks %>% 
-  filter(cellID %in% c(14, 591), pixtype=="i", channel=="YFP") %>% 
+  filter(cellID %in% c(.cellid)) %>% 
   ggplot() + 
-  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
+  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag+pixtype)
+```
 
-masks %>% 
-  filter(cellID %in% c(14, 591), pixtype=="b", channel=="YFP") %>% 
-  ggplot() + 
-  geom_tile(aes(x=x,y=y,fill=factor(cellID))) + facet_grid(t.frame~flag)
 
+```{r}
 cell_data$data %>%
-  filter(cellID %in% c(14, 591)) %>%
+  filter(cellID %in% c(.cellid)) %>%
   rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF", annotation_params = NULL)
 cell_data$data %>%
-  filter(cellID %in% c(14, 591)) %>%
+  filter(cellID %in% c(.cellid)) %>%
   rcell2::magickCell(cell_data$images, cell_resize = 200, ch = "BF.out")
 ```
 
@@ -142,76 +161,50 @@ cell_data$data %>%
 ## Develop new function to load TSV outputs
 
 ```{r}
-flags_tsv_path <- c("../data/time_seres_images_hu_moments/Position01/out_bf_fl_mapping")
-
-flag_data <- function(cell_data, flags_tsv_path){
-  flags <- read_tsv(flags_tsv_path) %>% 
-    select(fluor, flag) %>% dplyr::rename(file = fluor)
-  
-  paths <- cell_data$images %>% 
-    mutate(file = paste0(path, "/", image))
-  
-  left_join(flags, paths, by = "file")
-}
-
-flag_data_df <- flag_data(cell_data, flags_tsv_path)
-
-flag_data_df
-```
-
-```{r}
 masks_tsv_path <- c("../data/time_seres_images_hu_moments/Position01/out_all_masks.tsv")
-masks <- read_tsv(masks_tsv_path) %>% 
-  left_join(unique(select(flag_data_df, flag, channel, pos)))
+mask_tsv__path <- "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all/Position02/out_all_masks.tsv"
+
+masks <- read_tsv(mask_tsv__path)
 
 masks
 ```
 
 
 ```{r}
-maks_from_m_option_tsv <- function(masks_df, position, .parallel = F){
-  # Add "id" column
-  masks_coords <- masks_df %>% 
-    mutate(id = paste(cellID, t.frame, flag, pixtype, sep = "_"))
-  
-  if(!.parallel) {
-    hues_df <- hues_from_xy(masks_coords, split_col="id")
-  } else {
-    print("Parallel Hu")
-    hues_df <- hues_from_xy2(masks_coords, split_col="id")
-  }
-  
-  hues_by_cell <- masks_coords %>% 
-    select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
-    left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
-    select(-id) %>% mutate(pos = position)
-  
-  return(hues_by_cell)
-}
-
-hues_by_cell_df <- maks_from_m_option_tsv(masks_df = masks,
-                                          position = 1, .parallel = T)
+hues_by_cell_df <- hues_from_tsv(masks_tsv_path = mask_tsv__path, 
+                                 .parallel = T, 
+                                 shape_pixtype = "b", shape_flagtype = 0)
 
 hues_by_cell_df
 ```
 
 ```{r}
-boundary_hues_tfp <- left_join(
-  hues_by_cell_df,
-  select(flag_data_df, flag, t.frame, channel), 
-  by = c("t.frame", "flag")
-) %>% 
-  dplyr::filter(pixtype == "b", channel == "TFP") %>% 
-  select(-pixtype, -channel, -flag)
-
-boundary_hues_tfp
+hues_by_cell_df %>% 
+  filter(cellID %in% .cellid) %>% 
+  pivot_longer(c(-cellID, -t.frame, -flag, -pixtype, -pos), names_to = "hum_type", values_to = "hum_value") %>% 
+  # filter(pixtype=="b", hum_type=="hum_1") %>% 
+  ggplot() + 
+  geom_line(aes(x = t.frame, y = hum_value)) + facet_wrap(pixtype~hum_type, scales = "free_y")
 ```
 
 
 ```{r}
-cell_data <- rcell2::load_cell_data(path = path)
+mask_tsv__path <- "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all/Position02/out_all_masks.tsv"
 
-cell_data$data <- cell_data$data %>% left_join(boundary_hues_tfp)
+tsv_files_df <- data.frame(
+  pos = 1:2,
+  path = rep(normalizePath(mask_tsv__path), 2)
+)
+
+cell_data <- rcell2::cell.load.alt(path = "~/Projects/Colman/gitlabs_acl/rtcc/far1/analisis_Far1NG_2019Dai/data/20191212_Timecourse_FAR1-NG_RtCC/split_all")
+```
+
+Test functions:
+
+```{r}
+asd <- hues_from_xy2(coords_df = read_tsv(mask_tsv__path) %>% filter(pixtype == "b", flag == 0, t.frame == 0))
+
+cell_data_with_hues <- append_hues2(cell_data = cell_data, tsv_files_df = tsv_files_df)
 ```
 
 ## Possible BUG ¿tres fotos y solo dos flags?

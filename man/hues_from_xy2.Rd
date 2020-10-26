@@ -4,8 +4,16 @@
 \alias{hues_from_xy2}
 \title{Generate Hu moments from XY coordinates dataframe}
 \usage{
-hues_from_xy2(pic_df, split_col = "cellID")
+hues_from_xy2(coords_df, split_col = "cellID")
+}
+\arguments{
+\item{coords_df}{A data frame with XY coordinates, containing columns "x", "y", and the column named by the \code{split_col} parameter.}
+
+\item{split_col}{A string matching the name of the colum used to split the dataframe into individual shapes.}
+}
+\value{
+A data frame with Hu moments for each split of the input, identified by \code{split_col}.
 }
 \description{
-This function requires a CellID column to split the coordinates by.
+This function requires a CellID column to split the coordinates by. Optional cell-wise parallelization.
 }
