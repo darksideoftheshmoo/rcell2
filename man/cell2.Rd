@@ -14,7 +14,8 @@ cell2(
   fill_interior_pixels = F,
   output_coords_to_tsv = F,
   encode_cellID_in_pixels = F,
-  ignore.stdout = T
+  ignore.stdout = T,
+  intern = F
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ cell2(
 \item{encode_cellID_in_pixels}{Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').}
 
 \item{ignore.stdout}{Set to FALSE to see CellID output from a system call.}
+
+\item{intern}{Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position).}
 }
 \value{
 Nothing :) use rcell2::load_cell_data to get the results from the output at the images path

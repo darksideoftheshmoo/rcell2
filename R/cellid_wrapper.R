@@ -34,6 +34,7 @@ cellid <- function(args, debug_flag=0){
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
 #' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').
 #' @param ignore.stdout Set to FALSE to see CellID output from a system call.
+#' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position).
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -53,7 +54,7 @@ cell2 <- function(arguments,
                   fill_interior_pixels = F,
                   output_coords_to_tsv = F,
                   encode_cellID_in_pixels = F,
-                  ignore.stdout = T){
+                  ignore.stdout = T, intern = F){
   
   positions <- arguments$pos %>% unique()
   n_positions <- positions %>% length()
@@ -100,7 +101,13 @@ cell2 <- function(arguments,
     )
     
     if(ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
-    if(!dry) system(command = command, wait = T, ignore.stdout = ignore.stdout)
+    if(!dry) {
+      command.output <- system(command = command, wait = T, ignore.stdout = ignore.stdout, intern = intern)
+      if(intern) write(command.output,
+                       tempfile(tmpdir = arguments_pos$output[1],
+                                fileext = ".txt",
+                                pattern = "cellid_log."))
+    }
     
     print("---- Done with this position.")
     command
