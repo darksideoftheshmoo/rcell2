@@ -34,7 +34,7 @@ cellid <- function(args, debug_flag=0){
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
 #' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').
 #' @param ignore.stdout Set to FALSE to see CellID output from a system call.
-#' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position).
+#' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.
 #' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
 # @examples
 # cell(cell.args, path = path)
@@ -120,6 +120,12 @@ cell2 <- function(arguments,
   
   print("Done, please examine logs above if anything seems strange :)")
   print(sent_commands)
+  
+  if(intern) write(command.output,
+                   tempfile(tmpdir = arguments$path[1],
+                            pattern = "cellid_commands."),
+                            fileext = ".txt"
+                   )
   
   return(invisible(NULL))
 }
