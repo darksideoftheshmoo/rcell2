@@ -258,7 +258,7 @@ append_hues2 <- function(tsv_files_df, cell_data = list(),
   if(return_points) stop("return_points option not implemented yet :/")
   if("Hu_moments" %in% names(cell_data) && !overwrite) stop("cell_data already has a Hu_moments element, use 'overwrite=TRUE' to force it.")
   
-  hues_df <- hues_from_tsv_files2(tsv_files_df, return_points = F, parralellize = T,
+  hues_df <- hues_from_tsv_files2(tsv_files_df, return_points = F, parralellize = parralellize,
                                   shape_pixtype = "b", shape_flagtype = 0)
   
   # Append Hu moment data to cell_data object
