@@ -102,7 +102,10 @@ cell2 <- function(arguments,
     
     if(ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
     if(!dry) {
-      command.output <- system(command = command, wait = T, ignore.stdout = ignore.stdout, intern = intern)
+      command.output <- system(command = command, 
+                               wait = T,
+                               ignore.stdout = ignore.stdout & !intern,
+                               intern = intern)
       if(intern) write(command.output,
                        tempfile(tmpdir = arguments_pos$output[1],
                                 fileext = ".txt",
@@ -473,6 +476,17 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
     "d" = d,
     "d.map" = d.map
     ))
+}
+
+#' cellArgs2 Summaries
+#' 
+#' A function to print some summaries, to check cellArgs2 output.
+#' 
+cellArgs2.summary <- function(arguments){
+  arguments %>% group_by(ch) %>% summarise(n_count = n(), .groups = "drop") %>% print()
+  arguments %>% select(bf) %>% summarise(unique_BF = "", n_count = length(unique(bf)), .groups = "drop") %>% print()
+  arguments %>% group_by(t.frame) %>% summarise(n_count = n(), .groups = "drop") %>% print()
+  arguments %>% group_by(pos) %>% summarise(n_count = n(), .groups = "drop") %>% print()
 }
 
 #' Pipe
