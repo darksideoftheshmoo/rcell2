@@ -48,12 +48,12 @@ shinyCell <- function(cdata,
                       plotType = "Dots",
                       seed = 1,
                       initial_facet = "", initial_vars = NULL,
-                      facet_grid_option = TRUE, facets_scale_free = NULL,
+                      facet_grid_option = TRUE, facets_scale_free = "fixed",
                       n_max = 100, boxSize = 50,
                       ...){
     
     if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
-
+    if(!is.character(facets_scale_free)) stop("Error: facets_scale_free must be a string accepted by ggplot's scales argument. See ?facet_wrap.")
     if(!is.null(initial_vars)) {
         if(!all(initial_vars %in% names(cdata))) stop("Error: cdata does not contain some of the initial_vars")
         if(!is.character(initial_vars)) stop("Error: initial_vars is not a character vector")

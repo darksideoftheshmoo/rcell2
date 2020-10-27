@@ -181,9 +181,12 @@ shinyAppServer <-
 
                     # Dotplot
                     p <- ggplot(data = d, aes(x = eval(parse(text=input$x)), y = eval(parse(text=input$y)))) +
-                      geom_point(
-                        # aes(color = factor(treatment), shape = factor(treatment)),
-                        alpha = 0.5) +
+                      geom_point(alpha = 0.5) + {
+                      if(input$x == "t.frame") 
+                        geom_line(aes(group=ucid, color=factor(ucid)), alpha = 0.5) 
+                      else 
+                        geom_path(aes(group=ucid, color=factor(ucid)), alpha = 0.5)
+                      } + 
                       geom_rug(col=grDevices::rgb(.5,0,0,alpha=.05)) +
                       xlab(input$x) + ylab(input$y)
                   }
@@ -231,26 +234,33 @@ shinyAppServer <-
                   if(input$facet != "") {
                     facet <- parse(text=input$facet)
 
-                    if(facet_grid_option) {
-                      p <- p + facet_grid(eval(facet), scales = facets_scale_free)
+                    if(input$facet_grid) {
+                      p <- p + facet_grid(eval(facet), scales = input$facet_scale)
                     } else {
-                      p <- p + facet_wrap(eval(facet), scales = facets_scale_free)
+                      p <- p + facet_wrap(eval(facet), scales = input$facet_scale)
+                    }
+                  }
+                  
+                  # Adjust plot limits
+                  if(is.null(facets_scale_free)) {
+                    if(plot.type != "Hex"){
+                      if(plot.type == "Density 1D") {
+                        p <- p + coord_cartesian(xlim = range(d[[input$x]]))
+                      } else {
+                        p <- p + coord_cartesian(xlim = range(d[[input$x]]), ylim = range(d[[input$y]]))
+                      }
+                    } else {
+                      p <- p + coord_cartesian(xlim = range(d$x), ylim = range(d$y))
                     }
                   }
 
-                  if(plot.type != "Hex"){
-                    if(plot.type == "Density 1D") {
-                      p <- p + coord_cartesian(xlim = range(d[[input$x]]))
-                    } else {
-                      p <- p + coord_cartesian(xlim = range(d[[input$x]]), ylim = range(d[[input$y]]))
-                    }
-                  } else {
-                    p <- p + coord_cartesian(xlim = range(d$x), ylim = range(d$y))
-                  }
+                  # Adjust theme
+                  p <- p + 
+                    theme_minimal() + 
+                    theme(text = element_text(size=20),
+                          legend.position = "none")
 
                   print("-- Plotting...")
-                  p <- p + theme_minimal() + theme(text = element_text(size=20))
-
                   p
 
                 },
