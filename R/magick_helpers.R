@@ -39,11 +39,14 @@ magickPaths <- function(cell.data){
 #' @param .prefix A string prepended to the file name, "" by default.
 #' @param .resize a cellMagick image resize string as "200x200" (default NULL, for no resizing).
 #' @param .path Directory where the output should be saved.
+#' @param .include Set to true to use knitr::include_graphics directly.
 #' @return An path to a temporary image file.
 # @examples
 # cell.args <- cellArgs(path = path)
 #' @export
-magickForKnitr <- function(imgs, .prefix = "tile", .resize = NULL, .path = tempdir()){
+magickForKnitr <- function(imgs, .prefix = "tile", .resize = NULL, .path = tempdir(), .include = F){
+  
+  dir.create(.path, recursive = T)
   
   temp <- tempfile(tmpdir = .path, fileext = ".png", pattern = .prefix)
   
@@ -54,6 +57,8 @@ magickForKnitr <- function(imgs, .prefix = "tile", .resize = NULL, .path = tempd
     magick::image_write(path = temp, format = "png")
   
   print(temp)
+  
+  if(.include) knitr::include_graphics(temp)
   
   return(temp)
 }
