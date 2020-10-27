@@ -8,7 +8,8 @@ hues_from_tsv2(
   masks_tsv_path,
   .parallel = F,
   shape_pixtype = NULL,
-  shape_flagtype = NULL
+  shape_flagtype = NULL,
+  cdata_subset = NULL
 )
 }
 \arguments{

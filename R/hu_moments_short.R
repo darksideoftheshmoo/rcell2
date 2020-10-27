@@ -121,20 +121,27 @@ hues_from_xy <-  function(pic_df, split_col = "cellID"){
 #' @param split_col A string matching the name of the colum used to split the dataframe into individual shapes.
 #' 
 #' @return A data frame with Hu moments for each split of the input, identified by \code{split_col}.
-#' 
-#' @import parallel
+#' @importFrom data.table rbindlist
+#' @rawNamespace import(foreach, except = c("when", "accumulate"))
+#' @import parallel doParallel 
 #' @export
 #' 
 hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
   # Split the dataframe by cellID
   pic_df_split <- base::split(coords_df, coords_df[[split_col]])
+  split_col <- split_col
   
   # Compute Hu moments for each cellID's boundary mask XY coordinates
-  cl <- parallel::makeCluster(max(1, parallel::detectCores() - 1))
-  parallel::clusterExport(cl, "split_col")
-  hues <- parallel::parLapply(cl, 
-                              pic_df_split, 
-                              fun = function(cell_coords_df){
+  n_cores <- max(1, parallel::detectCores() - 1)
+  cat(paste("\nMessage from hues_from_xy2: Parallel Hu with", n_cores, "threads."))
+  cl <- parallel::makeCluster(n_cores)
+  # Export objects to cluster
+  parallel::clusterExport(cl, "split_col", envir = environment())
+  parallel::clusterExport(cl, "hu.moments")
+  doParallel::registerDoParallel(cl)
+  
+  # Run parallelized computation
+  hues <- foreach(cell_coords_df=pic_df_split) %dopar% {
     # Get "id" for the current shape
     shape_id <- unique(cell_coords_df[[split_col]])
                                 
@@ -144,16 +151,16 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
     colnames(xy) <- c("dim1", "dim2")
     
     # Compute hu moments
-    xy_humoments <- as.list(rcell2::hu.moments(xy))
-    # Return a named vector with the cell ids and the named hu moments
-    xy_humoments[split_col] <- shape_id
+    xy_humoments <- as.list(hu.moments(xy))
+    xy_humoments[split_col] <- as.character.factor(shape_id)
     
-    xy_humoments
-  })
+    # Return as data frame
+    as.data.frame(xy_humoments)
+  }
+  # Bind results
+  hues_bound <- data.table::rbindlist(hues)
   parallel::stopCluster(cl)
-  
-  # Bind rows from all cellIDs and return
-  return(bind_rows(hues))
+  return(hues_bound)  
 }
 
 #' Generate Hu moments from XY coordinates TSV file
@@ -168,29 +175,34 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
 #' @param .parallel Enable cell-wise parallelization using parallel::parLapply
 #' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
 #' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.
+#' @import readr
 #' @export
 #' 
 hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
-                           shape_pixtype = NULL, shape_flagtype = NULL){
+                           shape_pixtype = NULL, shape_flagtype = NULL, cdata_subset = NULL){
   # Add "id" column
-  masks_coords <- masks_tsv_path %>% read_tsv() %>% 
+   cat(paste("\nMessage from hues_from_tsv2: reading TSV id data..."))
+  masks_coords <- readr::read_tsv(masks_tsv_path) %>% 
     {if(!is.null(shape_pixtype)) filter(., pixtype %in% shape_pixtype) else .} %>% 
     {if(!is.null(shape_flagtype)) filter(., flag %in% shape_flagtype) else .} %>% 
-    mutate(id = paste(cellID, t.frame, flag, pixtype,
-                      sep = "_"))
-    
+    mutate(id = factor(paste(cellID, t.frame, flag, pixtype,sep = "_")))
   
+  if(!is.null(cdata_subset)) 
+    masks_coords <- dplyr::semi_join(masks_coords, cdata_subset, by = c("cellID", "pos", "t.frame"))
+    
+  # Compute Hu moments
   if(!.parallel) {
     hues_df <- hues_from_xy(masks_coords, split_col="id")
   } else {
-    print("Message from hues_from_tsv: Parallel Hu")
-    hues_df <- hues_from_xy2(masks_coords, split_col="id")
+    hues_df <- hues_from_xy2(coords_df = masks_coords, split_col="id")
   }
-  
+  cat(paste("\nMessage from hues_from_tsv2: joining id data..."))
   hues_by_cell <- masks_coords %>% 
     select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
     left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
     select(-id)
+  
+  # masks_coords %>% filter(cellID == 132) %>% select(-x,-y) %>% unique() %>% View()
   
   return(hues_by_cell)
 }
@@ -206,24 +218,25 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
 #' @param parralellize Enable cell-wise parallelization using parallel::parLapply
 #' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
 #' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.
-#' @import foreach
+#' @import dplyr
 #' @export
 #' 
 hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize = T, 
-                                shape_pixtype = NULL, shape_flagtype = NULL){
+                                shape_pixtype = NULL, shape_flagtype = NULL, cdata_subset = NULL){
   
   if(!is.data.frame(tsv_files_df)) stop("Input error: tsv_files_df is not a data.frame.")
   if(!all(c("pos", "path") %in% names(tsv_files_df))) stop("Input error: names 'pos' and 'path' not found.")
   
   hues_df_list <- list()
-  for(position in tsv_files_df[["pos"]]) {
-    # print(cat("\rComputing Hu moments for position", position, "    "))
+  for(position in tsv_files_df[,"pos", drop = TRUE]) {
+    print(cat("\nComputing Hu moments for position:", position))
     
     hues_df <- tsv_files_df %>% 
       filter(pos == position)%>% 
       .[,"path", drop = TRUE] %>% 
       {if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") else .} %>% 
       hues_from_tsv2(.parallel = parralellize, 
+                     cdata_subset = cdata_subset,
                      shape_pixtype = shape_pixtype, 
                      shape_flagtype = shape_flagtype) %>% 
       mutate(pos = position)
@@ -251,19 +264,24 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
 #' 
 #' @return The Hu moments dataframe usis assgned to the input list as an element named "Hu_moments".
 #' 
-append_hues2 <- function(tsv_files_df, cell_data = list(), 
+append_hues2 <- function(tsv_files_df, cell_data = NULL, 
                          return_points = F, parralellize = T,
                          shape_pixtype = "b", shape_flagtype = 0, 
                          overwrite = F){
   
-  if(return_points) stop("return_points option not implemented yet :/")
-  if("Hu_moments" %in% names(cell_data) && !overwrite) stop("cell_data already has a Hu_moments element, use 'overwrite=TRUE' to force it.")
+  if(return_points) 
+    stop("return_points option not implemented yet :/")
+  if("Hu_moments" %in% names(cell_data) && !overwrite) 
+    stop("cell_data already has a Hu_moments element, use 'overwrite=TRUE' to force it.")
+  
+  if(!is.null(cell_data)) cdata_subset <- unique(cell_data[["data"]][, c("cellID", "pos", "t.frame")])
   
   hues_df <- hues_from_tsv_files2(tsv_files_df, return_points = F, parralellize = parralellize,
-                                  shape_pixtype = "b", shape_flagtype = 0)
+                                  shape_pixtype = "b", shape_flagtype = 0, cdata_subset = cdata_subset)
   
   # Append Hu moment data to cell_data object
-  cell_data[["Hu_moments"]] <- hues_df
+  if(is.null(cell_data)) list(Hu_moments = hues_df) 
+  else cell_data[["Hu_moments"]] <- hues_df
 
   # if(return_points){
   #   masks_df <- bind_rows(

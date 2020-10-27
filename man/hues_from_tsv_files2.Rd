@@ -9,7 +9,8 @@ hues_from_tsv_files2(
   return_points = F,
   parralellize = T,
   shape_pixtype = NULL,
-  shape_flagtype = NULL
+  shape_flagtype = NULL,
+  cdata_subset = NULL
 )
 }
 \arguments{

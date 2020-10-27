@@ -6,7 +6,7 @@
 \usage{
 append_hues2(
   tsv_files_df,
-  cell_data = list(),
+  cell_data = NULL,
   return_points = F,
   parralellize = T,
   shape_pixtype = "b",
