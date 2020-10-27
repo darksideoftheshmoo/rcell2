@@ -234,7 +234,7 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
   
   hues_df_list <- list()
   for(position in tsv_files_df[,"pos", drop = TRUE]) {
-    print(cat("\nComputing Hu moments for position:", position))
+    cat("\nComputing Hu moments for position:", position)
     
     masks_tsv_path <- tsv_files_df %>% 
       filter(pos == position)%>% 
