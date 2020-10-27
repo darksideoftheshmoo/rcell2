@@ -128,7 +128,7 @@ hues_from_xy <-  function(pic_df, split_col = "cellID"){
 #' 
 hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
   # Split the dataframe by cellID
-  pic_df_split <- base::split(coords_df, coords_df[[split_col]])
+  pic_df_split <- base::split(coords_df, coords_df[[split_col]], drop = T)
   split_col <- split_col
   
   # Compute Hu moments for each cellID's boundary mask XY coordinates
