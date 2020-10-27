@@ -206,7 +206,7 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
     left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
     select(-id)
   
-  # masks_coords %>% filter(cellID == 132) %>% select(-x,-y) %>% unique() %>% View()
+  cat(paste("\nMessage from hues_from_tsv2: done!"))
   
   return(hues_by_cell)
 }
@@ -236,21 +236,24 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
   for(position in tsv_files_df[,"pos", drop = TRUE]) {
     print(cat("\nComputing Hu moments for position:", position))
     
-    hues_df <- tsv_files_df %>% 
+    masks_tsv_path <- tsv_files_df %>% 
       filter(pos == position)%>% 
       .[,"path", drop = TRUE] %>% 
-      {if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") else .} %>% 
-      hues_from_tsv2(.parallel = parralellize, 
+      {if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") else .}
+  
+    hues_df <- 
+      hues_from_tsv2(masks_tsv_path = masks_tsv_path,
+                     .parallel = parralellize, 
                      cdata_subset = cdata_subset,
                      shape_pixtype = shape_pixtype, 
                      shape_flagtype = shape_flagtype,
                      position = position) %>% 
       mutate(pos = position)
     
-    hues_df_list[position] <- hues_df
+    hues_df_list[[position]] <- hues_df
   }
   
-  return(bind_rows(hues_df))
+  return(bind_rows(hues_df_list))
 }
 
 
@@ -270,10 +273,14 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
 #' 
 #' @return The Hu moments dataframe usis assgned to the input list as an element named "Hu_moments".
 #' 
-append_hues2 <- function(tsv_files_df, cell_data = NULL, 
-                         return_points = F, parralellize = T,
-                         shape_pixtype = "b", shape_flagtype = 0, 
-                         overwrite = F){
+append_hues2 <- function(tsv_files_df, 
+                         cell_data = NULL, 
+                         return_points = F,
+                         parralellize = T,
+                         shape_pixtype = "b",
+                         shape_flagtype = 0,
+                         overwrite = F
+                         ){
   
   if(return_points) 
     stop("return_points option not implemented yet :/")
@@ -282,8 +289,12 @@ append_hues2 <- function(tsv_files_df, cell_data = NULL,
   
   if(!is.null(cell_data)) cdata_subset <- unique(cell_data[["data"]][, c("cellID", "pos", "t.frame")])
   
-  hues_df <- hues_from_tsv_files2(tsv_files_df, return_points = F, parralellize = parralellize,
-                                  shape_pixtype = "b", shape_flagtype = 0, cdata_subset = cdata_subset)
+  hues_df <- hues_from_tsv_files2(tsv_files_df, 
+                                  return_points = F, 
+                                  parralellize = parralellize,
+                                  shape_pixtype = "b", 
+                                  shape_flagtype = 0, 
+                                  cdata_subset = cdata_subset)
   
   # Append Hu moment data to cell_data object
   if(is.null(cell_data)) list(Hu_moments = hues_df) 
