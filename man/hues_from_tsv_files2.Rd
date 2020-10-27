@@ -22,6 +22,8 @@ hues_from_tsv_files2(
 
 \item{shape_flagtype}{Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.}
 
+\item{cdata_subset}{Subset of cdata with unique rows, and only pos, t.frame and cellID columns.}
+
 \item{tsv_files}{paths to the XY coordinates TSV files from CellID mask_mod "-t" option.}
 }
 \description{

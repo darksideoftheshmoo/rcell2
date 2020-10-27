@@ -175,11 +175,14 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
 #' @param .parallel Enable cell-wise parallelization using parallel::parLapply
 #' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
 #' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.
+#' @param cdata_subset Subset of cdata with unique rows, and only pos, t.frame and cellID columns.
+#' @param position Microscope position number (int) that corresponds to current TSV file, used for filtering if \code{cdata_subset} is not NULL.
 #' @import readr
 #' @export
 #' 
 hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
-                           shape_pixtype = NULL, shape_flagtype = NULL, cdata_subset = NULL){
+                           shape_pixtype = NULL, shape_flagtype = NULL, 
+                           cdata_subset = NULL, position = NULL){
   # Add "id" column
    cat(paste("\nMessage from hues_from_tsv2: reading TSV id data..."))
   masks_coords <- readr::read_tsv(masks_tsv_path) %>% 
@@ -188,7 +191,8 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
     mutate(id = factor(paste(cellID, t.frame, flag, pixtype,sep = "_")))
   
   if(!is.null(cdata_subset)) 
-    masks_coords <- dplyr::semi_join(masks_coords, cdata_subset, by = c("cellID", "pos", "t.frame"))
+    masks_coords <- dplyr::semi_join(mutate(masks_coords, pos = position), 
+                                     cdata_subset, by = c("cellID", "pos", "t.frame"))
     
   # Compute Hu moments
   if(!.parallel) {
@@ -218,11 +222,12 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
 #' @param parralellize Enable cell-wise parallelization using parallel::parLapply
 #' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
 #' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.
+#' @param cdata_subset Subset of cdata with unique rows, and only pos, t.frame and cellID columns.
 #' @import dplyr
 #' @export
 #' 
 hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize = T, 
-                                shape_pixtype = NULL, shape_flagtype = NULL, cdata_subset = NULL){
+                                 shape_pixtype = NULL, shape_flagtype = NULL, cdata_subset = NULL){
   
   if(!is.data.frame(tsv_files_df)) stop("Input error: tsv_files_df is not a data.frame.")
   if(!all(c("pos", "path") %in% names(tsv_files_df))) stop("Input error: names 'pos' and 'path' not found.")
@@ -238,7 +243,8 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
       hues_from_tsv2(.parallel = parralellize, 
                      cdata_subset = cdata_subset,
                      shape_pixtype = shape_pixtype, 
-                     shape_flagtype = shape_flagtype) %>% 
+                     shape_flagtype = shape_flagtype,
+                     position = position) %>% 
       mutate(pos = position)
     
     hues_df_list[position] <- hues_df
@@ -255,7 +261,7 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
 #' To play with the XY coordinates of the TIFF masks you may want to set \code{return_points = T}.
 #' 
 #' @param tsv_files Paths to the XY coordinates TSV files from CellID mask_mod "-t" option.
-#' @param cell_data An empty list by default. You may pass a cell.data list object from Rcell2 load_cell_data for convenience.
+#' @param cell_data NULL list by default. You may pass a cell.data list object from Rcell2 load_cell_data, for convenience, or just the cdata dataframe as \code{list(data = cdata)}.
 #' @param return_points if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.
 #' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
 #' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.

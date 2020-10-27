@@ -15,7 +15,7 @@ append_hues2(
 )
 }
 \arguments{
-\item{cell_data}{An empty list by default. You may pass a cell.data list object from Rcell2 load_cell_data for convenience.}
+\item{cell_data}{NULL list by default. You may pass a cell.data list object from Rcell2 load_cell_data, for convenience, or just the cdata dataframe as \code{list(data = cdata)}.}
 
 \item{return_points}{if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.}
 

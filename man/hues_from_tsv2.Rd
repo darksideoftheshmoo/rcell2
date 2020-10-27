@@ -9,7 +9,8 @@ hues_from_tsv2(
   .parallel = F,
   shape_pixtype = NULL,
   shape_flagtype = NULL,
-  cdata_subset = NULL
+  cdata_subset = NULL,
+  position = NULL
 )
 }
 \arguments{
@@ -20,6 +21,10 @@ hues_from_tsv2(
 \item{shape_pixtype}{Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").}
 
 \item{shape_flagtype}{Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.}
+
+\item{cdata_subset}{Subset of cdata with unique rows, and only pos, t.frame and cellID columns.}
+
+\item{position}{Microscope position number (int) that corresponds to current TSV file, used for filtering if \code{cdata_subset} is not NULL.}
 }
 \description{
 Cells in the dataframe are split by cellID, t.frame, flag, and pixtype by default.
