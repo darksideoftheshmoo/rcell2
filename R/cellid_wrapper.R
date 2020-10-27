@@ -35,7 +35,7 @@ cellid <- function(args, debug_flag=0){
 #' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').
 #' @param ignore.stdout Set to FALSE to see CellID output from a system call.
 #' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.
-#' @return Nothing :) use rcell2::load_cell_data to get the results from the output at the images path
+#' @return A dataframe with one column indicating the issued commands. Use rcell2::load_cell_data to get the results from the CellID output, typically located at the images path.
 # @examples
 # cell(cell.args, path = path)
 #' @import purrr dplyr stringr tidyr doParallel readr parallel
@@ -61,21 +61,23 @@ cell2 <- function(arguments,
   n_times <- arguments$t.frame %>% unique() %>% length()
   
   # Create output directories
-  for(d in unique(arguments$output)) dir.create(d)
+  for(d in unique(arguments$output)) dir.create(d, showWarnings = F)
   
   # Run CellID
   if(is.null(no_cores)) no_cores <- parallel::detectCores() - 1  # Problema rarísimo: se repiten rows cada "no_cores" posiciones
   cl <- parallel::makeCluster(
     min(n_positions,
         no_cores), 
-    outfile = "/tmp/dopar.txt"
+    outfile = tempfile(pattern = "dopar", tmpdir = "/tmp/", fileext = ".log")
   )
-  
+  parallel::clusterExport(cl, "arguments")
   doParallel::registerDoParallel(cl)
   
   sent_commands <- foreach::foreach(pos=positions) %dopar% {
-    
+  # sent_commands <- list()
+  # for(pos in positions){
     arguments_pos <- arguments[arguments$pos == pos,]
+    print(arguments_pos)
     
     bf_rcell2 <- tempfile(tmpdir = arguments_pos$output[1],
                           fileext = ".txt",
@@ -86,23 +88,24 @@ cell2 <- function(arguments,
     
     base::write(x = paste0(arguments_pos$path, "/", arguments_pos$bf), file = bf_rcell2)
     base::write(x = paste0(arguments_pos$path, "/", arguments_pos$image), file = fl_rcell2)
-    
-    if(is.null(cell.command)) cell.command <- system.file("cell", package = "rcell2", mustWork = T)
+
+    # if(is.null(cell.command)) cell.command <- system.file("cell", package = "rcell2", mustWork = T)
+    if(is.null(cell.command)) stop("\nError: cell.command must point to an existing CellID binary on your system.")
     
     command <- paste0(normalizePath(cell.command),
                       " -b ", bf_rcell2,
                       " -f ", fl_rcell2,
-                      " -o ", normalizePath(paste0(arguments_pos$output[1], "/out")),
+                      " -o ", paste0(normalizePath(arguments_pos$output[1]), "/out"),
                       " -p ", arguments_pos$parameters[1],
                       {if(label_cells_in_bf) " -l" else ""},
                       {if(output_coords_to_tsv) " -t" else ""},
                       {if(encode_cellID_in_pixels) " -m" else ""},
                       {if(fill_interior_pixels) {if(encode_cellID_in_pixels) " -i" else " -m -i"} else ""}
     )
-    
-    if(ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
+
+    if(!dry & ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
     if(!dry) {
-      command.output <- system(command = command, 
+      command.output <- system(command = command,
                                wait = T,
                                ignore.stdout = ignore.stdout & !intern,
                                intern = intern)
@@ -113,13 +116,13 @@ cell2 <- function(arguments,
     }
     
     print("---- Done with this position.")
+    print(command)
     command
   }
   
   parallel::stopCluster(cl)
   
-  print("Done, please examine logs above if anything seems strange :)")
-  print(sent_commands)
+  cat("\nDone, please examine logs above if anything seems strange :)")
   
   if(intern) write(command.output,
                    tempfile(tmpdir = arguments$path[1],
@@ -127,7 +130,7 @@ cell2 <- function(arguments,
                             fileext = ".txt")
                    )
   
-  return(invisible(NULL))
+  return(invisible(bind_rows(commands = unlist(sent_commands))))
 }
 
 #' Cluster test
