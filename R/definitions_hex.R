@@ -20,7 +20,7 @@ hexPlotDf<- function(cdata, facetVars = c("pos", "treatment"), varx = "a.tot", v
     )
     dfactor <- unique(cdata[,c("factor", facetVars)])
 
-    H <- myhexbin(cdata, varx, vary, cdata[,varx], cdata[,vary], xbins = 25)
+    H <- myhexbin(cdata, varx, vary, xbins = 25)
 
     # Siguiendo: https://stackanswers.net/questions/setting-hex-bins-in-ggplot2-to-same-size
     counts <- hexbin::hexTapply(H, cdata$factor, table)

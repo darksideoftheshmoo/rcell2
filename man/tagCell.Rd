@@ -19,8 +19,7 @@ tagCell(
   tag_ggplot = NULL,
   equalize_images = F,
   normalize_images = F,
-  debug_messages = F,
-  ...
+  debug_messages = F
 )
 }
 \arguments{
@@ -53,8 +52,6 @@ tagCell(
 \item{normalize_images}{Use magick's function to "normalize" the images.}
 
 \item{debug_messages}{print debug messages}
-
-\item{...}{arguments for magickCell}
 }
 \value{
 Lots of stuff.

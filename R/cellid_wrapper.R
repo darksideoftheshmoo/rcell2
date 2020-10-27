@@ -123,8 +123,8 @@ cell2 <- function(arguments,
   
   if(intern) write(command.output,
                    tempfile(tmpdir = arguments$path[1],
-                            pattern = "cellid_commands."),
-                            fileext = ".txt"
+                            pattern = "cellid_commands.", 
+                            fileext = ".txt")
                    )
   
   return(invisible(NULL))

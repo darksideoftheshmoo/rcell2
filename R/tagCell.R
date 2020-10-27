@@ -24,7 +24,6 @@
 #' @param tmp_output_file file path into which tagging information will be dumped by user request
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 #' @param debug_messages print debug messages
-#' @param ... arguments for magickCell 
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 #' @examples
@@ -89,8 +88,7 @@ tagCell <- function(cdata,
                     tag_ggplot = NULL,
                     equalize_images = F,
                     normalize_images = F,
-                    debug_messages = F,
-                    ...){
+                    debug_messages = F){
   
   # To-do
   # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
