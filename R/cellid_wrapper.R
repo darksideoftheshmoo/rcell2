@@ -327,7 +327,8 @@ cell.load.alt <- function(path,
   # Make output list
   cell.data <- list(data = d.list$d,
                     images = d.list$d.paths,
-                    mapping = d.list$d.map)
+                    mapping = d.list$d.map,
+                    channels = unique(d$flag.channel.mapping))
   
   cat("\rDone loading CellID data!                            \n")
   return(cell.data)
