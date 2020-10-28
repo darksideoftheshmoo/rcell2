@@ -259,7 +259,7 @@ cell.load.alt <- function(path,
                            position.pattern = position.pattern,
                            ...)  # https://stackoverflow.com/questions/40794780/r-functions-passing-arguments-with-ellipsis/40794874
   
-  cat("\rCreating ucid column...\033[K")
+  cat("\rCreating ucid column...                            ")
   d.list$d <- d.list$d %>%
     # By padding to the same number of digits, cells from positions as 90 and 9 could have the same UCID.
     # The next lines fix that bug, which would cells to not be filtered correctly, and be plotted anyways, or other problems.
@@ -278,7 +278,7 @@ cell.load.alt <- function(path,
   # cell's axis values.
   # el.p = ratio of ellipse perim over the perimeter measured by cellID.
   # If this number is small ( < ~0.7) it's probably not a cell.
-  cat("\rCreating el.p column...\033[K")
+  cat("\rCreating el.p column...                            ")
   d.list$d <- dplyr::mutate(d.list$d,
                             ellipse.perim = pi *
                               (3 * (maj.axis / 2 + min.axis / 2) -
@@ -293,12 +293,12 @@ cell.load.alt <- function(path,
   if(!is.null(pdata)){
     pdata <- read_csv(pdata) %>% mutate(pos = pos %>% as.numeric)
     d.list$d <- d.list$d %>% left_join(pdata, by = "pos")
-    cat(" and it was :)\033[K\n")
-  } else cat(" but it was not :(\033[K\n")
+    cat(" and it was :)                            ")
+  } else cat(" but it was not :(                            ")
 
 
   # Create paths dataframe and add three-letter code for channel
-  cat("\rCreating image paths dataframe...\033[K")
+  cat("\rCreating image paths dataframe...                            ")
   paths <- d.list$d.map %>%
     mutate(channel = paste0(toupper(channel), "FP"))
 
@@ -329,8 +329,7 @@ cell.load.alt <- function(path,
                     images = d.list$d.paths,
                     mapping = d.list$d.map)
   
-  cat("\rDone loading CellID data!\033[K")
-  cat("\n")
+  cat("\rDone loading CellID data!                            \n")
   return(cell.data)
 }
 
