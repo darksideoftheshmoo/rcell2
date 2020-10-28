@@ -209,13 +209,13 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
   }
   cat(paste("Message from hues_from_tsv2: joining id data...\n"))
   hues_by_cell <- masks_coords %>% 
-    select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
-    left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
+    select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%
+    left_join(hues_df, by = "id") %>%
     select(-id)
   
   cat(paste("Message from hues_from_tsv2: done!\n"))
   
-  return(hues_by_cell)
+  return(hues_by_cell)  # to hues_from_tsv_files2()
 }
 
 #' Generate Hu moments data frame from one or more TSV files
@@ -302,7 +302,7 @@ append_hues2 <- function(tsv_files_df,
   hues_df <- hues_from_tsv_files2(tsv_files_df, 
                                   return_points = F, 
                                   parralellize = parralellize,
-                                  shape_pixtype = "b", 
+                                  shape_pixtype = shape_pixtype, 
                                   shape_flagtype = 0, 
                                   cdata_subset = cdata_subset)
   
