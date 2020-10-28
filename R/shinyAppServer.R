@@ -344,7 +344,8 @@ shinyAppServer <-
           positions <- rangeExpand(input$position, max(paths$pos))
 
           p <- subset(paths, pos %in% positions)
-          d <- subset(values$cdata, pos %in% positions & filter == TRUE)
+          d <- subset(values$cdata, pos %in% positions)
+          if(!input$suspend_filters) d <- subset(d, filter == TRUE)
 
           # Y solamente con las filas que están en el brush
           d <- d[d[,input$x] >= brush_limits[1] &
@@ -429,8 +430,9 @@ shinyAppServer <-
           # Me quedo con las posiciones que me interesan
           # positions <- getPositions(input$position, max(paths$pos))
           positions <- rangeExpand(input$position, max(paths$pos))
-          d <- subset(values$cdata, pos %in% positions & filter == TRUE)
           p <- subset(paths, pos %in% positions)
+          d <- subset(values$cdata, pos %in% positions)
+          if(!input$suspend_filters) d <- subset(d, filter == TRUE)
 
           # # Copiado del bloque del brush
           # if(input$facet != ""){
@@ -514,7 +516,8 @@ shinyAppServer <-
           # Me quedo con las posiciones que me interesan
           positions <- rangeExpand(input$position, max(paths$pos))
           p <- subset(paths, pos %in% positions)
-          d <- subset(values$cdata, pos %in% positions & filter == TRUE)
+          d <- subset(values$cdata, pos %in% positions)
+          if(!input$suspend_filters) d <- subset(d, filter == TRUE)
           
           # El nearest hay que hacerlo despues de filtrar por facet
           print("-- Hover names:")
