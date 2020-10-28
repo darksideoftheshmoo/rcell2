@@ -133,7 +133,7 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
   
   # Compute Hu moments for each cellID's boundary mask XY coordinates
   n_cores <- max(1, parallel::detectCores() - 1)
-  cat(paste("\nMessage from hues_from_xy2: Parallel Hu with", n_cores, "threads."))
+  cat(paste("Message from hues_from_xy2: Parallel Hu with", n_cores, "threads.\n"))
   cl <- parallel::makeCluster(n_cores)
   # Export objects to cluster
   parallel::clusterExport(cl, "split_col", envir = environment())
@@ -184,8 +184,8 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
                            shape_pixtype = NULL, shape_flagtype = NULL, 
                            cdata_subset = NULL, position = NULL){
   # Add "id" column
-   cat(paste("\nMessage from hues_from_tsv2: reading TSV id data..."))
-  masks_coords <- readr::read_tsv(masks_tsv_path,
+  cat("\nMessage from hues_from_tsv2: reading TSV id data...\n")
+  masks_coords <- readr::read_tsv(masks_tsv_path, progress = TRUE,
                                   col_types = cols(cellID = readr::col_integer(),
                                                    t.frame = readr::col_integer(),
                                                    flag = readr::col_integer(),
@@ -207,13 +207,13 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
   } else {
     hues_df <- hues_from_xy2(coords_df = masks_coords, split_col="id")
   }
-  cat(paste("\nMessage from hues_from_tsv2: joining id data..."))
+  cat(paste("Message from hues_from_tsv2: joining id data...\n"))
   hues_by_cell <- masks_coords %>% 
     select(cellID, t.frame, flag, pixtype, id) %>% unique() %>%  # in test: 3208 rows
     left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
     select(-id)
   
-  cat(paste("\nMessage from hues_from_tsv2: done!\n"))
+  cat(paste("Message from hues_from_tsv2: done!\n"))
   
   return(hues_by_cell)
 }
@@ -255,7 +255,7 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
                      shape_pixtype = shape_pixtype, 
                      shape_flagtype = shape_flagtype,
                      position = position) %>% 
-      mutate(pos = position)
+      mutate(pos = as.integer(position))
     
     hues_df_list[[position]] <- hues_df
   }
