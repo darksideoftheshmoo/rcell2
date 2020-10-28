@@ -294,7 +294,10 @@ append_hues2 <- function(tsv_files_df,
   if("Hu_moments" %in% names(cell_data) && !overwrite) 
     stop("cell_data already has a Hu_moments element, use 'overwrite=TRUE' to force it.")
   
-  if(!is.null(cell_data)) cdata_subset <- unique(cell_data[["data"]][, c("cellID", "pos", "t.frame")])
+  if(!is.null(cell_data)) 
+    cdata_subset <- unique(cell_data[["data"]][, c("cellID", "pos", "t.frame")]) 
+  else 
+    cdata_subset <- NULL
   
   hues_df <- hues_from_tsv_files2(tsv_files_df, 
                                   return_points = F, 
