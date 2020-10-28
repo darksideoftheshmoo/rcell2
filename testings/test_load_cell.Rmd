@@ -51,7 +51,7 @@ devtools::install(reload = T,
 path <- "/home/nicomic/Software/cellID-linux/test_data_tmp/"
 
 cell_data <- rcell2::load_cell_data(path =  path)
-cell.data <- rcell2::cell.load.alt(path =  path, cellid.zero.pad = 5)
+cell.data <- rcell2::cell.load.alt(path =  path, ucid.zero.pad = 5)
 ```
 
 ```{r}

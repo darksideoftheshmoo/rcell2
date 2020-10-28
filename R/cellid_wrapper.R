@@ -240,7 +240,7 @@ cellArgs2 <- function(path,
 #' @param position.pattern Regex describing what the position string looks like (default 'Position\\d+')
 #' @param ucid.zero.pad amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions)
 #' @param ... pass "pdata" with the path to the pdata file to merge it internally
-#' @return a data frame
+#' @return A list of dataframes: data (CellID data), images (images metadata and paths), image_maping (extra mapping metadata from CellID: BF to FL correspondence, channel flag, bf_as_fl flag, and one-letter channel encoding).
 # @examples
 # cell.data <- cell.load(path = path, pdata = pdata)
 #' @import dplyr stringr tidyr readr
@@ -249,7 +249,7 @@ cellArgs2 <- function(path,
 cell.load.alt <- function(path = "data/images2/",
                           pdata = NULL,
                           position.pattern = "Position\\d+",
-                          cellid.zero.pad = 4,
+                          ucid.zero.pad = 4,
                           ...){
 
   if(F){  # TEST
@@ -269,7 +269,7 @@ cell.load.alt <- function(path = "data/images2/",
       cellID = as.integer(cellID),
       t.frame = as.integer(t.frame)
     ) %>% 
-    mutate(cellid.pad = cellid.zero.pad - nchar(as.character(cellID))) %>%
+    mutate(cellid.pad = ucid.zero.pad - nchar(as.character(cellID))) %>%
     mutate(
       ucid = paste0(
         as.character(pos),
@@ -337,8 +337,12 @@ cell.load.alt <- function(path = "data/images2/",
     mutate(image = basename(file))
 
   d.list$d.paths <- paths
+  
+  cell.data <- list(data = d.list$d,
+                    images = d.list$d.paths,
+                    mapping = d.list$d.map)
 
-  return(d.list)
+  return(cell.data)
 }
 
 

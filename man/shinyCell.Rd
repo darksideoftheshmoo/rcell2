@@ -15,7 +15,7 @@ shinyCell(
   initial_facet = "",
   initial_vars = NULL,
   facet_grid_option = TRUE,
-  facets_scale_free = NULL,
+  facets_scale_free = "fixed",
   n_max = 100,
   boxSize = 50,
   ...
