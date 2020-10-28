@@ -237,55 +237,48 @@ cellArgs2 <- function(path,
 #' Cargar el output de cell-id
 #'
 #' @param path Path to images directory
-#' @param position.pattern Regex describing what the position string looks like (default 'Position\\d+')
+#' @param pdata Path to metadata CSV file
+#' @param position.pattern Regex describing what the position string looks like (default ".*Position(\\d+).*") including a capturing group for the position ID number (coerced to integer).
 #' @param ucid.zero.pad amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions)
-#' @param ... pass "pdata" with the path to the pdata file to merge it internally
+#' @param ... Arguments passed on to \code{cargar.out_all}. Patterns for "out" files, fluorescence channel, and other options may be changed here.
 #' @return A list of dataframes: data (CellID data), images (images metadata and paths), image_maping (extra mapping metadata from CellID: BF to FL correspondence, channel flag, bf_as_fl flag, and one-letter channel encoding).
 # @examples
 # cell.data <- cell.load(path = path, pdata = pdata)
 #' @import dplyr stringr tidyr readr
 #' @importFrom purrr map
 #' @export
-cell.load.alt <- function(path = "data/images2/",
+cell.load.alt <- function(path,
                           pdata = NULL,
-                          position.pattern = "Position\\d+",
+                          position.pattern = ".*Position(\\d+).*",
                           ucid.zero.pad = 4,
                           ...){
 
-  if(F){  # TEST
-    path <- "/home/nicomic/Projects/Colman/HD/uscope/20200130_Nico_screen_act1_yfp/1/"
-    position.pattern = "Position\\d+"
-  }
-
   # Cargar datos out_all y juntar en un solo dataframe usando metadata de "out_bf_fl_mapping"
+  cat("\n\nLoading CellID output files...\n")
   d.list <- cargar.out_all(.carpeta = path,
-                           position.pattern = position.pattern)
-
+                           position.pattern = position.pattern,
+                           ...)  # https://stackoverflow.com/questions/40794780/r-functions-passing-arguments-with-ellipsis/40794874
+  
+  cat("\rCreating ucid column...\033[K")
   d.list$d <- d.list$d %>%
     # By padding to the same number of digits, cells from positions as 90 and 9 could have the same UCID.
-    #mutate(ucid = 10 - pos %>% as.character %>% nchar - cellID %>% as.character %>% nchar) %>% #glimpse()
     # The next lines fix that bug, which would cells to not be filtered correctly, and be plotted anyways, or other problems.
-    mutate(
-      cellID = as.integer(cellID),
-      t.frame = as.integer(t.frame)
-    ) %>% 
+    # Also, the padding should not be very large, or it will "overflow" R's integer class.
     mutate(cellid.pad = ucid.zero.pad - nchar(as.character(cellID))) %>%
     mutate(
-      ucid = paste0(
-        as.character(pos),
-        sapply(cellid.pad, FUN = function(pad) rep.int(x = 0, times = max(0, pad)) %>% paste0(collapse = "")),
-        as.character(cellID)
-      )) %>%
-    mutate(ucid = as.integer(ucid)) %>% 
-    select(-cellid.pad) #%>% glimpse()
-  # d$ucid %>% nchar() %>% unique()
+      ucid = as.integer(
+        paste0(pos,
+               sapply(cellid.pad, FUN = function(pad) paste0(rep(x="0", 
+                                                                 times=max(0, pad)), 
+                                                             collapse = "")),
+               cellID))) %>%
+    select(-cellid.pad)
 
   # ellipse.perim = perimeter of theoretical ellipse, calculated using each
   # cell's axis values.
   # el.p = ratio of ellipse perim over the perimeter measured by cellID.
   # If this number is small ( < ~0.7) it's probably not a cell.
-  # f.x = total fluorescence - background for channel x
-  # cf.x = concentration of f.x (divided by cell area)
+  cat("\rCreating el.p column...\033[K")
   d.list$d <- dplyr::mutate(d.list$d,
                             ellipse.perim = pi *
                               (3 * (maj.axis / 2 + min.axis / 2) -
@@ -293,44 +286,37 @@ cell.load.alt <- function(path = "data/images2/",
                                         (maj.axis / 2 + 3 * min.axis / 2))),
 
                             el.p = ellipse.perim / perim)
-  # d.list$d <- d.list$d %>%
-  if("f.tot.y" %in% names(d.list$d)) d.list$d <- d.list$d %>%
-    dplyr::mutate(f.y = f.tot.y - (a.tot * f.bg.y),
-                  cf.y = f.y / a.tot)
-  if("f.tot.r" %in% names(d.list$d)) d.list$d <- d.list$d %>%
-    dplyr::mutate(f.r = f.tot.r - (a.tot * f.bg.r),
-                  cf.r = f.r / a.tot)
-  if("f.tot.c" %in% names(d.list$d)) d.list$d <- d.list$d %>%
-    dplyr::mutate(f.c = f.tot.c - (a.tot * f.bg.c),
-                  cf.c = f.c / a.tot)
 
   # Mergear con pdata
   # if(exists("pdata", inherits = F)){
-  if(!is.null(pdata) & exists("pdata", inherits = F)){
+  cat("\rJoining pdata if specified...")
+  if(!is.null(pdata)){
     pdata <- read_csv(pdata) %>% mutate(pos = pos %>% as.numeric)
     d.list$d <- d.list$d %>% left_join(pdata, by = "pos")
-  } else print("Either pdata was not supplied or the file was not found in the supplied path.")
+    cat(" and it was :)\033[K\n")
+  } else cat(" but it was not :(\033[K\n")
 
 
-  # Creathe paths dataframe
+  # Create paths dataframe and add three-letter code for channel
+  cat("\rCreating image paths dataframe...\033[K")
   paths <- d.list$d.map %>%
     mutate(channel = paste0(toupper(channel), "FP"))
 
   paths <- bind_rows( # Bind it with itself, to get entries for BF as well.
-    paths %>%
+    paths %>%  # Get FL image paths
       select(pos, t.frame, channel, fluor) %>%
       rename(file = fluor),
-    paths %>%
-      filter(flag == 0) %>% #  Since there can be duplicates in the "bright" column, keep just one channel
+    paths %>%  # Get BF image paths
       select(pos, t.frame, channel, bright) %>%
       rename(file = bright) %>%
-      mutate(channel = "BF")
+      mutate(channel = "BF") %>% 
+      unique()  # There may be BF path duplicates in the "bright" column, so keep the unique set
   ) %>%
-    mutate(path = dirname(file),
-           is.out = FALSE)
+    mutate(path = dirname(file),  # Add the directory path
+           is.out = FALSE)        # Add the is.out column
 
   paths <- bind_rows(paths,
-                     paths %>%  # bind it with itself, out files are named exactly the same, but with an extra ".out.tif"
+                     paths %>%  # bind it with part of itself, out files are named exactly the same, but with an extra ".out.tif"
                        mutate(file = paste0(file, ".out.tif"),
                               channel = paste0(channel, ".out"),
                               is.out = TRUE)) %>%
@@ -338,13 +324,34 @@ cell.load.alt <- function(path = "data/images2/",
 
   d.list$d.paths <- paths
   
+  # Make output list
   cell.data <- list(data = d.list$d,
                     images = d.list$d.paths,
                     mapping = d.list$d.map)
-
+  
+  cat("\rDone loading CellID data!\033[K")
+  cat("\n")
   return(cell.data)
 }
 
+
+#' Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
+read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern){
+  cat(paste0("\rReading: ", .nombre.archivo), "\033[K")
+  .archivo <- paste0(.carpeta, "/", .nombre.archivo) %>% normalizePath()
+  .pos <- str_replace(.nombre.archivo, position.pattern, "\\1") %>% as.numeric()
+  
+  d <-  read_tsv(.archivo, col_types = cols()) %>%
+    mutate(pos = as.integer(.pos))  # La columna de ID es "pos"
+  
+  
+  if("con.vol_1" %in% names(d)) {
+    cat(paste0("\nRemoving 'con.vol_1' column from position: ", .pos, ". Use CellID version > 1.4.6 to stop seeing this message.\n"))
+    d <- dplyr::select(d, -con.vol_1)
+  }
+  
+  return(d)
+}
 
 #' Una función para leer y combinar todos los archivos "out".
 #'
@@ -358,75 +365,63 @@ cell.load.alt <- function(path = "data/images2/",
 #' @return A list of two dataframes: `d` contains the actual output, and `out.map` contains image paths and metadata.
 cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                            .carpeta = "data/images2/",
-                           position.pattern = "Position\\d+",
-                           fluorescence.pattern = ".*([GCYRT])FP_Position.*"){
-
-  if(F){  #TEST
-    .carpeta = path
-    position.pattern = "Position\\d+"
-    fluorescence.pattern = ".*([GCYRT])FP_Position.*"
-  }
+                           position.pattern = ".*Position(\\d+).*",
+                           out_file_pattern = "^out_all$",
+                           out_mapping_pattern = "^out_bf_fl_mapping$",
+                           fluorescence.pattern = ".*([A-Z])FP_Position.*"){
 
   # Migrated from cell.load()
-  .nombre.archivos <- dir(path = .carpeta, pattern = "^out_all$", recursive = T)
-  .nombre.archivos.map <- dir(path = .carpeta, pattern = "^out_bf_fl_mapping$", recursive = T)
-
-  # Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
-  read_tsv.con.id <- function(.nombre.archivo,
-                              .carpeta = "data/images2/",
-                              position.pattern2 = ".*Position(\\d+).*"){
-
-    .archivo <- paste0(.carpeta, "/", .nombre.archivo) %>% sub("//", "/", x = .)
-    .pos <- .nombre.archivo %>% str_replace(position.pattern2, "\\1") %>% as.numeric()
-
-    d <- .archivo %>%
-      read_tsv(col_types = cols()) %>%
-      mutate(pos = .pos)  # La columna de ID es "pos"
-
-    
-    if("con.vol_1" %in% names(d)) {
-      print("Removing 'con.vol_1' column.")
-      d <- d %>% select(-con.vol_1)
-    }
-
-    d
-  }
+  .nombre.archivos <- list.files(path = .carpeta, pattern = out_file_pattern, recursive = T, include.dirs = T)
+  .nombre.archivos.map <- list.files(path = .carpeta, pattern = out_mapping_pattern, recursive = T, include.dirs = T)
 
   # Cargo y junto los "out_all"
+  cat("\rLoading datasets...\033[K")
   d.out <- purrr::map(.x = .nombre.archivos,
-                      .f = read_tsv.con.id,
-                        .carpeta = .carpeta) %>%
-    bind_rows() %>%
-    mutate(pos = as.integer(pos))
-  if(length(d.out$cellID %>% unique()) < length(d.out)){
-    stop("There are repeated cellID's in the out_all file!")
-  }
+                      .f = read_tsv.con.pos, 
+                      .carpeta = .carpeta,
+                      position.pattern = position.pattern) %>%
+    bind_rows()
+  cat(" Done loading out files!\n")
+  
+  # Check
+  if(length(d.out$cellID %>% unique()) < length(d.out)) stop("\nERROR: There are repeated cellID's in the out_all file!")
 
   # # Cargo y junto los "out_bf_fl_mapping"
+  cat("\rLoading mapping...              ")
   d.map <- purrr::map(.x = .nombre.archivos.map,
-                      .f = read_tsv.con.id,
-                      .carpeta = .carpeta) %>%
+                      .f = read_tsv.con.pos,  # Una función para leer los archivos "out" y agregarles "pos" segun la carpeta que los contiene
+                      .carpeta = .carpeta, 
+                      position.pattern = position.pattern) %>%
     bind_rows() %>%
-    mutate(pos = as.integer(pos)) %>%
-    # select(-bright, -bf.as.fl) %>%
     mutate(channel = str_replace(string = fluor,
                                  pattern = fluorescence.pattern,
                                  replacement = "\\1")) %>%
     mutate(channel = tolower(channel))
+  cat("\n Done loading mapping files!\n")
+  
+  # keep flag-channel mapping
+  flag.channel.mapping <- d.map %>% select(flag, channel) %>% unique()
 
-  # Return join
+  # Return join (discard flag variable)
+  cat("\rJoining data and mapping...\033[K")
   d.out.map <- d.map %>%
-    # select(-bright, -bf.as.fl) %>%
     select(channel, flag, t.frame , pos) %>%
-    left_join(d.out, by = c("flag", "t.frame", "pos")) %>%
+    left_join(d.out, by = c("flag", "t.frame", "pos")) %>% 
     select(-flag)
-  # d %>% select(channel, flag) %>% unique()  # Check uniqueness of flag-fluor combinations
+  
+  # Add f.tot columns to data
+  d.out.map <- mutate(d.out.map,
+                      f = f.tot - (a.tot * f.bg),
+                      cf = f / a.tot)
 
-  d <- d.out.map %>%
-    pivot_wider(
+  # Right now the out_all is in a "long" format for the (one-letter) channel variable
+  # Spread it to out expectations:
+  cat("\rSpreading data from channels...\033[K")
+  cdata <- d.out.map %>%
+    tidyr::pivot_wider(
       names_from = channel, names_sep = ".",
       id_cols = c(cellID,
-                  # flag,
+                  # flag,  # dropped above
                   t.frame,
                   time,
                   xpos,
@@ -448,11 +443,13 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   a.local2.bg,
                   a.local2,
                   a.surf,
-                  # con.vol_1,  # duplicated, removed by read_tsv.con.id
+                  # con.vol_1,  # duplicated, removed by read_tsv.con.pos and in recent CellID versions
                   sphere.vol,
                   pos),
 
       values_from = c(f.tot,
+                      f,
+                      cf,
                       f.nucl,
                       a.nucl,
                       a.vacuole,
@@ -484,10 +481,15 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       a.nucl6,
                       f.local.bg,
                       f.local2.bg))
+  
+  cdata <- mutate(cdata, 
+                  cellID = as.integer(cellID),
+                  t.frame = as.integer(t.frame))
 
   return(list(
-    "d" = d,
-    "d.map" = d.map
+    "d" = cdata,
+    "d.map" = d.map,
+    "flag.channel.mapping" = flag.channel.mapping
     ))
 }
 
