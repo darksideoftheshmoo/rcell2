@@ -139,11 +139,11 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   ## Get filtered data
   if(is.cell.data(x)){
     ## Do this if x is a cell.data object
-    if(x_has_qc) xdata <- x$data[x$data[,"qc"],]
+    if(x_has_qc) xdata <- x$data[x$data[,"qc"],] else xdata <- x$data
     f.channels <- x$channels$posfix
     }else{
     ## Do this if x is a data.frame
-    if(x_has_qc) xdata <- x[x[,"qc"],]
+    if(x_has_qc) xdata <- x[x[,"qc"],] else xdata <- x
     f.channels <- substr(unlist(regmatches(names(xdata), gregexpr(paste0("(f.tot.)+([a-z]{1}$)"), names(xdata)))), 7, 8)
     # f.channels <- sub(pattern = "f.tot.([a-z])", replacement = "\\1", 
     #                   x = grep(pattern = "f.tot.[a-z]",
