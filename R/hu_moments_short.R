@@ -185,7 +185,14 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
                            cdata_subset = NULL, position = NULL){
   # Add "id" column
    cat(paste("\nMessage from hues_from_tsv2: reading TSV id data..."))
-  masks_coords <- readr::read_tsv(masks_tsv_path) %>% 
+  masks_coords <- readr::read_tsv(masks_tsv_path,
+                                  col_types = cols(cellID = readr::col_integer(),
+                                                   t.frame = readr::col_integer(),
+                                                   flag = readr::col_integer(),
+                                                   x = readr::col_integer(),
+                                                   y = readr::col_integer(),
+                                                   pixtype = readr::col_factor(levels = c("b", "i")))
+                                  ) %>% 
     {if(!is.null(shape_pixtype)) filter(., pixtype %in% shape_pixtype) else .} %>% 
     {if(!is.null(shape_flagtype)) filter(., flag %in% shape_flagtype) else .} %>% 
     mutate(id = factor(paste(cellID, t.frame, flag, pixtype,sep = "_")))
@@ -206,7 +213,7 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
     left_join(hues_df, by = "id") %>%                            # in test: 3208 rows too :)
     select(-id)
   
-  cat(paste("\nMessage from hues_from_tsv2: done!"))
+  cat(paste("\nMessage from hues_from_tsv2: done!\n"))
   
   return(hues_by_cell)
 }
