@@ -134,17 +134,21 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   stopifnot("invalid max_iter value" = is.integer(max_iter) & max_iter>0)
   
   if(is.null(custom_vars) & is.null(var_cats)) var_cats <- "morpho"
+  x_has_qc <- "qc" %in% names(x)
   
   ## Get filtered data
   if(is.cell.data(x)){
     ## Do this if x is a cell.data object
-    xdata <- x$data[x$data$qc,]
+    if(x_has_qc) xdata <- x$data[x$data[,"qc"],]
     f.channels <- x$channels$posfix
-    }
-  else{
+    }else{
     ## Do this if x is a data.frame
-    xdata <- x[x$qc,]
+    if(x_has_qc) xdata <- x[x[,"qc"],]
     f.channels <- substr(unlist(regmatches(names(xdata), gregexpr(paste0("(f.tot.)+([a-z]{1}$)"), names(xdata)))), 7, 8)
+    # f.channels <- sub(pattern = "f.tot.([a-z])", replacement = "\\1", 
+    #                   x = grep(pattern = "f.tot.[a-z]",
+    #                            x = names(cdata),
+    #                            value = TRUE))
   }
   
   ## Extract columns for computing clustering
@@ -202,8 +206,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
       k.sample <- sample(dim(cdata)[1],n.missing)
       k.means <- rbind(k.means,cdata[k.sample,])
     }
-  }
-  else{
+  }else{
     ### Else, if tagging de novo
     if(is.data.frame(k)){
       ## Extract rows chosen as initial cluster centroids
@@ -213,8 +216,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
         filter(!is.na(k_labs)) %>% select(ucid,t.frame,i_row)
       k.means <- cdata[centroids.idx$i_row,]
       k <- dim(k)[1]
-    }
-    else{
+    }else{
       ## Randomly pick k samples as initial cluster centroids
       k.sample <- sample(dim(cdata)[1],k)
       k.means <- cdata[k.sample,]
@@ -266,8 +268,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   ## Remove any pre-existing 'k' and 'k.dist' columns from x, and append new columns
   if(is.cell.data(x)){
     x$data <- x$data %>% mutate(k = NULL, k.dist = NULL) %>% left_join(k.data,by=c("t.frame","ucid"))
-  }
-  else{
+  }else{
     x <- x %>% mutate(k = NULL, k.dist = NULL) %>% left_join(k.data,by=c("t.frame","ucid"))
   }
   return(x)
