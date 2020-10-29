@@ -161,8 +161,6 @@ calculateTruth <- function(filterDF, cell_unique_id_field = "ucid", truth_column
     additive_types <- which(types == 1)     # identify yes-type columns
     subtractive_types <- which(types == 2)  # identify not-type columns
     
-    print(head(fDF))
-
     # Tomar las columnas de filterDF que contienen los valores de verdad para cada filtro
     # y hacerles un all() por fila.
     filterDF$filter <- apply(X = fDF,

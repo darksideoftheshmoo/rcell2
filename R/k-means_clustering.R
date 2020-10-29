@@ -103,6 +103,9 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
   
   x %>% select(all_of(selected.vars))
   
+  return(list(cdata = x %>% select(all_of(selected.vars)),
+              id.vars = id.vars))
+  
   #return(x[,names(x) %in% selected.vars])
 }
 
@@ -132,6 +135,17 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
 kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = 'k', 
                               var_cats=NULL,custom_vars=NULL, 
                               plot_progress=F, return_list=F){
+  if(F){
+    k = 7
+    max_iter = 200
+    plot_progress = T
+    return_list = T
+    var_cats=NULL
+    custom_vars=NULL
+    resume=FALSE
+    label_col = 'k'
+  }
+  
   max_iter <- as.integer(max_iter)
   stopifnot("invalid max_iter value" = is.integer(max_iter) & max_iter>0)
   
@@ -154,10 +168,13 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   }
   
   ## Extract columns for computing clustering
-  cdata <- get_fit_vars(xdata,
-                        f.channels,
-                        var_cats,
-                        custom_vars)
+  cdata.vars <- get_fit_vars(xdata,
+                             f.channels,
+                             var_cats,
+                             custom_vars)
+  
+  cdata <- cdata.vars[["cdata"]]
+  var_names <- names(cdata)[!names(cdata) %in% cdata.vars$id.vars]
   
   ## Remove any rows with NAs
   na.idx <- unique(unlist(sapply(1:ncol(cdata),function(x,i) which(is.na(x[,i])), x=cdata)))
@@ -279,7 +296,7 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   }
   
   # Nice names for k.means
-  colnames(k.means) <- c(label_col, custom_vars)
+  colnames(k.means) <- c(label_col, paste0(var_names, ".norm"))
   k.means[,1] <- 1:k
   
   # Return
