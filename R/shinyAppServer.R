@@ -16,17 +16,19 @@ shinyAppServer <-
       # Initialize cdata
       cdata$filter <- T
       if(!{cdata$t.frame %>% unique() %>% length()} == 1){
+        print("Initializing cell_unique_id_field to 'ucid_time'")
         cdata <- mutate(cdata, ucid_time = paste0(ucid, "_", t.frame))
         cdata.cell_unique_id_field <- "ucid_time"
       } else {
+        print("Initializing cell_unique_id_field to 'ucid'")
         cdata.cell_unique_id_field <- "ucid"
       }
       values$cdata <- cdata
       
       # Initialize cfilter
-      if(length(filters) > 0) { values$stringFilters <- filters} else {values$stringFilters <- c()}  # Load initial filters if any
-      values$stringFiltersSelected <- c()
       values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
+      # if(length(filters) > 0) { values$stringFilters <- filters} else {values$stringFilters <- c()}  # Load initial filters if any
+      # values$stringFiltersSelected <- c()
 
       # Initialize sample seed
       values$seed <- seed
@@ -90,7 +92,9 @@ shinyAppServer <-
           values$cdata <- cdata
           values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
         }
-
+        
+        print(paste("-- Saving filter progress to:", filter_progress_file))
+        saveRDS(object = rv$filters, file = filter_progress_file)
         print(paste("-- Remaining cells:", sum(isolate(values$cdata$filter))))  # Isolate from values$cdata
 
       }, priority = 11)

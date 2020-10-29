@@ -49,7 +49,7 @@ shinyCell <- function(cdata,
                       seed = 1,
                       initial_facet = "", initial_vars = NULL,
                       facet_grid_option = TRUE, facets_scale_free = "fixed",
-                      n_max = 100, boxSize = 50,
+                      n_max = 100, boxSize = 50, temp_rds = NULL,
                       ...){
     
     if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
@@ -62,6 +62,10 @@ shinyCell <- function(cdata,
         initial_vars = c("a.tot",
                          "fft.stat")
     }
+  if(is.null(temp_rds)) {
+    dir.create(path = "/tmp/shinyCell/")
+    filter_progress_file <- tempfile(pattern = "shinyCell_progress", tmpdir = "/tmp/shinyCell/", fileext = ".RDS")
+  }
     
     # To-do
     # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
