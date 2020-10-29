@@ -129,7 +129,9 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
 #' @return Depending on the data type provided by \code{x}, either a cell.data object or a cell.data data.frame with appended columns \code{k} and \code{k.dist}, indicating the assigned cluster and Euclidean distance to the cluster centroid, respectively.
 #' @export
 #'
-kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = 'k', var_cats=NULL,custom_vars=NULL, plot_progress=F){
+kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = 'k', 
+                              var_cats=NULL,custom_vars=NULL, 
+                              plot_progress=F, return_list=F){
   max_iter <- as.integer(max_iter)
   stopifnot("invalid max_iter value" = is.integer(max_iter) & max_iter>0)
   
@@ -230,7 +232,8 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   ## Limit loop to max_iter iterations
   cat("Running k-means clustering...\n")
   if(plot_progress) plot(x = c(1,max_iter), c(0,nrow(xdata)), type = "n",
-                         ylab = "re-assignments", xlab = "iteration")
+                         ylab = "re-assignments", xlab = "iteration", main = "Progress of k-means clustering")
+  
   for(i.count in 1:max_iter){
     ## Calculate distances of each row in cdata to each centroid in k.means
     dists <- apply(k.means,1,function(x,k) sqrt(rowSums(sweep(x, 2, k)**2)),x=cdata)
@@ -274,6 +277,14 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
   }else{
     x <- x %>% mutate(k = NULL, k.dist = NULL) %>% left_join(k.data,by=c("t.frame","ucid"))
   }
-  return(x)
+  
+  # Nice names for k.means
+  colnames(k.means) <- c(label_col, custom_vars)
+  k.means[,1] <- 1:k
+  
+  # Return
+  if(return_list) return(list(x = x,
+                              k.means = k.means))
+  else return(x)
 }
                    
