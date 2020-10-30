@@ -20,6 +20,9 @@ polyFilterApply(
 
 \item{cell_unique_id_field}{Name for the column holding the unique identifier (a "primary key") for each data point (i.e. the "ucid" is not suficcient for time series datasets).}
 }
+\value{
+a "saved_data" list object, where the cdata is appended a "filter" logical column.
+}
 \description{
 Apply polygonal filters to cdata
 }

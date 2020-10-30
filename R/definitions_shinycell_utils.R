@@ -2,7 +2,7 @@
 #' 
 #' Useful to check out what areas the filters are covering.
 #'
-#' @param saved_data The output of shinyCell.
+#' @param saved_data The output of shinyCell, or a list: \code{list(cdata = NULL, filter = saved_data$filters)}. Note that the only effect of \code{cdata = NULL} is that points will not be drawn.
 # @param .type a string, either "Subtractive" or "Additive", the two types of filters.
 #' @param print_plots Set to false to prevent printing the plots on execution.
 #'
@@ -46,12 +46,10 @@ plot_filters <- function(saved_data,
     
     d <- bind_rows(pgnfilters.o.unswapped, pgnfilters.o.swapped)
     
-    d %>%
+    p <- d %>%
       ggplot() +
-      geom_point(aes(
-        x = !!x_,
-        y = !!y_
-      ), data = filter(saved_data$cdata, t.frame == 0)) +
+      # geom_point(aes(x = !!x_,y = !!y_), data = filter(saved_data$cdata, t.frame == 0)) +
+      {if(!is.null(saved_data$cdata)) geom_point(aes(x = !!x_,y = !!y_), data = saved_data$cdata) else NULL} +
       geom_polygon(aes(x = !!x_, 
                        y = !!y_,
                        color = polygon,

@@ -81,6 +81,8 @@ getPositions <- function(input, numPos){
 #' @param truthMode Logical priority for "Subtractive" and "Additive" polygon filter types, passed to \code{calculateTruth}. Should be one of "all" (Subtractive overcomes Additive) or "any" (Additive overcomes Subtractive).
 #' @param cell_unique_id_field Name for the column holding the unique identifier (a "primary key") for each data point (i.e. the "ucid" is not suficcient for time series datasets).
 #' 
+#' @return a "saved_data" list object, where the cdata is appended a "filter" logical column.
+#' 
 polyFilterApply <- function(polygon_df_list,
                             cdata,
                             truthMode = "all",

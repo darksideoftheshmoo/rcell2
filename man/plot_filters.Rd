@@ -7,7 +7,7 @@
 plot_filters(saved_data, print_plots = TRUE)
 }
 \arguments{
-\item{saved_data}{The output of shinyCell.}
+\item{saved_data}{The output of shinyCell, or a list: \code{list(cdata = NULL, filter = saved_data$filters)}. Note that the only effect of \code{cdata = NULL} is that points will not be drawn.}
 
 \item{print_plots}{Set to false to prevent printing the plots on execution.}
 }

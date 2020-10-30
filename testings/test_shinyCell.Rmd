@@ -1,0 +1,200 @@
+---
+title: "CellID Wrapper Test 3"
+author: "Nicolás Méndez"
+date: "7/20/2020"
+output: html_document
+---
+
+# Rebuild
+
+```{r build, message=FALSE, warning=TRUE}
+devtools::document()
+devtools::load_all(recompile = F, reset = T, quiet = T)
+devtools::install(reload = T, build = F,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
+# devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
+# devtools::check()
+# devtools::build()
+# devtools::build(path="../../test_libtiff.tar.gz")
+# remove.packages("rcell2")
+# install.packages("../../test_libtiff.tar.gz", repos = NULL, type="source", clean = TRUE)
+```
+
+```{r setup, message=FALSE, warning=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+# library(rcell2)
+
+path <- "../data/image_samples/"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+
+difference <- function(lista) abs(lista[1] - lista[2])
+```
+
+## Reinstall
+
+```{r, eval=F}
+devtools::install(reload = T, build = T,
+                  quiet = T,
+                  upgrade = "never", keep_source = T)
+```
+
+
+# USAGE
+
+## Load data and plot something
+
+```{r}
+cell.data <- rcell2::cell.load.alt(path =  path, ucid.zero.pad = 5)
+
+head(cell.data$d) %>% select(ucid, pos, cellID, t.frame)
+
+#### SETUP PATHS DATAFRAME ####
+paths <- rcell2::magickPaths(cell.data)
+
+p <- cell.data$d %>% ggplot() + 
+  geom_point(aes(x = a.tot, y = fft.stat, color = pos)) +
+  theme(legend.position = "none")
+
+p
+```
+
+# Test shinyCell
+
+```{r}
+cdata <- cell.data$d
+```
+
+## Basic usage
+
+```{r}
+saved_data <- shinyCell(cdata, pdata, paths,
+                        plotType = "Dots",
+                        # initial_facet = "pos ~ .",
+                        #filters = saved_data$filters,
+                        facet_grid_option = TRUE,
+                        n_max = 7^2, max_size = 720)
+
+# More plots would be useful
+ggplot(data = subset(saved_data$cdata, filter == T)) +
+  geom_boxplot(aes(y = cf.y, x = factor(pos)), width=0.1) +
+  geom_violin(aes(y = cf.y, x = factor(pos), color = factor(pos)), alpha = 0) +
+  theme_minimal()
+```
+
+## Display and play with filters and polygon
+
+You may combine several filter lists:
+
+```{r}
+poly.filters <- c(
+  saved_data$filters
+)
+```
+
+Time-series cdata must have a unique id column:
+
+```{r}
+cdata.ucidtime <- cdata %>% mutate(id = paste(ucid, t.frame, sep = "_"))
+```
+
+Then, any filter list can be used to filter any cdata-like dataframe:
+
+```{r}
+cdata.ucidtime.filters <- polyFilterApply(polygon_df_list = poly.filters, 
+                                          cdata = cdata.ucidtime, 
+                                          cell_unique_id_field = "id")
+```
+
+Filters can be plotted like this:
+
+```{r}
+plot_filters(saved_data)
+```
+
+
+### Bind polygon filter lists
+
+```{r}
+saved_data <- readRDS("data/20191212_Timecourse_FAR1-NG_RtCC/output/objetos_intermedios/shiny_saved_data_post_k1.RDS")
+saved_data2 <- readRDS("data/20191212_Timecourse_FAR1-NG_RtCC/output/objetos_intermedios/shiny_saved_data2_post_k1.RDS")
+```
+
+```{r}
+poly.filters.list <- c(
+  saved_data$filters,
+  saved_data2$filters
+)
+poly.filters.list.names <- 1:length(poly.filters.list)
+```
+
+```{r}
+bfs <- bind_filters(list(cdata = saved_data$cdata, filters = poly.filters.list))
+
+plot_bound_filters(bfs)
+```
+
+### Find polygon intersections
+
+```{r}
+devtools::load_all("/home/nicomic/Projects/Rdevel/rcell2/", reset = T)
+```
+
+Requires `rgeos` (for the intersection function) and `sp` (as an input dependency of the former):
+
+```{r}
+list.sp.poly <- lapply(poly.filters, function(poly) sp::Polygon(poly[,c("x", "y")], hole = F))
+
+sp.poly.one <- sp::Polygons(list.sp.poly[1], ID = "first")
+sp.poly.one <- sp::SpatialPolygons(list(sp.poly.one))
+
+sp.poly.two <- sp::Polygons(list.sp.poly[2], ID = "second")
+sp.poly.two <- sp::SpatialPolygons(list(sp.poly.two))
+
+sp.poly.three <- sp::Polygons(list.sp.poly[3], ID = "third")
+sp.poly.three <- sp::SpatialPolygons(list(sp.poly.three))
+```
+
+
+```{r}
+plot_filters(list(cdata = saved_data$cdata, filters = poly.filters.list[c(1,2,3)]))
+```
+
+No intersection returns `NULL`:
+
+```{r}
+rgeos.intersect <- rgeos::gIntersection(spgeom1 = sp.poly.one, sp.poly.three)
+
+rgeos.intersect
+```
+
+An intersection returns an `sp` object (or something like that):
+
+```{r}
+rgeos.intersect <- rgeos::gIntersection(spgeom1 = sp.poly.one, sp.poly.two)
+
+rgeos.intersect
+```
+
+The intersection coords are here:
+
+```{r}
+intersect.coords <- rgeos.intersect@polygons[[1]]@Polygons[[1]]@coords
+```
+
+Notice the appearance of a fourth polygon:
+
+```{r}
+intersect.coords.df <- as.data.frame(intersect.coords)
+
+intersect.coords.df$xvar <- "a.tot"
+intersect.coords.df$yvar <- "el.p"
+intersect.coords.df$type <- "Subtractive"
+
+# ggplot(as.data.frame(intersect.coords)) + geom_polygon(aes(x=x,y=y))
+plot_filters(list(cdata = saved_data$cdata, filters = c(poly.filters.list[c(1,2,3)],
+                                                        list(intersect.coords.df))))
+```
