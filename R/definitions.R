@@ -74,34 +74,48 @@ getPositions <- function(input, numPos){
     return(positions)
 }
 
-#' Apply string filters to cdata
-polyFilterApply <- function(polygon_df_list, cdata, truthMode = "all",
+#' Apply polygonal filters to cdata
+#' 
+#' @param polygon_df_list A list of polygon dataframes with columns: x (values) y (values) xvar (variable name for x values) yvar (variable name for y values) type ("Subtractive" or "Additive")
+#' @param cdata A "cdata" dataframe.
+#' @param truthMode Logical priority for "Subtractive" and "Additive" polygon filter types, passed to \code{calculateTruth}. Should be one of "all" (Subtractive overcomes Additive) or "any" (Additive overcomes Subtractive).
+#' @param cell_unique_id_field Name for the column holding the unique identifier (a "primary key") for each data point (i.e. the "ucid" is not suficcient for time series datasets).
+#' 
+polyFilterApply <- function(polygon_df_list,
+                            cdata,
+                            truthMode = "all",
                             cell_unique_id_field = "ucid"){
-    print("F3 polyFilterApply")
-    # Initialize empty cfilter, only with a primary key
-    cfilter <- data.frame(id = cdata[,cell_unique_id_field], filter = T)
-    names(cfilter)[1] <- cell_unique_id_field
+  
+  # Check uniqueness of cell_unique_id_field
+  is_primary_key <- length(cdata[,cell_unique_id_field, drop = T]) == length(unique(cdata[,cell_unique_id_field, drop = T]))
+  if(!is_primary_key) stop(paste0("Error in polyFilterApply: '", cell_unique_id_field, "' is not a unique identifier."))
 
-    # Populate cfilter columns, append one column per filtering polygon
-    print("F4.0 polyFilterApply")
-    for (i in seq_along(polygon_df_list)) cfilter = do.call(what = polyFilterCell,
-                                                            args = list(cdataDF = cdata,
-                                                                        filterDF = cfilter,  # Iterates over the output
-                                                                        polygonDF = polygon_df_list[[i]],
-                                                                        polygonName = paste0("polygon", i)))
-    
-    # Recalcular la verdad
-    print("F6.0 polyFilterApply")
-    cfilter <- calculateTruth(filterDF = cfilter, mode = truthMode, cell_unique_id_field = cell_unique_id_field)
+  print("F3 polyFilterApply")
+  # Initialize empty cfilter, only with a primary key and TRUE filter
+  cfilter <- data.frame(id = cdata[,cell_unique_id_field], 
+                        filter = TRUE)
+  names(cfilter)[1] <- cell_unique_id_field
 
-    # Add TRUTH column to cdata
-    print("F7.0 polyFilterApply")
-    cdata <- applyFilter(cdata, cfilter, 
-                         cell_unique_id_field = cell_unique_id_field)
+  # Populate cfilter columns, append one column per filtering polygon
+  print("F4.0 polyFilterApply")
+  for (i in seq_along(polygon_df_list)) cfilter = do.call(what = polyFilterCell,
+                                                          args = list(cdataDF = cdata,
+                                                                      filterDF = cfilter,  # Iterates over the output
+                                                                      polygonDF = polygon_df_list[[i]],
+                                                                      polygonName = paste0("polygon", i)))
+  
+  # Recalcular la verdad
+  print("F6.0 polyFilterApply")
+  cfilter <- calculateTruth(filterDF = cfilter, mode = truthMode, cell_unique_id_field = cell_unique_id_field)
 
-    # Return cdata and cfilter in a list.
-    return(list(cdata = cdata,
-                cfilter = cfilter))
+  # Add TRUTH column to cdata
+  print("F7.0 polyFilterApply")
+  cdata <- applyFilter(cdata, cfilter, 
+                       cell_unique_id_field = cell_unique_id_field)
+
+  # Return cdata and cfilter in a list.
+  return(list(cdata = cdata,
+              cfilter = cfilter))
 }
 
 #' Build filterDF from polygonDF and cdataDF
@@ -201,9 +215,9 @@ applyFilter <- function(cdataDF, filterDF, cell_unique_id_field = "ucid", truth_
     # Columnas que tiene el filtro en "filterDF" pero que tengo que sacar de "cdataDF" antes del merge.
     drops <- c(truth_column)
 
-    .cdataDF <- merge(cdataDF[, !(names(cdataDF) %in% drops)],
-                      filterDF[,c(cell_unique_id_field, truth_column)],
-                      by = cell_unique_id_field)
+    .cdataDF <- base::merge(cdataDF[, !(names(cdataDF) %in% drops)],
+                            filterDF[, c(cell_unique_id_field, truth_column)],
+                            by = cell_unique_id_field)
     print("F7.2 applyFilter")
     return(.cdataDF)
 }

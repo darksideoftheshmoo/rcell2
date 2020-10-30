@@ -5,9 +5,9 @@
 \title{Cargar el output de cell-id}
 \usage{
 cell.load.alt(
-  path = "data/images2/",
+  path,
   pdata = NULL,
-  position.pattern = "Position\\\\d+",
+  position.pattern = ".*Position(\\\\d+).*",
   ucid.zero.pad = 4,
   ...
 )
@@ -15,11 +15,13 @@ cell.load.alt(
 \arguments{
 \item{path}{Path to images directory}
 
-\item{position.pattern}{Regex describing what the position string looks like (default 'Position\\d+')}
+\item{pdata}{Path to metadata CSV file}
+
+\item{position.pattern}{Regex describing what the position string looks like (default ".*Position(\\d+).*") including a capturing group for the position ID number (coerced to integer).}
 
 \item{ucid.zero.pad}{amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions)}
 
-\item{...}{pass "pdata" with the path to the pdata file to merge it internally}
+\item{...}{Arguments passed on to \code{cargar.out_all}. Patterns for "out" files, fluorescence channel, and other options may be changed here.}
 }
 \value{
 A list of dataframes: data (CellID data), images (images metadata and paths), image_maping (extra mapping metadata from CellID: BF to FL correspondence, channel flag, bf_as_fl flag, and one-letter channel encoding).

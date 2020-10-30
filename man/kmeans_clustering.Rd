@@ -11,7 +11,9 @@ kmeans_clustering(
   resume = FALSE,
   label_col = "k",
   var_cats = NULL,
-  custom_vars = NULL
+  custom_vars = NULL,
+  plot_progress = F,
+  return_list = F
 )
 }
 \arguments{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/definitions.R
 \name{polyFilterApply}
 \alias{polyFilterApply}
-\title{Apply string filters to cdata}
+\title{Apply polygonal filters to cdata}
 \usage{
 polyFilterApply(
   polygon_df_list,
@@ -11,6 +11,15 @@ polyFilterApply(
   cell_unique_id_field = "ucid"
 )
 }
+\arguments{
+\item{polygon_df_list}{A list of polygon dataframes with columns: x (values) y (values) xvar (variable name for x values) yvar (variable name for y values) type ("Subtractive" or "Additive")}
+
+\item{cdata}{A "cdata" dataframe.}
+
+\item{truthMode}{Logical priority for "Subtractive" and "Additive" polygon filter types, passed to \code{calculateTruth}. Should be one of "all" (Subtractive overcomes Additive) or "any" (Additive overcomes Subtractive).}
+
+\item{cell_unique_id_field}{Name for the column holding the unique identifier (a "primary key") for each data point (i.e. the "ucid" is not suficcient for time series datasets).}
+}
 \description{
-Apply string filters to cdata
+Apply polygonal filters to cdata
 }

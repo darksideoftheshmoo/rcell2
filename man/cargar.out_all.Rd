@@ -6,8 +6,10 @@
 \usage{
 cargar.out_all(
   .carpeta = "data/images2/",
-  position.pattern = "Position\\\\d+",
-  fluorescence.pattern = ".*([GCYRT])FP_Position.*"
+  position.pattern = ".*Position(\\\\d+).*",
+  out_file_pattern = "^out_all$",
+  out_mapping_pattern = "^out_bf_fl_mapping$",
+  fluorescence.pattern = ".*([A-Z])FP_Position.*"
 )
 }
 \arguments{

@@ -18,11 +18,12 @@ shinyCell(
   facets_scale_free = "fixed",
   n_max = 100,
   boxSize = 50,
+  temp_rds = NULL,
   ...
 )
 }
 \arguments{
-\item{cdata}{A Rcell data.frame (not the object).}
+\item{cdata}{A Rcell "cdata" data.frame (not the object).}
 
 \item{pdata}{A "pdata" data.frame with position metadata.}
 

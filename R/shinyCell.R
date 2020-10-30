@@ -9,7 +9,7 @@
 
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
-#' @param cdata A Rcell data.frame (not the object).
+#' @param cdata A Rcell "cdata" data.frame (not the object).
 #' @param pdata A "pdata" data.frame with position metadata.
 #' @param paths Paths a la imagen de cada posición.
 #' @param filters Vector de strings con los filtros. c() by default.
@@ -52,48 +52,48 @@ shinyCell <- function(cdata,
                       n_max = 100, boxSize = 50, temp_rds = NULL,
                       ...){
     
-    if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
-    if(!is.character(facets_scale_free)) stop("Error: facets_scale_free must be a string accepted by ggplot's scales argument. See ?facet_wrap.")
-    if(!is.null(initial_vars)) {
-        if(!all(initial_vars %in% names(cdata))) stop("Error: cdata does not contain some of the initial_vars")
-        if(!is.character(initial_vars)) stop("Error: initial_vars is not a character vector")
-        if(length(initial_vars) != 2) stop("Error: initial_vars must be of length 2 (for the horizontal and vertical axes).")
-    } else {
-        initial_vars = c("a.tot",
-                         "fft.stat")
-    }
+  if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
+  if(!is.character(facets_scale_free)) stop("Error: facets_scale_free must be a string accepted by ggplot's scales argument. See ?facet_wrap.")
+  if(!is.null(initial_vars)) {
+      if(!all(initial_vars %in% names(cdata))) stop("Error: cdata does not contain some of the initial_vars")
+      if(!is.character(initial_vars)) stop("Error: initial_vars is not a character vector")
+      if(length(initial_vars) != 2) stop("Error: initial_vars must be of length 2 (for the horizontal and vertical axes).")
+  } else {
+      initial_vars = c("a.tot",
+                       "fft.stat")
+  }
   if(is.null(temp_rds)) {
     dir.create(path = "/tmp/shinyCell/")
     filter_progress_file <- tempfile(pattern = "shinyCell_progress", tmpdir = "/tmp/shinyCell/", fileext = ".RDS")
   }
     
-    # To-do
-    # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
-    # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
-    # Integrate polygon filter functionality, currently the drawn polygons do nothing (except show up).
+  # To-do
+  # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
+  # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
+  # Integrate polygon filter functionality, currently the drawn polygons do nothing (except show up).
 
-    # runApp inicia la app inmediatamente, shinyApp solo no se dispara dentro de una función parece
-    # saved <- runApp(shinyApp(ui, server))
+  # runApp inicia la app inmediatamente, shinyApp solo no se dispara dentro de una función parece
+  # saved <- runApp(shinyApp(ui, server))
 
-    # server functions in a package .R script have an "enclosing environment" different from this function's (shinyCell) local environment.
-    # that is one reason why shinyCell's argument dont reach the server function's env
-    # another reason is that, somehow, shinyCell's env cannot be reached from within "runApp"
-    # by replacing the server function's enclosing environment by shinyCell's env everything is fixed
-    environment(shinyAppServer) <- environment() # https://stackoverflow.com/questions/44427752/distinct-enclosing-environment-function-environment-etc-in-r
+  # server functions in a package .R script have an "enclosing environment" different from this function's (shinyCell) local environment.
+  # that is one reason why shinyCell's argument dont reach the server function's env
+  # another reason is that, somehow, shinyCell's env cannot be reached from within "runApp"
+  # by replacing the server function's enclosing environment by shinyCell's env everything is fixed
+  environment(shinyAppServer) <- environment() # https://stackoverflow.com/questions/44427752/distinct-enclosing-environment-function-environment-etc-in-r
 
-    # shinyAppUI() is also defined as a function that returns a "fluidPage" object,
-    # and thus suffers from the same problem as shinyAppServer()
-    environment(shinyAppUI) <- environment()
+  # shinyAppUI() is also defined as a function that returns a "fluidPage" object,
+  # and thus suffers from the same problem as shinyAppServer()
+  environment(shinyAppUI) <- environment()
 
-    # Taken from example at Rbloggers
-    # https://github.com/MangoTheCat/shinyAppDemo/blob/master/R/launchApp.R
-    # Here shinyAppUI() must be executed in order to pass a fluidPage object to shinyApp/runApp
-    saved <- shiny::runApp(list(ui = shinyAppUI(), server = shinyAppServer))
+  # Taken from example at Rbloggers
+  # https://github.com/MangoTheCat/shinyAppDemo/blob/master/R/launchApp.R
+  # Here shinyAppUI() must be executed in order to pass a fluidPage object to shinyApp/runApp
+  saved <- shiny::runApp(list(ui = shinyAppUI(), server = shinyAppServer))
 
-    # Imprimir cosas antes de cerrar la app
-    print("Chau")
+  # Imprimir cosas antes de cerrar la app
+  print("Chau")
 
-    # Devolver una lista con los objetos cdata cfilter y los stringFilters
-    return(saved)
+  # Devolver una lista con los objetos cdata cfilter y los stringFilters
+  return(saved)
 }
 

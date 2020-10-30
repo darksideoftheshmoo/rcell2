@@ -12,7 +12,7 @@ plot_filters(saved_data, print_plots = TRUE)
 \item{print_plots}{Set to false to prevent printing the plots on execution.}
 }
 \value{
-Prints a lis
+A list of ggplots ready to print.
 }
 \description{
 Useful to check out what areas the filters are covering.

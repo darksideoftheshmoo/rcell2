@@ -26,7 +26,7 @@ shinyAppServer <-
       values$cdata <- cdata
       
       # Initialize cfilter
-      values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
+      # values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
       # if(length(filters) > 0) { values$stringFilters <- filters} else {values$stringFilters <- c()}  # Load initial filters if any
       # values$stringFiltersSelected <- c()
 
@@ -83,14 +83,14 @@ shinyAppServer <-
           # Update reactive cdata and cfilter
           # print(identical(values$cdata, result$cdata))  # Why??
           values$cdata <- result$cdata
-          values$cfilter <- result$cfilter
+          # values$cfilter <- result$cfilter
 
         } else {
           print("-- No polygon filters selected")
 
           # If no polygon filters are selected, reset that shit!
           values$cdata <- cdata
-          values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
+          # values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
         }
         
         print(paste("-- Saving filter progress to:", filter_progress_file))
