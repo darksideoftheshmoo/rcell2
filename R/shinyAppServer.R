@@ -153,8 +153,12 @@ shinyAppServer <-
                   }
                   
                   if(plot.type == "Pics"){
+                    print("-- Pics plot!")
+                    cuts_x <- floor(input$plotDimX / boxSize)
+                    cuts_y <- floor(input$plotDimY / boxSize)
+                    
                     p <- cellSpreadPlot(cdata = d, paths = paths, 
-                                        x.cuts = 8, y.cuts = 8, 
+                                        x.cuts = cuts_x, y.cuts = cuts_y, 
                                         ch = input$ch, xvar = input$x, yvar = input$y, 
                                         underlay_points = F, 
                                         overlay_points = F,
