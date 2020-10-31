@@ -72,8 +72,8 @@ See: `?rcell2::kmeans_clustering`
 
 # Todo
 
-* Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage).
-* Generic shiny function for filtering points in a custom ggplot (done!).
+* ~~Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage).~~ Implemented in cellSpread, cellSpreadPlot, and "Pics" type plot in shinyCell.
+* ~~Generic shiny function for filtering points in a custom ggplot~~. Implemented in plotApp.
 * 1D / histogram filtering support in the filtering app.
 
 [1]:https://www.tidyverse.org/
