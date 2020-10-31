@@ -91,9 +91,9 @@ shinyCell <- function(cdata,
   saved <- shiny::runApp(list(ui = shinyAppUI(), server = shinyAppServer))
 
   # Imprimir cosas antes de cerrar la app
-  print("Chau")
+  print("Chau! returning 'invisible' results...")
 
   # Devolver una lista con los objetos cdata cfilter y los stringFilters
-  return(saved)
+  return(invisible(saved))
 }
 
