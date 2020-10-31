@@ -18,7 +18,7 @@ shinyCell(
   facets_scale_free = "fixed",
   n_max = 100,
   boxSize = 80,
-  temp_rds = NULL,
+  filter_progress_file = NULL,
   ...
 )
 }
@@ -44,6 +44,8 @@ shinyCell(
 \item{facets_scale_free}{Use facets with fixed scales (NULL, default) or free scales ("free").}
 
 \item{boxSize}{Size in pixels for individual cells' images.}
+
+\item{filter_progress_file}{Save filtering progress to an RDS file. FALSE (default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.}
 
 \item{...}{Further arguments passed to magickCell()}
 }

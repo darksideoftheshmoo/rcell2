@@ -93,8 +93,11 @@ shinyAppServer <-
           # values$cfilter <- data.frame(ucid = cdata[,"ucid"], filter = T)
         }
         
-        print(paste("-- Saving filter progress to:", filter_progress_file))
-        saveRDS(object = rv$filters, file = filter_progress_file)
+        if(!isFALSE(filter_progress_file)){
+          print(paste("-- Saving filter progress to:", filter_progress_file))
+          saveRDS(object = rv$filters, file = filter_progress_file)
+        }
+
         print(paste("-- Remaining cells:", sum(isolate(values$cdata$filter))))  # Isolate from values$cdata
 
       }, priority = 11)

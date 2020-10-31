@@ -21,7 +21,7 @@
 #' @param normalize_images Use magick's function to "normalize" the images.
 #' @param n_max max number of boxes in the image
 #' @param seed seed for random sampling of images
-#' @param tmp_output_file file path into which tagging information will be dumped by user request
+#' @param tmp_output_file File path into which tagging information will be dumped by user request. NULL by default, to automatically create and append to a tmp file.
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 #' @param debug_messages print debug messages
 # @param ... extra arguments, not used.
@@ -110,6 +110,14 @@ tagCell <- function(cdata,
       cdata <- mutate(cdata, ucid = as.integer(ucid))
     }
   }
+  
+  # Progress file
+  if(is.null(tmp_output_file)){
+    tmp_output_file <- tempfile(tmpdir = tmpdir(), fileext = ".txt", pattern = "tagCell_progress")
+  } else {
+    dir.create(dirname(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
+  }
+  if(debug_messages) print(paste("Appending tagging progress to tempfile:", tmp_output_file))
   
   # Setup environments for the shiny app, from this environment
   environment(tagCellServer) <- environment()

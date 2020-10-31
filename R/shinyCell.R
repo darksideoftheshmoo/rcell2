@@ -20,6 +20,7 @@
 #' @param facet_grid_option Use facet_grid (TRUE, default) or facet_wrap.
 #' @param facets_scale_free Use facets with fixed scales (NULL, default) or free scales ("free").
 #' @param boxSize Size in pixels for individual cells' images.
+#' @param filter_progress_file Save filtering progress to an RDS file. FALSE (default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.
 #' @param ... Further arguments passed to magickCell()
 #' @return Lots of stuff.
 #' @examples
@@ -49,7 +50,7 @@ shinyCell <- function(cdata,
                       seed = 1,
                       initial_facet = "", initial_vars = NULL,
                       facet_grid_option = TRUE, facets_scale_free = "fixed",
-                      n_max = 100, boxSize = 80, temp_rds = NULL,
+                      n_max = 100, boxSize = 80, filter_progress_file = NULL,
                       ...){
     
   if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
@@ -62,9 +63,8 @@ shinyCell <- function(cdata,
       initial_vars = c("a.tot",
                        "fft.stat")
   }
-  if(is.null(temp_rds)) {
-    dir.create(path = "/tmp/shinyCell/")
-    filter_progress_file <- tempfile(pattern = "shinyCell_progress", tmpdir = "/tmp/shinyCell/", fileext = ".RDS")
+  if(is.null(filter_progress_file)) {
+    filter_progress_file <- tempfile(pattern = "shinyCell_progress", fileext = ".RDS")
   }
     
   # To-do
@@ -92,6 +92,9 @@ shinyCell <- function(cdata,
 
   # Imprimir cosas antes de cerrar la app
   print("Chau! returning 'invisible' results...")
+  
+  # Append progress file path
+  if(!isFALSE(filter_progress_file)) saved$filter_progress_file <- filter_progress_file
 
   # Devolver una lista con los objetos cdata cfilter y los stringFilters
   return(invisible(saved))

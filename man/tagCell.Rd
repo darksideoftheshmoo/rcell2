@@ -43,7 +43,7 @@ tagCell(
 
 \item{seed}{seed for random sampling of images}
 
-\item{tmp_output_file}{file path into which tagging information will be dumped by user request}
+\item{tmp_output_file}{File path into which tagging information will be dumped by user request. NULL by default, to automatically create and append to a tmp file.}
 
 \item{tag_ggplot}{a ggplot object to display in the second tab, may be used for something someday.}
 

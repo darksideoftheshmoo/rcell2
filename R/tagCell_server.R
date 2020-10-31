@@ -7,13 +7,6 @@
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   
-  if(is.null(tmp_output_file)){
-    tmp_output_file <- tempfile(tmpdir = "./", fileext = ".txt")
-  }
-  if(debug_messages) print(paste("Appending tags to tempfile:", tmp_output_file)) # find: ^([\s\t]+)print replace: \1if(debug_messages) print
-  dir.create(dirname(normalizePath(tmp_output_file)), recursive = T)
-  # write("", file=tmp_output_file)
-  
   d <- cdata %>% 
     dplyr::arrange(ucid, t.frame) %>% 
     {if(randomize_ucids) 
