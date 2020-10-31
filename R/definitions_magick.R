@@ -126,11 +126,13 @@ updateList <- function(l1, l2){
 #' @inheritParams magickCell
 #' @param xvar,yvar Strings indicating names for the variables to plot in the horizontal (x) and vertical (y) axis.
 #' @param x.cuts,y.cuts Integers indicating the number of cuts for each variable.
+#' @param for_plotting Return value changes to list of elements important for plotting.
 #' 
 cellSpread <- function(cdata, paths,
                        ch = "BF.out", boxSize = 80,
                        xvar = "a.tot", yvar="fft.stat",
-                       x.cuts = 7, y.cuts = 7){
+                       x.cuts = 7, y.cuts = 7,
+                       for_plotting = F){
   
   cdata.binned <- cdata
   
@@ -195,15 +197,73 @@ cellSpread <- function(cdata, paths,
                              gravity = "Center", color = "black", degrees = -45) %>% 
       image_append(stack = T)
     
-    cell_tile_labeled <- cell_tile %>% 
-      {magick::image_append(c(., axis_text_boxes_x), stack = T)} %>% 
-      {magick::image_append(c(axis_text_boxes_y, .), stack = F)}
-    
+    if(for_plotting){
+      cell_tile_labeled <- cell_tile
+    } else {
+      cell_tile_labeled <- cell_tile %>% 
+        {magick::image_append(c(., axis_text_boxes_x), stack = T)} %>% 
+        {magick::image_append(c(axis_text_boxes_y, .), stack = F)}
+    }
+
     cell_tile_array <- c(cell_tile_array, cell_tile_labeled)
   }
 
+  if(for_plotting)
+    return(list(cell_tiles = cell_tile_array[-1],
+                channels = ch,
+                row_levels = rev(levels(cdata.binned$y_bins)),
+                col_levels = levels(cdata.binned$x_bins),
+                xvar = xvar,
+                yvar = yvar,
+                x.cuts = x.cuts,
+                y.cuts = y.cuts))
+  else 
+    return(cell_tile_array[-1])
+}
+
+#' Plot for 2D binning of data and tiling of cell pictures
+#' 
+#' @inheritParams cellSpread
+#' @param plot_points Overlay data points to the plot.
+#' 
+cellSpreadPlot <- function(cdata, paths,
+                           ch = "BF.out", boxSize = 80,
+                           xvar = "a.tot", yvar="fft.stat",
+                           plot_points = T,
+                           x.cuts = 7, y.cuts = 7){
   
-  return(cell_tile_array[-1])
+  plot_list <- list()
+  
+  xvar_sym <- as.symbol(xvar)
+  yvar_sym <- as.symbol(yvar)
+  
+  for(channel in ch){
+    cell_tile <- cellSpread(cdata = cdata, paths = paths, ch = channel, boxSize = boxSize, 
+                            xvar, yvar, x.cuts = x.cuts, y.cuts = y.cuts, for_plotting = T)
+    
+    raster <- as.raster(cell_tile$cell_tiles[1])
+    
+    p <- ggplot(cdata,
+                aes(x = !!xvar_sym, 
+                    y = !!yvar_sym)) + 
+      annotation_raster(raster=raster,
+                        xmin = min(cdata[, xvar, drop = T]),
+                        xmax = max(cdata[, xvar, drop = T]),
+                        ymin = min(cdata[, yvar, drop = T]),
+                        ymax = max(cdata[, yvar, drop = T])) +
+      {if(plot_points) geom_point() else NULL} +
+      scale_x_continuous(limits = range(cdata[, xvar, drop = T]),
+                         expand = expansion(1/100)) + 
+      scale_y_continuous(limits = range(cdata[, yvar, drop = T]),
+                         expand = expansion(1/100)) +
+      theme_minimal() + 
+      theme(legend.position = "none", 
+            plot.margin = unit(rep(0,4), "mm"))
+    
+    plot_list[[channel]] <- p
+  }
+  
+  return(plot_list)
 }
 
 #' Funcion copada para mostrar fotos basada en magick

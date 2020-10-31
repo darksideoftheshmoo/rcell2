@@ -71,14 +71,22 @@ cdata <- cell.data$data
 cellMagick(cdata = cdata, paths = paths)
 ```
 
+### 1D image types per ucid
+
 ```{r}
 cdata.one.ucid <- cdata %>% filter(ucid == sample(cdata$ucid, 1))
 
 cellGif(cdata.one.ucid, paths, channels = c("BF.out", "TFP.out"))
 
 cellStrip(cdata.one.ucid, paths, channels = c("BF.out", "TFP.out"))
+```
 
+### 2D image tiles by variable:
+
+```{r}
 cellSpread(cdata, paths, ch = c("BF.out", "TFP.out"))
+
+cellSpreadPlot(cdata, paths, ch = c("TFP.out"), plot_points = F)
 ```
 
 

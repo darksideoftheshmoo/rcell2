@@ -12,7 +12,8 @@ cellSpread(
   xvar = "a.tot",
   yvar = "fft.stat",
   x.cuts = 7,
-  y.cuts = 7
+  y.cuts = 7,
+  for_plotting = F
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ cellSpread(
 \item{xvar, yvar}{Strings indicating names for the variables to plot in the horizontal (x) and vertical (y) axis.}
 
 \item{x.cuts, y.cuts}{Integers indicating the number of cuts for each variable.}
+
+\item{for_plotting}{Return value changes to list of elements important for plotting.}
 }
 \description{
 2D binning of data and tiling of cell pictures
