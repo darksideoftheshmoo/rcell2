@@ -183,9 +183,12 @@ cellSpread <- function(cdata, paths,
     
     cell_tile <- square_tile(image_array[-1], nRow = y.cuts, nCol = x.cuts)
     
-    axis_text_box <- magick::image_blank(width = boxSize,
-                                         height = boxSize, 
-                                         color = "white")
+    axis_text_box <- magick::image_blank(width = boxSize, height = boxSize,  color = "white")
+    axis_label_box_x <- magick::image_blank(width = boxSize*(x.cuts+1), height = boxSize/2, color = "white") %>% 
+      image_annotate(text = xvar, size = boxSize/4, gravity = "Center", color = "black", degrees = 0)
+    axis_label_box_y <- magick::image_blank(width = boxSize/2, height = boxSize*(y.cuts+1), color = "white") %>% 
+      image_annotate(text = yvar, size = boxSize/4, gravity = "Center", color = "black", degrees = -90)
+    
     axis_text_boxes_x <- 
       rep(axis_text_box, x.cuts) %>% 
       magick::image_annotate(text = levels(cdata.binned$x_bins), 
@@ -202,8 +205,8 @@ cellSpread <- function(cdata, paths,
       cell_tile_labeled <- cell_tile
     } else {
       cell_tile_labeled <- cell_tile %>% 
-        {magick::image_append(c(., axis_text_boxes_x), stack = T)} %>% 
-        {magick::image_append(c(axis_text_boxes_y, .), stack = F)}
+        {magick::image_append(c(., axis_text_boxes_x, axis_label_box_x), stack = T)} %>% 
+        {magick::image_append(c(axis_label_box_y, axis_text_boxes_y, .), stack = F)}
     }
 
     cell_tile_array <- c(cell_tile_array, cell_tile_labeled)
@@ -227,11 +230,13 @@ cellSpread <- function(cdata, paths,
 #' @inheritParams cellSpread
 #' @param overlay_points Overlay data points to the image plot.
 #' @param underlay_points Underlay data points to the image plot.
+#' @param draw_contour_breaks Overlay a ggplot2::stat_density2d layer. If TRUE, use the default breaks. Otherwise NULL for none, or a numeric vector for the density breaks.
 #' 
 cellSpreadPlot <- function(cdata, paths,
                            ch = "BF.out", boxSize = 80,
                            xvar = "a.tot", yvar="fft.stat",
                            overlay_points = F, underlay_points = F,
+                           draw_contour_breaks = NULL,
                            x.cuts = 7, y.cuts = 7, ...){
   
   plot_list <- list()
@@ -265,9 +270,22 @@ cellSpreadPlot <- function(cdata, paths,
       theme_minimal() +
       theme(legend.position = "none")  #, plot.margin = unit(rep(0,4), "mm"))
     
+    if(!is.null(draw_contour_breaks)){
+      if(isTRUE(draw_contour_breaks)) draw_contour_breaks <- 2^-seq(8,8+2*4,by=2)
+      p <- p +
+        stat_density2d(breaks=draw_contour_breaks, alpha = .4,
+                       geom="contour", adjust = 1.25, color = "white",
+                       # bins=4, 
+                       size= 2)
+      # p + geom_density_2d(color = "white", bins = 20, breaks = )
+      # p + stat_density2d(aes(color = ..level..))
+    }
+    
     plot_list[[channel]] <- p
   }
   
+  # raster <- p$layers[[1]]$geom_params$raster
+  # plot(raster)
   return(plot_list)
 }
 

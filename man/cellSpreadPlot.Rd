@@ -13,6 +13,7 @@ cellSpreadPlot(
   yvar = "fft.stat",
   overlay_points = F,
   underlay_points = F,
+  draw_contour_breaks = NULL,
   x.cuts = 7,
   y.cuts = 7,
   ...
@@ -34,6 +35,8 @@ cellSpreadPlot(
 \item{overlay_points}{Overlay data points to the image plot.}
 
 \item{underlay_points}{Underlay data points to the image plot.}
+
+\item{draw_contour_breaks}{Overlay a ggplot2::stat_density2d layer. If TRUE, use the default breaks. Otherwise NULL for none, or a numeric vector for the density breaks.}
 
 \item{x.cuts}{Integers indicating the number of cuts for each variable.}
 
