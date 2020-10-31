@@ -12,9 +12,9 @@ editor_options:
 ```{r build, message=FALSE, warning=TRUE}
 devtools::document()
 devtools::load_all(recompile = F, reset = T, quiet = T)
-devtools::install(reload = T, build = F,
-                  quiet = T,
-                  upgrade = "never", keep_source = T)
+# devtools::install(reload = T, build = F,
+#                   quiet = T,
+#                   upgrade = "never", keep_source = T)
 # devtools::install_github("gerbeldo/rcell2", ref = "rcellid_no_labels")
 # devtools::check()
 # devtools::build()
@@ -86,8 +86,16 @@ cellStrip(cdata.one.ucid, paths, channels = c("BF.out", "TFP.out"))
 ```{r}
 cellSpread(cdata, paths, ch = c("BF.out", "TFP.out"))
 
-cellSpreadPlot(cdata, paths, ch = c("TFP.out"), plot_points = F)
+cellSpreadPlot(cdata, paths, ch = c("BF.out", "TFP.out"))
+
+devtools::load_all(recompile = F, reset = T, quiet = T)
+cellSpreadPlot(cdata, paths, ch = c("BF.out", "TFP.out"), overlay_points = T)
 ```
 
+### Use in shinyApp
+
+```{r}
+shinyCell(left_join(cdata, pdata), pdata, paths, plotType = "Pics")
+```
 
 

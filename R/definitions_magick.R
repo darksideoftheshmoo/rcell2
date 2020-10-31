@@ -127,12 +127,13 @@ updateList <- function(l1, l2){
 #' @param xvar,yvar Strings indicating names for the variables to plot in the horizontal (x) and vertical (y) axis.
 #' @param x.cuts,y.cuts Integers indicating the number of cuts for each variable.
 #' @param for_plotting Return value changes to list of elements important for plotting.
+#' @param ... Arguments passed on to magickCell.
 #' 
 cellSpread <- function(cdata, paths,
                        ch = "BF.out", boxSize = 80,
                        xvar = "a.tot", yvar="fft.stat",
                        x.cuts = 7, y.cuts = 7,
-                       for_plotting = F){
+                       for_plotting = F, ...){
   
   cdata.binned <- cdata
   
@@ -169,7 +170,7 @@ cellSpread <- function(cdata, paths,
           
           img <- magickCell(cdata = cdata.bin.one, 
                             paths = paths, return_single_imgs = T,
-                            ch = channel, boxSize = boxSize) %>% 
+                            ch = channel, boxSize = boxSize, ...) %>% 
             magick::image_annotate(text = cdata.bin_n, gravity = "northeast", 
                                    color = "white", boxcolor = "black")
         } else {
@@ -224,13 +225,14 @@ cellSpread <- function(cdata, paths,
 #' Plot for 2D binning of data and tiling of cell pictures
 #' 
 #' @inheritParams cellSpread
-#' @param plot_points Overlay data points to the plot.
+#' @param overlay_points Overlay data points to the image plot.
+#' @param underlay_points Underlay data points to the image plot.
 #' 
 cellSpreadPlot <- function(cdata, paths,
                            ch = "BF.out", boxSize = 80,
                            xvar = "a.tot", yvar="fft.stat",
-                           plot_points = T,
-                           x.cuts = 7, y.cuts = 7){
+                           overlay_points = F, underlay_points = F,
+                           x.cuts = 7, y.cuts = 7, ...){
   
   plot_list <- list()
   
@@ -239,26 +241,29 @@ cellSpreadPlot <- function(cdata, paths,
   
   for(channel in ch){
     cell_tile <- cellSpread(cdata = cdata, paths = paths, ch = channel, boxSize = boxSize, 
-                            xvar, yvar, x.cuts = x.cuts, y.cuts = y.cuts, for_plotting = T)
+                            xvar, yvar, x.cuts = x.cuts, y.cuts = y.cuts, for_plotting = T, ...)
     
     raster <- as.raster(cell_tile$cell_tiles[1])
     
     p <- ggplot(cdata,
                 aes(x = !!xvar_sym, 
                     y = !!yvar_sym)) + 
+      {if(underlay_points) geom_point() else NULL} +
+      # annotation_raster(raster=raster, -Inf, Inf, -Inf, Inf) +
       annotation_raster(raster=raster,
                         xmin = min(cdata[, xvar, drop = T]),
                         xmax = max(cdata[, xvar, drop = T]),
                         ymin = min(cdata[, yvar, drop = T]),
                         ymax = max(cdata[, yvar, drop = T])) +
-      {if(plot_points) geom_point() else NULL} +
+      {if(overlay_points) geom_point(shape = 21, colour = alpha("black", 0.3), 
+                                     fill = alpha("white", 0.1), stroke = 1.25) else NULL} +
+      geom_blank() +
       scale_x_continuous(limits = range(cdata[, xvar, drop = T]),
-                         expand = expansion(1/100)) + 
+                         expand = expansion(1/100)) +
       scale_y_continuous(limits = range(cdata[, yvar, drop = T]),
                          expand = expansion(1/100)) +
-      theme_minimal() + 
-      theme(legend.position = "none", 
-            plot.margin = unit(rep(0,4), "mm"))
+      theme_minimal() +
+      theme(legend.position = "none")  #, plot.margin = unit(rep(0,4), "mm"))
     
     plot_list[[channel]] <- p
   }

@@ -113,7 +113,11 @@ shinyAppUI <- function(){
                              sliderInput("plotDimY",label = "Plot Y dimentions",
                                          min = 500, max = 2000, step = 50, width = '100%', post = " px", value = 600)),
                       column(width = 6,
-                             selectInput("ptype", "Plot type", c("Hex", "Density", "Dots"), plotType),
+                             selectInput("ptype", "Plot type", c("Hex", 
+                                                                 "Density", 
+                                                                 "Dots",
+                                                                 "Pics"),
+                                         plotType),
                              textInput(inputId = "facet", label = "Facet formula:", value = initial_facet),
                              p(paste("Use up to two variables:", paste(names(pdata), collapse = ", ")), "."),  # "pos" may be nice for faceting
                              p("Use a dot for one-variable facets. Leave blank for none."),

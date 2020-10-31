@@ -151,6 +151,17 @@ shinyAppServer <-
                     # Vertical brushing should be disabled
                     # Might be a good excuse to generalize drawing of polygons in plots where only one dimension is shared
                   }
+                  
+                  if(plot.type == "Pics"){
+                    p <- cellSpreadPlot(cdata = d, paths = paths, 
+                                        x.cuts = 8, y.cuts = 8, 
+                                        ch = input$ch, xvar = input$x, yvar = input$y, 
+                                        underlay_points = F, 
+                                        overlay_points = F,
+                                        equalize_images = input$equalize_pics,
+                                        normalize_images = input$normalize_pics,
+                                        boxSize = boxSize)[[1]]
+                  }
 
                   if(plot.type == "Hex"){
                     print("-- Draw Hex plot...")
@@ -236,7 +247,7 @@ shinyAppServer <-
                   }
 
                   # Draw facets if any
-                  if(input$facet != "") {
+                  if(input$facet != "" & plot.type != "Pics") {
                     facet <- parse(text=input$facet)
 
                     if(input$facet_grid) {
@@ -247,7 +258,7 @@ shinyAppServer <-
                   }
                   
                   # Adjust plot limits
-                  if(is.null(facets_scale_free)) {
+                  if(is.null(facets_scale_free) & plot.type != "Pics") {
                     if(plot.type != "Hex"){
                       if(plot.type == "Density 1D") {
                         p <- p + coord_cartesian(xlim = range(d[[input$x]]))
@@ -260,10 +271,12 @@ shinyAppServer <-
                   }
 
                   # Adjust theme
-                  p <- p + 
-                    theme_minimal() + 
-                    theme(text = element_text(size=20),
-                          legend.position = "none")
+                  if(plot.type != "Pics"){
+                    p <- p + 
+                      theme_minimal() + 
+                      theme(text = element_text(size=20),
+                            legend.position = "none")
+                  }
 
                   print("-- Plotting...")
                   p
