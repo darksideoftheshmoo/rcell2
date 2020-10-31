@@ -185,12 +185,13 @@ shinyAppServer <-
 
                     # Dotplot
                     p <- ggplot(data = d, aes(x = eval(parse(text=input$x)), y = eval(parse(text=input$y)))) +
-                      geom_point(alpha = 0.5) + {
+                      {
                       if(input$x == "t.frame") 
                         geom_line(aes(group=ucid, color=factor(ucid)), alpha = 0.5) 
                       else 
                         geom_path(aes(group=ucid, color=factor(ucid)), alpha = 0.5)
                       } + 
+                      geom_point(alpha = 0.5) + 
                       geom_rug(col=grDevices::rgb(.5,0,0,alpha=.05)) +
                       xlab(input$x) + ylab(input$y)
                   }

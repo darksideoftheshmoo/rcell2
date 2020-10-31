@@ -49,7 +49,7 @@ shinyCell <- function(cdata,
                       seed = 1,
                       initial_facet = "", initial_vars = NULL,
                       facet_grid_option = TRUE, facets_scale_free = "fixed",
-                      n_max = 100, boxSize = 50, temp_rds = NULL,
+                      n_max = 100, boxSize = 80, temp_rds = NULL,
                       ...){
     
   if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")

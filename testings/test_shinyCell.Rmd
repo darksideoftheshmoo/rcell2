@@ -1,8 +1,10 @@
 ---
-title: "CellID Wrapper Test 3"
+title: "rcell2 shinyCell app test"
 author: "Nicolás Méndez"
-date: "7/20/2020"
+date: "10/30/2020"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Rebuild
@@ -23,13 +25,8 @@ devtools::install(reload = T, build = F,
 
 ```{r setup, message=FALSE, warning=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-
 library(tidyverse)
 # library(rcell2)
-
-path <- "../data/image_samples/"
-path.pdata <- paste0(path, "pdata.csv")
-parameters <- "../inst/parameters.txt"
 
 difference <- function(lista) abs(lista[1] - lista[2])
 ```
@@ -42,6 +39,13 @@ devtools::install(reload = T, build = T,
                   upgrade = "never", keep_source = T)
 ```
 
+# Load paths
+
+```{r}
+path <- "../data/image_samples/"
+path.pdata <- paste0(path, "pdata.csv")
+parameters <- "../inst/parameters.txt"
+```
 
 # USAGE
 

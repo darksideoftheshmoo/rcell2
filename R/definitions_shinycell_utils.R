@@ -135,7 +135,7 @@ bind_filters <- function(saved_data,
 # @examples
 plot_bound_filters <- function(bound_filters){
   plots <- 
-    lapply(bfs, function(bfs){
+    lapply(bound_filters, function(bfs){
       ggplot(bfs) +
         geom_polygon(aes(x=x,y=y,color=polygon,linetype=type), alpha = 0) + ggtitle(paste(bfs$xvar[1], bfs$yvar[1])) +
         theme_minimal()}
