@@ -124,12 +124,6 @@ cell2 <- function(arguments,
   
   cat("\nDone, please examine logs above if anything seems strange :)")
   
-  if(intern) write(command.output,
-                   tempfile(tmpdir = arguments$path[1],
-                            pattern = "cellid_commands.", 
-                            fileext = ".txt")
-                   )
-  
   return(invisible(bind_rows(commands = unlist(sent_commands))))
 }
 

@@ -27,3 +27,6 @@ data/time_series_image_samples/Position*/out/
 /data/time_series_image_samples2/*
 /data/time_series_image_samples3*
 /data/time_series_image_samples4*
+/inst/tiff410/
+
+inst/rcellid
