@@ -4,18 +4,38 @@
 \alias{read_tiff_masks}
 \title{Read cellID masks from BF.out TIFF image}
 \usage{
-read_tiff_masks(path, cell_id_offset = -1)
+read_tiff_masks(
+  path,
+  cell_id_offset = -1,
+  interior_offset = TRUE,
+  blank_bg = FALSE
+)
 }
 \arguments{
 \item{path}{A string. The path to the 16-bit BF.out tiff file to read.}
 
 \item{cell_id_offset}{the offset with respect to maximum pixel intensity, such
 that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.}
+
+\item{interior_offset}{logical. If \code{TRUE} the function expects that
+cell masks have interior pixels offset from boundary pixels.}
+
+\item{blank_bg}{logical. If \code{TRUE} the function assumes that the image
+background (i.e., non-mask pixels) are blank.}
 }
 \value{
 A data frame.
 }
 \description{
-Reads boundary and interior pixel data sorted by cellID from a BF.out TIFF 
-image. Expects a 16-bit image with masks encoded on a blank background.
+Read boundary and interior pixel data from a BF.out TIFF image.
+}
+\details{
+Reads cell masks from 16-bit BF.out images into which boundary and interior
+pixels are encoded as intensity values proportional to the cellID.
+
+By default the function accounts for the possibility that that the image
+may have a brightfield image background, and/or interior pixel
+intensities offset from boundary pixels. This behavior can be overridden
+by the user by explicitly defining the image type via the \code{blank_bg} and
+\code{interior_offset} parameters, which may speed up running time.
 }

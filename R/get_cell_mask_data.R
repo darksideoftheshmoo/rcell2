@@ -1,49 +1,115 @@
 #' Read cellID masks from BF.out TIFF image
 #'
-#' Reads boundary and interior pixel data sorted by cellID from a BF.out TIFF 
-#' image. Expects a 16-bit image with masks encoded on a blank background.
+#' Read boundary and interior pixel data from a BF.out TIFF image.
+#' 
+#' Reads cell masks from 16-bit BF.out images into which boundary and interior
+#' pixels are encoded as intensity values proportional to the cellID.
+#' 
+#' By default the function accounts for the possibility that that the image
+#' may have a brightfield image background, and/or interior pixel
+#' intensities offset from boundary pixels. This behavior can be overridden
+#' by the user by explicitly defining the image type via the \code{blank_bg} and
+#' \code{interior_offset} parameters, which may speed up running time.
 #'
 #' @param path A string. The path to the 16-bit BF.out tiff file to read.
 #' @param cell_id_offset the offset with respect to maximum pixel intensity, such
 #' that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.
+#' @param interior_offset logical. If \code{TRUE} the function expects that
+#' cell masks have interior pixels offset from boundary pixels.
+#' @param blank_bg logical. If \code{TRUE} the function assumes that the image
+#' background (i.e., non-mask pixels) are blank.
 #' 
 #' @importFrom ijtiff read_tags
 #' 
 #' @return A data frame.
 #' @export
 #'
-read_tiff_masks <- function(path, cell_id_offset = -1){
-  # Read image
+read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = TRUE, blank_bg = FALSE){
+  # Set default values for interior_offset and blank_bg, if unspecified by user
+  if(is.null(interior_offset)) interior_offset <- TRUE
+  if(is.null(blank_bg)) blank_bg <- FALSE
+  
+  # Read TIFF image
   img <- ijtiff::read_tif(path = path,msg = FALSE)
   
-  # Get image bitsize and get max image cellID intensity value
+  # Verify 16-bit image and set max image cellID intensity value
   image_bits <- attributes(img)$bits_per_sample
   stopifnot("Expected 16-bit BF.out image." = image_bits==16)
   max_intensity <- 2**image_bits-1+cell_id_offset
   
-  # Get coordinates and values for all pixels with intensities > 0
-  mask_coord <- which(img>0,arr.ind=TRUE)
+  # Remove pixels with intensities exceeding max image cellID intensity value.
+  # These should be number labels
+  img[img>max_intensity] <- 0
+  
+  # Get sorted vector of unique image intensity values, remove last value (always zero)
+  unique_intensity_vals <- sort(unique(as.vector(img)),decreasing=TRUE)
+  unique_intensity_vals <- unique_intensity_vals[-length(unique_intensity_vals)]
+  
+  has_offset <- 0
+  
+  # If image has BF background and/or if there are interior pixels offset from
+  # boundary pixels, we need to find boundary pixel intensity ranges
+  if(blank_bg==FALSE || interior_offset==TRUE){
+    ## NOTE ##
+    # The interior_offset_threshold value is the same as that set in Cell-ID
+    # Do not change value here unless also changed in segment.c
+    interior_offset_threshold <- 2500
+    
+    # Get logical index vector indicating which intensity values that are absent from image
+    missing_vals <- !(max_intensity:1%in%unique_intensity_vals)
+    
+    # Loop over missing_vals and count number of consecutive missing intensity
+    # values. If this count reaches interior_offset_threshold, then we can be sure
+    # that we have looped past all boundary intensity values. The last found
+    # intensity value thus belongs to the highest cellID (max_cellid)
+    absent_count <- 0
+    for(i in 1:length(missing_vals)){
+      absent_count <- missing_vals[i]*(absent_count+missing_vals[i])
+      if(absent_count==interior_offset_threshold){
+        max_cellid <- i-1-interior_offset_threshold
+        break
+      }
+    }
+    max_cellid_intensity <- max_intensity - max_cellid
+    
+    if(interior_offset==TRUE){
+      # Calculate offset between boundary and interior pixels for max_cellid objects
+      ## NOTE ##
+      # This is the same calculation as that done for interior_offset in Cell-ID.
+      # Do not change the calculation here unless also changed in segment.c
+      interior_intensity_offset <- ((max_cellid+1)%/%interior_offset_threshold+2)*interior_offset_threshold
+      
+      # Check if offset pixels exist for max_cellid
+      if(match(max_cellid_intensity-interior_intensity_offset,unique_intensity_vals,nomatch = 0)){
+        max_cellid_offset_intensity <- max_cellid_intensity - interior_intensity_offset
+        has_offset <- 1
+      }
+    }
+    
+  } else{
+    # If background is blank and there are no offset interior pixels, then the
+    # smallest intensity value in the image belongs to the highest cellID
+    max_cellid_intensity <- unique_intensity_vals[length(unique_intensity_vals)]
+  }
+  
+  # Set threshold for mask pixels
+  mask_threshold <- if(has_offset) max_cellid_offset_intensity else max_cellid_intensity
+  
+  # Get coordinates and values for all mask pixels
+  mask_coord <- which(img>=mask_threshold,arr.ind=TRUE)
   mask_vals <- img[mask_coord]
   
-  # Get lowest intensity value
-  min_intensity <- min(mask_vals)
-  
-  # Calculate center intensity, i.e., the intensity value between min_intensity
-  # and max_intensity. If interior pixels are offset
-  center_intensity <- (max_intensity)-(max_intensity-min_intensity)%/%2
-  
-  # Check if center_intensity exists in image
-  if(is.na(match(center_intensity,mask_vals))){
-    # If center_intensity does not exist, then there are interior pixels offset
-    # from boundary pixels
-    
+  if(has_offset==1){
     # Get boundary indices, coordinates, and values
-    boundary_idx <- which(mask_vals>center_intensity)
+    boundary_idx <- which(mask_vals>=max_cellid_intensity)
     boundary_coord <- mask_coord[boundary_idx,1:2]
     boundary_vals <- mask_vals[boundary_idx]
     
+    # Set boundary intensities to zero after extraction
+    mask_vals[mask_vals>=max_cellid_intensity] <- 0
+    
     # Get interior indices, coordinates, and values
-    interior_idx <- which(mask_vals<center_intensity)
+    interior_idx <- which(mask_vals>=max_cellid_offset_intensity)
     interior_coord <- mask_coord[interior_idx,1:2]
     interior_vals <- mask_vals[interior_idx]
     interior_shift <- max_intensity-max(interior_vals)
@@ -58,11 +124,8 @@ read_tiff_masks <- function(path, cell_id_offset = -1){
     mask_data[,5] <- c(rep(1,nrow(boundary_coord)),rep(2,nrow(interior_coord)))
     
   } else {
-    # If center_intensity does exists, then there are no interior pixels offset
-    # from boundary pixels
-    
     # Make mask_data matrix and insert boundary and interior data
-    # Pixel type defaults to 0
+    # Pixel type defaults to 0 (indicating no pixel identify found)
     mask_data <- matrix(0,nrow=nrow(mask_coord),ncol=5)
     mask_data[,1] <- max_intensity-mask_vals
     mask_data[,3:2] <- mask_coord[,1:2]
