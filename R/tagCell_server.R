@@ -410,7 +410,8 @@ tagCellServer <- function(input, output, session) {
     if(debug_messages) print("- Rendering table 1")
     
     table_output <- reactive_values$selected_cell_tags %>% 
-      bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
+      data.table::rbindlist(idcol = "ucid_t.frame", fill=TRUE)
+      # bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
     
     if(nrow(table_output) > 0){
       table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
@@ -500,23 +501,31 @@ tagCellServer <- function(input, output, session) {
     ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
     ith_t.frame <- as.character(d$t.frame[reactive_values$ith_cell])
     
-    if(debug_messages) print(paste("--", ith_ucid))
+    if(debug_messages) print(paste("-- Current reactive_values$ith_cell:", reactive_values$ith_cell))
+    if(debug_messages) print(paste("-- Current ith_ucid:", ith_ucid))
     
-    ucid_data <- filter(cdata, ucid == ith_ucid)
+    ucid_data <- filter(cdata, ucid %in% ith_ucid)
     
     if(!is.null(tag_ggplot)){
       # Add data
       tag_ggplot_render <- tag_ggplot %+% ucid_data
       
       # Add current t.frame
+      if(debug_messages) print(paste("-- adding geom_vline to plot:"))
       tag_ggplot_render <- tag_ggplot_render + geom_vline(xintercept = as.numeric(ith_t.frame), 
                                                           color = "black")
       
       # Add annotations
+      if(debug_messages) print(paste("-- generating selected_cell_tags"))
+      # if(debug_messages) print(names(reactive_values$selected_cell_tags))
+      # if(debug_messages) print(data.table::rbindlist(reactive_values$selected_cell_tags, idcol = "ucid_t.frame"))
       table_output <- reactive_values$selected_cell_tags %>% 
-        bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
+        data.table::rbindlist(idcol = "ucid_t.frame", fill=TRUE)
+        # bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
       
+      # if(debug_messages) print(table_output)
       if(nrow(table_output) > 0){
+        if(debug_messages) print(paste("-- found annotations for plot, processing..."))
         table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
           mutate(ucid = as.integer(ucid), 
                  t.frame = as.integer(t.frame)) %>% 
@@ -526,7 +535,7 @@ tagCellServer <- function(input, output, session) {
         table_output_longer <- table_output %>%
           select(-ucid, -cellID, -pos) %>%
           mutate_at(
-            vars(one_of(names(cell_tags))),
+            dplyr::vars(tidyselect::any_of(names(cell_tags))),
             as.character
           ) %>%
           pivot_longer(-t.frame,
@@ -534,22 +543,16 @@ tagCellServer <- function(input, output, session) {
                        values_to = "valor",
                        values_drop_na = TRUE)
         
+        if(debug_messages) print(paste("-- adding geom_vline to plot:"))
         tag_ggplot_render <- tag_ggplot_render + geom_vline(data = table_output_longer,
                                                             aes(xintercept = t.frame,
                                                                 color = interaction(categoria, valor, sep = ": "),
                                                                 # linetype = valor,
-                                                                text = paste(categoria, valor, sep = ": ")),
+                                                                # text = paste(categoria, valor, sep = ": ")
+                                                                ),
                                                             size = 2, linetype = 2) +
           # ggplot2::guides(text = FALSE) +  # http://www.sthda.com/english/wiki/ggplot2-legend-easy-steps-to-change-the-position-and-the-appearance-of-a-graph-legend-in-r-software
           theme(legend.position = "bottom", legend.title = element_blank())
-        
-        # table_output_longer_ith_ucid_yvals <- left_join(table_output_longer_ith_ucid,
-        #                                        ucid_data[,c("t.frame", reactive_values$click_vars$yvar)]) 
-          
-        # print("-- Adding annotations to plot")
-        # tag_ggplot_render <- tag_ggplot_render + 
-        #   ggrepel::geom_label_repel(data = table_output_longer_ith_ucid_yvals,
-        #                             aes(label = paste(categoria, valor, collapse = ": ")))
       }
       
       # Render
