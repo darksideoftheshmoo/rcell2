@@ -7,8 +7,8 @@
 #' @param cell_id_offset the offset with respect to maximum pixel intensity, such
 #' that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.
 #' 
-#' @example 
-#' No example yet.
+#' @importFrom ijtiff read_tags
+#' 
 #' @return A data frame.
 #' @export
 #'

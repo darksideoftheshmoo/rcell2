@@ -127,8 +127,6 @@ get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
 #' @param var_cats optional character vector specifying whether pre-defined sets of morphological (\code{morpho}) and/or fluorescence (\code{fluor}) variables should be included for clustering. If no value is given and \code{custom_vars} is empty, this defaults to \code{morpho}.
 #' @param custom_vars optional character vector specifying custom variables to be included for clustering. These are added to any variable sets specified by \code{var_cats}.
 #' 
-#' @example 
-#' No example yet.
 #' @return Depending on the data type provided by \code{x}, either a cell.data object or a cell.data data.frame with appended columns \code{k} and \code{k.dist}, indicating the assigned cluster and Euclidean distance to the cluster centroid, respectively.
 #' @export
 #'
