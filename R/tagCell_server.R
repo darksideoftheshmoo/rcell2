@@ -459,7 +459,8 @@ tagCellServer <- function(input, output, session) {
       magick.cell <-  magickCell(cdata = cdata.selected, 
                                  p,
                                  # ch=input$image_channel, 
-                                 cell_resize=cell_resize,
+                                 # cell_resize=cell_resize,
+                                 cell_resize=output_plot_width/length(tag_channels_select),
                                  ch=tag_channels_select, 
                                  n = n_max, 
                                  equalize_images = equalize_images,
@@ -467,8 +468,7 @@ tagCellServer <- function(input, output, session) {
                                  boxSize = tag_box_size, 
                                  return_single_imgs = T, 
                                  return_ucid_df = T)
-      tmpimage <- magick.cell$img %>% # Resize to width
-        magick::image_resize(paste0(output_plot_width, "x"))
+      tmpimage <- magick.cell$img
       
       if(debug_messages) print(paste("--", magick.cell$ucids))
     } else {
