@@ -6,7 +6,7 @@
 #' @import shiny shinyjs formattable dplyr tidyr hexbin magick
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
-  
+  print("tagCellServer 1: start")
   d <- cdata %>% 
     dplyr::arrange(ucid, t.frame) %>% 
     {if(randomize_ucids) 
@@ -22,6 +22,7 @@ tagCellServer <- function(input, output, session) {
   p <- paths
   
   ucid.unique <- unique(d$ucid)
+  if(!all.unique(d$ucid_t.frame)) stop("tagCellServer error: the ucid-t.frame combination is not a primary key! check your data.")
   
   reactive_values <- shiny::reactiveValues(ith_cell = 1, # row index used to order dataframe rows
                                            ith_ucid = numeric(),
@@ -43,7 +44,7 @@ tagCellServer <- function(input, output, session) {
     # print("- Generating seelctInput fields...")
     # print(ith_cell)
     # print(selected_cell_tags[ith_cell])
-    
+    print("tagCellServer 2: renderUI update")
     lapply(1:length(names(cell_tags)), function(tag_group){
       # shiny::selectInput(inputId = names(cell_tags)[tag_group], 
       #                    label = names(cell_tags)[tag_group],
@@ -63,6 +64,7 @@ tagCellServer <- function(input, output, session) {
   ### INPUT OBSERVERS   ----------------
   # PLOT CLICK OBSERVER   ----------------
   observeEvent(input$plot_click, handlerExpr = {
+    print("tagCellServer 3: plot_click event observer")
     if(debug_messages) print("- Plot clicked")
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_cell")
@@ -115,6 +117,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$next_cell,
     handlerExpr = {
+      print("tagCellServer 4: next_cell event observer")
       if(debug_messages) print("- Next cell requested, saving current tags...")
       shinyjs::disable("next_cell")
       shinyjs::disable("prev_cell")
@@ -155,6 +158,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$prev_cell,
     handlerExpr = {
+      print("tagCellServer 5: prev_cell event observer")
       if(debug_messages) print("- Previous cell requested...")
       shinyjs::disable("prev_cell")
       shinyjs::disable("next_cell")
@@ -196,6 +200,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$next_ucid,
     handlerExpr = {
+      print("tagCellServer 6: next_ucid event observer")
       if(debug_messages) print("- Next ucid requested, saving current tags...")
       shinyjs::disable("next_ucid")
       shinyjs::disable("prev_ucid")
@@ -241,6 +246,7 @@ tagCellServer <- function(input, output, session) {
   shiny::observeEvent(
     eventExpr = input$prev_ucid,
     handlerExpr = {
+      print("tagCellServer 7: prev_ucid event observer")
       if(debug_messages) print("- Previous ucid requested...")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
@@ -287,6 +293,7 @@ tagCellServer <- function(input, output, session) {
   ## Output reactive_values: 
   ## Isolated reactive_values: $selected_cell_tags
   shiny::observe({
+    print("tagCellServer 8: ith_cell reactive value observer")
     shinyjs::disable("prev_cell")
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_ucid")
@@ -399,6 +406,7 @@ tagCellServer <- function(input, output, session) {
   ## Output reactive_values: 
   ## Isolated reactive_values: $selected_cell_tags
   output$saved_annotations <- shiny::renderTable({
+    print("tagCellServer 9: selected_cell_tags reactive table observer")
     if(debug_messages) print("- Rendering table 1")
     
     table_output <- reactive_values$selected_cell_tags %>% 
@@ -446,6 +454,7 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive IMAGE 1: magickCell  ----------------
   output$pics <- shiny::renderImage({
+    print("tagCellServer 10: ith_cell reactive image observer")
     if(debug_messages) print("- Rendering image 1")
     
     # Make the image match the plot's width
@@ -485,6 +494,7 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive PLOT 1: user plot  ----------------
   output$plot <- shiny::renderPlot({
+    print("tagCellServer 11: ith_cell reactive plot observer")
     if(debug_messages) print("- Rendering plot 1")
     
     ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
