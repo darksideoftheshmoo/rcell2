@@ -7,8 +7,8 @@
 read_tiff_masks(
   path,
   cell_id_offset = -1,
-  interior_offset = TRUE,
-  blank_bg = FALSE
+  interior_offset = NULL,
+  blank_bg = NULL
 )
 }
 \arguments{

@@ -24,7 +24,7 @@
 #' @return A data frame.
 #' @export
 #'
-read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = TRUE, blank_bg = FALSE){
+read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, blank_bg = NULL){
   # Set default values for interior_offset and blank_bg, if unspecified by user
   if(is.null(interior_offset)) interior_offset <- TRUE
   if(is.null(blank_bg)) blank_bg <- FALSE
