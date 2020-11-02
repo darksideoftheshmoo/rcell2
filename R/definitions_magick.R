@@ -428,7 +428,7 @@ magickCell <- function(cdata, paths,
         ., gravity = "Center"
       )} %>% 
       # Resize
-      magick::image_resize(cell_resize_string) %>%
+      magick::image_scale(cell_resize_string) %>%
       # Annotate
       {if(is.null(annotation_params)) . else 
         magick::image_annotate(.,
@@ -474,7 +474,7 @@ magickCell <- function(cdata, paths,
 
     magick::image_apply(imga[j], function(i){
       magick::image_blank(boxSize, boxSize, "black") %>%
-        magick::image_resize(cell_resize_string) %>%
+        magick::image_scale(cell_resize_string) %>%
         magick::image_composite(i) }) %>%
       magick::image_append(stack = stack_vertical_first)
   }
@@ -483,7 +483,7 @@ magickCell <- function(cdata, paths,
 
   if(nRow*cell_resize >= max_composite_size || nCol*cell_resize >= max_composite_size){
     resize_string <- paste0(max_composite_size, "x", max_composite_size)
-    imgb <- magick::image_resize(imgb, resize_string)
+    imgb <- magick::image_scale(imgb, resize_string)
   }
 
   
