@@ -448,6 +448,10 @@ tagCellServer <- function(input, output, session) {
   output$pics <- shiny::renderImage({
     if(debug_messages) print("- Rendering image 1")
     
+    # Make the image match the plot's width
+    output_plot_width <- session$clientData$output_plot_width
+    # session$clientData$output_plot_height
+    
     if(nrow(d) > 0) {
       if(debug_messages) print("-- Selection not empty: magick!")
       # cdata.selected <- d[d$ucid == d$ucid[reactive_values$ith_cell],]
@@ -463,7 +467,9 @@ tagCellServer <- function(input, output, session) {
                                  boxSize = tag_box_size, 
                                  return_single_imgs = T, 
                                  return_ucid_df = T)
-      tmpimage <- magick.cell$img
+      tmpimage <- magick.cell$img %>% # Resize to width
+        magick::image_resize(paste0(output_plot_width, "x"))
+      
       if(debug_messages) print(paste("--", magick.cell$ucids))
     } else {
       # Output white if selection is empty

@@ -113,7 +113,7 @@ tagCell <- function(cdata,
   
   # Progress file
   if(is.null(tmp_output_file)){
-    tmp_output_file <- tempfile(tmpdir = tmpdir(), fileext = ".txt", pattern = "tagCell_progress")
+    tmp_output_file <- tempfile(tmpdir = tempdir(), fileext = ".txt", pattern = "tagCell_progress")
   } else {
     dir.create(dirname(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
   }
