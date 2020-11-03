@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_cell_mask_data.R
 \name{read_tiff_masks}
 \alias{read_tiff_masks}
-\title{Read cellID masks from BF.out TIFF image}
+\title{Read cell masks from BF.out}
 \usage{
 read_tiff_masks(
   path,
@@ -24,18 +24,21 @@ cell masks have interior pixels offset from boundary pixels.}
 background (i.e., non-mask pixels) are blank.}
 }
 \value{
-A data frame.
+A data frame of mask pixels ordered by cellID.
 }
 \description{
 Read boundary and interior pixel data from a BF.out TIFF image.
 }
 \details{
-Reads cell masks from 16-bit BF.out images into which boundary and interior
-pixels are encoded as intensity values proportional to the cellID.
+This function reads cell masks from 16-bit BF.out images onto which boundary
+and interior pixels have been encoded as intensity values proportional to each
+object's cellID.
 
-By default the function accounts for the possibility that that the image
-may have a brightfield image background, and/or interior pixel
-intensities offset from boundary pixels. This behavior can be overridden
-by the user by explicitly defining the image type via the \code{blank_bg} and
-\code{interior_offset} parameters, which may speed up running time.
+By default the function accounts for the possibility that the image may have
+a brightfield image background and/or interior pixel intensities offset from
+boundary pixels. It then first identifies the boundary pixel range, then
+checks if the image also has offset interior pixels, and finally extracts
+boundary and interior pixels separately. This behavior can be overridden by
+explicitly specifying the image type via the \code{blank_bg} and
+\code{interior_offset} parameters. This may speed up running time.
 }

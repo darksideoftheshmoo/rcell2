@@ -1,15 +1,18 @@
-#' Read cellID masks from BF.out TIFF image
+#' Read cell masks from BF.out
 #'
 #' Read boundary and interior pixel data from a BF.out TIFF image.
 #' 
-#' Reads cell masks from 16-bit BF.out images into which boundary and interior
-#' pixels are encoded as intensity values proportional to the cellID.
+#' This function reads cell masks from 16-bit BF.out images onto which boundary
+#' and interior pixels have been encoded as intensity values proportional to each
+#' object's cellID.
 #' 
-#' By default the function accounts for the possibility that that the image
-#' may have a brightfield image background, and/or interior pixel
-#' intensities offset from boundary pixels. This behavior can be overridden
-#' by the user by explicitly defining the image type via the \code{blank_bg} and
-#' \code{interior_offset} parameters, which may speed up running time.
+#' By default the function accounts for the possibility that the image may have
+#' a brightfield image background and/or interior pixel intensities offset from
+#' boundary pixels. It then first identifies the boundary pixel range, then
+#' checks if the image also has offset interior pixels, and finally extracts
+#' boundary and interior pixels separately. This behavior can be overridden by
+#' explicitly specifying the image type via the \code{blank_bg} and
+#' \code{interior_offset} parameters. This may speed up running time.
 #'
 #' @param path A string. The path to the 16-bit BF.out tiff file to read.
 #' @param cell_id_offset the offset with respect to maximum pixel intensity, such
@@ -21,7 +24,7 @@
 #' 
 #' @importFrom ijtiff read_tags
 #' 
-#' @return A data frame.
+#' @return A data frame of mask pixels ordered by cellID.
 #' @export
 #'
 read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, blank_bg = NULL){
