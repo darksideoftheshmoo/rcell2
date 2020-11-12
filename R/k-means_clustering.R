@@ -239,10 +239,9 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
       k.sample <- sample(dim(cdata)[1],k)
       k.means <- cdata[k.sample,]
     }
+    ## Set random initial cluster assignments
+    k.labs.current <- sample(1:k,dim(id)[1],replace=TRUE)
   }
-  ## Set random initial cluster assignments
-  ## This does not affect assignments, only prevents later error
-  k.labs.current <- sample(1:k,dim(id)[1],replace=TRUE)
   
   ## Loop over centroid calculation as long as labels continue getting updated
   ## Limit loop to max_iter iterations
