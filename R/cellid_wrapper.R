@@ -246,6 +246,8 @@ cell.load.alt <- function(path,
                           position.pattern = ".*Position(\\d+).*",
                           ucid.zero.pad = 4,
                           ...){
+  
+  path <- normalizePath(path, mustWork = T)
 
   # Cargar datos out_all y juntar en un solo dataframe usando metadata de "out_bf_fl_mapping"
   cat("\n\nLoading CellID output files...\n")
@@ -267,6 +269,9 @@ cell.load.alt <- function(path,
                                                              collapse = "")),
                cellID))) %>%
     select(-cellid.pad)
+  
+  # Check uniqueness of ucid-t.frame combinations
+  if(nrow(unique(d.list$d[,c("ucid", "t.frame")])) < nrow(d.list$d)) stop("\nERROR: There are repeated cellID's in the out_all file!")
 
   # ellipse.perim = perimeter of theoretical ellipse, calculated using each
   # cell's axis values.
@@ -367,7 +372,11 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   # Migrated from cell.load()
   .nombre.archivos <- list.files(path = .carpeta, pattern = out_file_pattern, recursive = T, include.dirs = T)
   .nombre.archivos.map <- list.files(path = .carpeta, pattern = out_mapping_pattern, recursive = T, include.dirs = T)
-
+  # A bit of error handling
+  if(length(.nombre.archivos) == 0) stop("Error in cargar.out_all: no CellID output files found, check your path, options and files.")
+  if(length(.nombre.archivos.map) == 0) stop("Error in cargar.out_all: no CellID mapping files found, check your path, options and files.")
+  if(length(.nombre.archivos) != length(.nombre.archivos.map)) stop("Error in cargar.out_all: different amount of mapping and cellid output files.")
+  
   # Cargo y junto los "out_all"
   cat("\rLoading datasets...\033[K")
   d.out <- purrr::map(.x = .nombre.archivos,
@@ -375,10 +384,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       .carpeta = .carpeta,
                       position.pattern = position.pattern) %>%
     bind_rows()
-  cat(" Done loading out files!\n")
-  
-  # Check
-  if(length(d.out$cellID %>% unique()) < length(d.out)) stop("\nERROR: There are repeated cellID's in the out_all file!")
+  cat("\n Done loading out files!\n")
 
   # # Cargo y junto los "out_bf_fl_mapping"
   cat("\rLoading mapping...              ")
@@ -398,10 +404,12 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 
   # Return join (discard flag variable)
   cat("\rJoining data and mapping...\033[K")
-  d.out.map <- d.map %>%
-    select(channel, flag, t.frame , pos) %>%
-    left_join(d.out, by = c("flag", "t.frame", "pos")) %>% 
+  d.out.map <- left_join(d.out,
+                         unique(select(d.map, flag, t.frame , pos, channel)),
+                         by = c("flag", "t.frame", "pos")) %>% 
     select(-flag)
+  
+  if(nrow(d.out.map) > nrow(d.out)) stop("Error acargar.out_all: while joining output and mapping, at least one output row matche multiple mappings.")
   
   # Add f.tot columns to data
   d.out.map <- mutate(d.out.map,
