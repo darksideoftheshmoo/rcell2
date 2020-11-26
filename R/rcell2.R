@@ -17,7 +17,7 @@
 #' Requirement of the imagemagick library might bother some, so this awesome feature is optional.
 #'
 #' @section shinyCell functions:
-#' R-Shiniy based graphical interface to filter cells by arbitrary variables, and inspect and annotate cells.
+#' R-Shiny based graphical interface to filter cells by arbitrary variables, and inspect and annotate cells.
 #' It should not be required that the data comes from images processed by CellID.
 #'
 #' @docType package
