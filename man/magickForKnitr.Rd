@@ -9,7 +9,8 @@ magickForKnitr(
   .prefix = "tile",
   .resize = NULL,
   .path = tempdir(),
-  .include = F
+  .include = F,
+  .print = T
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ magickForKnitr(
 \item{.path}{Directory where the output should be saved.}
 
 \item{.include}{Set to true to use knitr::include_graphics directly.}
+
+\item{.print}{Print the image path.}
 }
 \value{
 An path to a temporary image file.
