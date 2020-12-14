@@ -15,6 +15,8 @@ append_hues2(
 )
 }
 \arguments{
+\item{tsv_files_df}{A data.frame with paths to the TSV files with the cells' XY coordinates, geberated by CellID mask_mod's "-t" option.}
+
 \item{cell_data}{NULL list by default. You may pass a cell.data list object from Rcell2 load_cell_data, for convenience, or just the cdata dataframe as \code{list(data = cdata)}.}
 
 \item{return_points}{if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.}
@@ -24,8 +26,6 @@ append_hues2(
 \item{shape_flagtype}{Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.}
 
 \item{overwrite}{Default FALSE, overwrite Hu moments element in the input list if already present.}
-
-\item{tsv_files}{Paths to the XY coordinates TSV files from CellID mask_mod "-t" option.}
 }
 \value{
 The Hu moments dataframe usis assgned to the input list as an element named "Hu_moments".

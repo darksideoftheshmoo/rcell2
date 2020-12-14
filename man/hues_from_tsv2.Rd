@@ -7,8 +7,8 @@
 hues_from_tsv2(
   masks_tsv_path,
   .parallel = F,
-  shape_pixtype = NULL,
-  shape_flagtype = NULL,
+  shape_pixtype = "b",
+  shape_flagtype = 0,
   cdata_subset = NULL,
   position = NULL
 )

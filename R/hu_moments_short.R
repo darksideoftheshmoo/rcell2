@@ -163,6 +163,27 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
   return(hues_bound)  
 }
 
+#' Read TSV file with mask coords
+#' 
+#' @inheritParams hues_from_tsv2
+#' 
+read_coords_tsv <- function(masks_tsv_path, shape_pixtype = "b", shape_flagtype = 0){
+  masks_coords <-readr::read_tsv(masks_tsv_path, progress = TRUE,
+                                 col_types = cols(cellID = readr::col_integer(),
+                                                  t.frame = readr::col_integer(),
+                                                  flag = readr::col_integer(),
+                                                  x = readr::col_integer(),
+                                                  y = readr::col_integer(),
+                                                  pixtype = readr::col_factor(levels = c("b", "i"))
+                                                  )
+                                 ) %>% 
+    {if(!is.null(shape_pixtype)) filter(., pixtype %in% shape_pixtype) else .} %>% 
+    {if(!is.null(shape_flagtype)) filter(., flag %in% shape_flagtype) else .} %>% 
+    mutate(id = factor(paste(cellID, t.frame, flag, pixtype, sep = "_")))
+  
+  return(masks_coords)
+}
+
 #' Generate Hu moments from XY coordinates TSV file
 #' 
 #' Cells in the dataframe are split by cellID, t.frame, flag, and pixtype by default.
@@ -181,21 +202,11 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
 #' @export
 #' 
 hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
-                           shape_pixtype = NULL, shape_flagtype = NULL, 
+                           shape_pixtype = "b", shape_flagtype = 0, 
                            cdata_subset = NULL, position = NULL){
   # Add "id" column
   cat("\nMessage from hues_from_tsv2: reading TSV id data...\n")
-  masks_coords <- readr::read_tsv(masks_tsv_path, progress = TRUE,
-                                  col_types = cols(cellID = readr::col_integer(),
-                                                   t.frame = readr::col_integer(),
-                                                   flag = readr::col_integer(),
-                                                   x = readr::col_integer(),
-                                                   y = readr::col_integer(),
-                                                   pixtype = readr::col_factor(levels = c("b", "i")))
-                                  ) %>% 
-    {if(!is.null(shape_pixtype)) filter(., pixtype %in% shape_pixtype) else .} %>% 
-    {if(!is.null(shape_flagtype)) filter(., flag %in% shape_flagtype) else .} %>% 
-    mutate(id = factor(paste(cellID, t.frame, flag, pixtype,sep = "_")))
+  masks_coords <- read_coords_tsv(masks_tsv_path, shape_pixtype, shape_flagtype)
   
   if(!is.null(cdata_subset)) 
     masks_coords <- dplyr::semi_join(mutate(masks_coords, pos = position), 
@@ -260,7 +271,7 @@ tsv_paths_from_args <- function(arguments,
 #' @export
 #' 
 hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize = T, 
-                                 shape_pixtype = NULL, shape_flagtype = NULL, cdata_subset = NULL){
+                                 shape_pixtype = "b", shape_flagtype = 0, cdata_subset = NULL){
   
   if(!is.data.frame(tsv_files_df)) stop("Input error: tsv_files_df is not a data.frame.")
   if(!all(c("pos", "path") %in% names(tsv_files_df))) stop("Input error: names 'pos' and 'path' not found.")
@@ -272,7 +283,10 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
     masks_tsv_path <- tsv_files_df %>% 
       filter(pos == position)%>% 
       .[,"path", drop = TRUE] %>% 
-      {if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") else .}
+      {
+        if(length(.) != 1) stop("Error in append_hues2: more than one TSV file per position") 
+        else .
+      }
   
     hues_df <- 
       hues_from_tsv2(masks_tsv_path = masks_tsv_path,
@@ -329,7 +343,7 @@ append_hues2 <- function(tsv_files_df,
                                   return_points = F, 
                                   parralellize = parralellize,
                                   shape_pixtype = shape_pixtype, 
-                                  shape_flagtype = 0, 
+                                  shape_flagtype = shape_flagtype, 
                                   cdata_subset = cdata_subset)
   
   # Append Hu moment data to cell_data object

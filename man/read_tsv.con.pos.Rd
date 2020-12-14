@@ -4,7 +4,7 @@
 \alias{read_tsv.con.pos}
 \title{Una función que lea un .csv y les agregue una columna con un id del archivo (pos)}
 \usage{
-read_tsv.con.pos(.nombre.archivo, .carpeta, position.pattern)
+read_tsv.con.pos(.nombre.archivo, .carpeta, position.pattern, col_types = "c")
 }
 \description{
 Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
