@@ -21,6 +21,8 @@ append_hues2(
 
 \item{return_points}{if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.}
 
+\item{parralellize}{Enable cell-wise parallelization using parallel::parLapply}
+
 \item{shape_pixtype}{Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").}
 
 \item{shape_flagtype}{Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.}
