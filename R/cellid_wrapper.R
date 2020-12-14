@@ -335,12 +335,12 @@ cell.load.alt <- function(path,
 
 
 #' Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
-read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern){
+read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_types = "c"){
   cat(paste0("\rReading: ", .nombre.archivo), "\033[K")
-  .archivo <- paste0(.carpeta, "/", .nombre.archivo) %>% normalizePath()
+  .archivo <- normalizePath(paste0(.carpeta, "/", .nombre.archivo))
   .pos <- str_replace(.nombre.archivo, position.pattern, "\\1") %>% as.numeric()
   
-  d <-  read_tsv(.archivo, col_types = cols()) %>%
+  d <-  read_tsv(.archivo, col_types = col_types, trim_ws = T) %>%
     mutate(pos = as.integer(.pos))  # La columna de ID es "pos"
   
   
@@ -382,6 +382,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   d.out <- purrr::map(.x = .nombre.archivos,
                       .f = read_tsv.con.pos, 
                       .carpeta = .carpeta,
+                      "iiiiiddddddddddddddddddddddddddddddddddddddddddddddddddd", # types: 5 int columns, 51 double columns
                       position.pattern = position.pattern) %>%
     bind_rows()
   cat("\n Done loading out files!\n")
@@ -390,7 +391,8 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   cat("\rLoading mapping...              ")
   d.map <- purrr::map(.x = .nombre.archivos.map,
                       .f = read_tsv.con.pos,  # Una función para leer los archivos "out" y agregarles "pos" segun la carpeta que los contiene
-                      .carpeta = .carpeta, 
+                      .carpeta = .carpeta,
+                      col_types = "ciicl",  # types: 2 char columns, 2 int columns, 1 logical column
                       position.pattern = position.pattern) %>%
     bind_rows() %>%
     mutate(channel = str_replace(string = fluor,
@@ -426,6 +428,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   # flag,  # dropped above
                   t.frame,
                   time,
+                  pos,
                   xpos,
                   ypos,
                   a.tot,
@@ -446,8 +449,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   a.local2,
                   a.surf,
                   # con.vol_1,  # duplicated, removed by read_tsv.con.pos and in recent CellID versions
-                  sphere.vol,
-                  pos),
+                  sphere.vol),
 
       values_from = c(f.tot,
                       f,
