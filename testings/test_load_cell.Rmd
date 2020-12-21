@@ -45,16 +45,61 @@ devtools::install(reload = T,
 
 # USAGE
 
-## Load data and plot something
+## Load data from the original CellID:
 
 ```{r}
-path <- "/home/nicomic/Software/cellID-linux/test_data_tmp/"
-
-cell_data <- rcell2::load_cell_data(path =  path)
-cell.data <- rcell2::cell.load.alt(path =  path, ucid.zero.pad = 5)
+path <- "~/Software/cellID-linux/samples/glib_removal_branch/"
+rm(cell_data)
+rm(cell.data)
 ```
 
+
 ```{r}
-cell_data$data %>% ggplot() + geom_point(aes(x=a.tot, y=fft.stat, color = factor(ucid))) + theme(legend.position = "none")
+cell_data <- rcell2::load_cell_data(path =  path)
+
+cell_data$data %>% 
+  ggplot() + 
+  geom_point(aes(x=a.tot, y=fft.stat, color = factor(ucid))) + 
+  theme(legend.position = "none") +
+  facet_wrap(~pos)
+```
+
+
+```{r}
+cell.data <- rcell2::cell.load.alt(path =  path, ucid.zero.pad = 5)
+
+cell.data$data %>% 
+  ggplot() + 
+  geom_point(aes(x=a.tot, y=fft.stat, color = factor(ucid))) + 
+  theme(legend.position = "none") +
+  facet_wrap(~pos)
+```
+
+## Load data from CellID mask_mod
+
+```{r}
+path <- "~/Software/cellID-linux/samples/mask_mod_branch/"
+rm(cell_data)
+rm(cell.data)
+```
+
+
+```{r}
+cell_data <- rcell2::load_cell_data(path =  path)
+
+cell_data$data %>% ggplot() + 
+  geom_point(aes(x=a.tot, y=fft.stat, color = factor(ucid))) + 
+  theme(legend.position = "none") +
+  facet_wrap(~pos)
+```
+
+
+```{r}
+cell.data <- rcell2::cell.load.alt(path =  path, ucid.zero.pad = 5)
+
+cell.data$data %>% ggplot() + 
+  geom_point(aes(x=a.tot, y=fft.stat, color = factor(ucid))) + 
+  theme(legend.position = "none") +
+  facet_wrap(~pos)
 ```
 

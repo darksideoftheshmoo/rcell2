@@ -341,7 +341,12 @@ read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_ty
   .pos <- str_replace(.nombre.archivo, position.pattern, "\\1") %>% as.numeric()
   
   d <-  read_tsv(.archivo, col_types = col_types, trim_ws = T) %>%
-    mutate(pos = as.integer(.pos))  # La columna de ID es "pos"
+    # "pos", "t.frame" y "flag" estan bf_fl_mapping y en out_all
+    mutate(pos = as.integer(.pos),  # La columna de ID es "pos"
+           t.frame = as.integer(t.frame),
+           flag = as.integer(flag))
+    # el resto de las columnas que no se comparten y deberian ser enteras
+    # se convierten en cargar.out_all()
   
   
   if("con.vol_1" %in% names(d)) {
@@ -382,10 +387,13 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   d.out <- purrr::map(.x = .nombre.archivos,
                       .f = read_tsv.con.pos, 
                       .carpeta = .carpeta,
-                      "iiiiiddddddddddddddddddddddddddddddddddddddddddddddddddd", # types: 5 int columns, 51 double columns
+                      # col_types = "iiiiiddddddddddddddddddddddddddddddddddddddddddddddddddd", # types: 5 int columns, 51 double columns
+                      col_types = readr::cols(.default = "d"), # types: all double, convert later
                       position.pattern = position.pattern) %>%
-    bind_rows()
-  cat("\n Done loading out files!\n")
+    bind_rows() %>% 
+    mutate(cellID = as.integer(cellID))
+  
+  cat("\n Done loading 'out_all' files!\n")
 
   # # Cargo y junto los "out_bf_fl_mapping"
   cat("\rLoading mapping...              ")
