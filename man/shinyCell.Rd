@@ -19,6 +19,7 @@ shinyCell(
   n_max = 100,
   boxSize = 80,
   filter_progress_file = NULL,
+  launch.browser = F,
   ...
 )
 }
@@ -46,6 +47,8 @@ shinyCell(
 \item{boxSize}{Size in pixels for individual cells' images.}
 
 \item{filter_progress_file}{Save filtering progress to an RDS file. FALSE (default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.}
+
+\item{launch.browser}{Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.}
 
 \item{...}{Further arguments passed to magickCell()}
 }
