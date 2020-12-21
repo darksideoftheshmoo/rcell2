@@ -210,7 +210,11 @@ kmeans_clustering <- function(x, k=10, max_iter=100, resume=FALSE, label_col = '
     na.idx <- is.na(tags)
     
     ## Calculate current cluster centroids
-    k.means <- t(sapply(1:length(k.labs.unique), function(i,x,n) colMeans(x[which(n==i),]), x=cdata[!na.idx,], n=k.labs.current[!na.idx]))
+    k.means <- t(sapply(1:length(k.labs.unique), 
+                        function(i,x,n) colMeans(x[which(n==i),]), 
+                        x=cdata[!na.idx,],
+                        n=k.labs.current[!na.idx])
+                 )
     
     ## Randomly reassign rows if pre-assigned clusters > k
     if(k<length(k.labs.unique)){

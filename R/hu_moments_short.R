@@ -295,7 +295,8 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
                      shape_pixtype = shape_pixtype, 
                      shape_flagtype = shape_flagtype,
                      position = position) %>% 
-      mutate(pos = as.integer(position))
+      mutate(pos = as.integer(position)) %>% 
+      select(pos, dplyr::everything())
     
     hues_df_list[[position]] <- hues_df
   }
