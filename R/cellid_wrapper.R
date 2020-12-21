@@ -271,7 +271,8 @@ cell.load.alt <- function(path,
     select(-cellid.pad)
   
   # Check uniqueness of ucid-t.frame combinations
-  if(nrow(unique(d.list$d[,c("ucid", "t.frame")])) < nrow(d.list$d)) stop("\nERROR: There are repeated cellID's in the out_all file!")
+  if(nrow(unique(d.list$d[,c("ucid", "t.frame")])) < nrow(d.list$d)) 
+    stop("\nERROR: There are repeated cellID's in the out_all file!")
 
   # ellipse.perim = perimeter of theoretical ellipse, calculated using each
   # cell's axis values.
@@ -337,6 +338,7 @@ cell.load.alt <- function(path,
 #' Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
 read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_types = "c"){
   cat(paste0("\rReading: ", .nombre.archivo), "\033[K")
+  
   .archivo <- normalizePath(paste0(.carpeta, "/", .nombre.archivo))
   .pos <- str_replace(.nombre.archivo, position.pattern, "\\1") %>% as.numeric()
   
@@ -350,7 +352,9 @@ read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_ty
   
   
   if("con.vol_1" %in% names(d)) {
-    cat(paste0("\nRemoving 'con.vol_1' column from position: ", .pos, ". Use CellID version > 1.4.6 to stop seeing this message.\n"))
+    cat(paste0("\nRemoving 'con.vol_1' column from position: ", 
+               .pos, 
+               ". Use CellID version > 1.4.6 to stop seeing this message.\n"))
     d <- dplyr::select(d, -con.vol_1)
   }
   
@@ -378,9 +382,12 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   .nombre.archivos <- list.files(path = .carpeta, pattern = out_file_pattern, recursive = T, include.dirs = T)
   .nombre.archivos.map <- list.files(path = .carpeta, pattern = out_mapping_pattern, recursive = T, include.dirs = T)
   # A bit of error handling
-  if(length(.nombre.archivos) == 0) stop("Error in cargar.out_all: no CellID output files found, check your path, options and files.")
-  if(length(.nombre.archivos.map) == 0) stop("Error in cargar.out_all: no CellID mapping files found, check your path, options and files.")
-  if(length(.nombre.archivos) != length(.nombre.archivos.map)) stop("Error in cargar.out_all: different amount of mapping and cellid output files.")
+  if(length(.nombre.archivos) == 0) 
+    stop("Error in cargar.out_all: no CellID output files found, check your path, options and files.")
+  if(length(.nombre.archivos.map) == 0) 
+    stop("Error in cargar.out_all: no CellID mapping files found, check your path, options and files.")
+  if(length(.nombre.archivos) != length(.nombre.archivos.map)) 
+    stop("Error in cargar.out_all: different amount of mapping and cellid output files.")
   
   # Cargo y junto los "out_all"
   cat("\rLoading datasets...\033[K")
@@ -407,7 +414,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                                  pattern = fluorescence.pattern,
                                  replacement = "\\1")) %>%
     mutate(channel = tolower(channel))
-  cat("\n Done loading mapping files!\n")
+  cat("\n Done loading 'bf_fl_mapping' files!\n")
   
   # keep flag-channel mapping
   flag.channel.mapping <- d.map %>% select(flag, channel) %>% unique()
@@ -419,7 +426,8 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                          by = c("flag", "t.frame", "pos")) %>% 
     select(-flag)
   
-  if(nrow(d.out.map) > nrow(d.out)) stop("Error acargar.out_all: while joining output and mapping, at least one output row matche multiple mappings.")
+  if(nrow(d.out.map) > nrow(d.out)) 
+    stop("Error acargar.out_all: while joining output and mapping, at least one output row matche multiple mappings.")
   
   # Add f.tot columns to data
   d.out.map <- mutate(d.out.map,
