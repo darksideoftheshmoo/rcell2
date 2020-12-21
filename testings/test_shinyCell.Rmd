@@ -80,6 +80,7 @@ saved_data <- shinyCell(cdata, pdata, paths,
                         # initial_facet = "pos ~ .",
                         #filters = saved_data$filters,
                         facet_grid_option = TRUE,
+                        launch.browser = "firefox",
                         n_max = 7^2, max_size = 720)
 
 # More plots would be useful

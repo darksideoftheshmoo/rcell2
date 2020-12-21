@@ -21,6 +21,7 @@
 #' @param facets_scale_free Use facets with fixed scales (NULL, default) or free scales ("free").
 #' @param boxSize Size in pixels for individual cells' images.
 #' @param filter_progress_file Save filtering progress to an RDS file. FALSE (default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.
+#' @param launch.browser Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.
 #' @param ... Further arguments passed to magickCell()
 #' @return Lots of stuff.
 #' @examples
@@ -51,6 +52,7 @@ shinyCell <- function(cdata,
                       initial_facet = "", initial_vars = NULL,
                       facet_grid_option = TRUE, facets_scale_free = "fixed",
                       n_max = 100, boxSize = 80, filter_progress_file = NULL,
+                      launch.browser = F,
                       ...){
     
   if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
@@ -88,7 +90,12 @@ shinyCell <- function(cdata,
   # Taken from example at Rbloggers
   # https://github.com/MangoTheCat/shinyAppDemo/blob/master/R/launchApp.R
   # Here shinyAppUI() must be executed in order to pass a fluidPage object to shinyApp/runApp
-  saved <- shiny::runApp(list(ui = shinyAppUI(), server = shinyAppServer))
+  if(!isFALSE(launch.browser)) {
+    options(browser = launch.browser)
+    launch.browser <- TRUE
+  }
+  saved <- shiny::runApp(list(ui = shinyAppUI(), server = shinyAppServer), 
+                         launch.browser = launch.browser)
 
   # Imprimir cosas antes de cerrar la app
   print("Chau! returning 'invisible' results...")
