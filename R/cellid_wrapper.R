@@ -80,7 +80,7 @@ cell2 <- function(arguments,
   cl <- parallel::makeCluster(
     min(n_positions,
         no_cores), 
-    outfile = tempfile(pattern = "dopar", tmpdir = "/tmp", fileext = ".log")
+    outfile = tempfile(pattern = "dopar", tmpdir = "/tmp", fileext = ".log"),
     setup_strategy = "sequential"  #https://github.com/rstudio/rstudio/issues/6692
     # outfile = NULL
   )
