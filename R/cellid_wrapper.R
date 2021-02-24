@@ -56,6 +56,18 @@ cell2 <- function(arguments,
                   encode_cellID_in_pixels = F,
                   ignore.stdout = T, intern = F){
   
+  if(F){
+    no_cores = 2
+    debug_flag=0
+    dry = F
+    label_cells_in_bf = F
+    fill_interior_pixels = F
+    output_coords_to_tsv = F
+    encode_cellID_in_pixels = F
+    ignore.stdout = T
+    intern = F
+  }
+  
   positions <- arguments$pos %>% unique()
   n_positions <- positions %>% length()
   n_times <- arguments$t.frame %>% unique() %>% length()
@@ -68,7 +80,9 @@ cell2 <- function(arguments,
   cl <- parallel::makeCluster(
     min(n_positions,
         no_cores), 
-    outfile = tempfile(pattern = "dopar", tmpdir = "/tmp/", fileext = ".log")
+    outfile = tempfile(pattern = "dopar", tmpdir = "/tmp", fileext = ".log")
+    setup_strategy = "sequential"  #https://github.com/rstudio/rstudio/issues/6692
+    # outfile = NULL
   )
   parallel::clusterExport(cl, "arguments")
   doParallel::registerDoParallel(cl)
