@@ -24,8 +24,11 @@ square_tile <- function(images, nRow = NULL, nCol = NULL){
     if(nRow * nCol > length(images)){
       row_images_index <- row_images_index[row_images_index <= length(images)]
     }
-    
-    magick::image_append(images[row_images_index])
+    print(row_images_index)
+    images[row_images_index] %>% 
+      magick::image_border(color = "white", geometry = "20x20") %>% 
+      magick::image_annotate(text = row_images_index, size = 20, gravity = "north") %>% 
+      magick::image_append()
   }
   
   image.tile <- magick::image_append(image.tile, stack = T)
@@ -397,10 +400,11 @@ magickCell <- function(cdata, paths,
 
   # Sample the cdata dataframe
   cdataSample <- cdata[,unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
-  if(!is.null(seed)){
-    set.seed(seed)
-    cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
-  }
+  # Set seed if specified
+  if(!is.null(seed)) set.seed(seed)
+  # Sample
+  cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
+  
   # Sort cdata
   if(!is.null(sortVar)) cdataSample <- cdataSample[order(cdataSample[[sortVar]]),]  # sort the sample by "sortVar"
 
