@@ -124,7 +124,7 @@ cell2 <- function(arguments,
   
   cat("\nDone, please examine logs above if anything seems strange :)")
   
-  return(invisible(bind_rows(commands = unlist(sent_commands))))
+  return(invisible(data.frame(commands = unlist(sent_commands))))
 }
 
 #' Cluster test
