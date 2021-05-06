@@ -10,11 +10,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(rcell2)
+
+updateList <- function(l1, l2, only.common.names=T){
+  if(!is.list(l2) | !is.list(l1)) stop("Error: input must be two named lists.")
+  
+  if(only.common.names){
+    common.names <- names(l2)[names(l2) %in% names(l1)]
+    l1[common.names] <- l2[common.names]
+  } else{
+    l1[names(l2)] <- l2[names(l2)]
+  }
+  return(l1)
+}
 ```
 
-# Ejemplo de uso con nuevo arguments2
+## Friendly reminder
 
-### CellID parameters
+**MIRA LAS FOTOS** CON IMAGEJ ANTES DE SEGUIR :D
+
+## CellID
+
+### Choose parameters
 
 ```{r}
 parameters <- "parameters_test.txt"
@@ -24,7 +40,7 @@ param_array <- c(
   "max_dist_over_waist 8.00",
   "max_pixels_per_cell 2000",
   "min_pixels_per_cell 75",
-  "background_reject_factor 0.5",
+  "background_reject_factor 0.5",  # must be float! use a decimal point always
   "tracking_comparison 0.20",
   # "align_individual_cells",  # tambien se puede deshabilitar con un "#" en el mismo parameters.txt
   "align_fl_to_bf",
@@ -38,6 +54,156 @@ Imprimir contenidos del parameters.txt que generamos arriba:
 
 ```{r}
 writeLines(readLines(parameters))
+```
+
+### Test many parameters
+
+A prototype parameter list, with defaults:
+
+```{r}
+param_list.o <- list(
+  max_split_over_minor = 0.50,
+  max_dist_over_waist = 8.00,
+  max_pixels_per_cell = 2000,
+  min_pixels_per_cell = 75,
+  background_reject_factor = 0.75,
+  tracking_comparison = 0.20,
+  align_individual_cells = F,
+  align_fl_to_bf = T,
+  image_type = "brightfield",
+  bf_fl_mapping = "list"
+  )
+```
+
+Then, for each parameter variation, write a new parameters file.
+
+In this example, only `background_reject_factor` is changed:
+
+```{r}
+bgrf.min <- 0
+bgrf.max <- 5
+bgrf.new <- seq(from=bgrf.min, to=bgrf.max, length.out=10)
+
+for (background_reject_factor.new in bgrf.new) {
+  
+  # Update prototype parameters
+  param_list <- updateList(param_list.o, 
+                           list(background_reject_factor = sprintf("%.3f", round(background_reject_factor.new,3)) ))
+  
+  # Process the list into a valid parameter list
+  # converting values to character type
+  param_array <- 
+    sapply(seq_along(param_list), function(i) {
+      # For each parameter, get its name and value
+      item_val <- param_list[[i]]
+      item_name <- names(param_list)[i]
+      
+      # Boolean values are for "flag" type parameters
+      # Which enable a feature when present (eg. "align_fl_to_bf")
+      if(isTRUE(item_val))
+        r <- item_name
+      # And, if absent, indicate default behavior:
+      else if(isFALSE(item_val))
+        r <- NA
+      # Other parameters have values
+      # which must be separated from names by a space " "
+      else
+        r <- paste0(item_name, " ", item_val)
+      
+      return(r)
+      })
+  
+  # Filter any NAs (which come from FALSE flag-type parameters)
+  param_array <- param_array[!is.na(param_array)]
+  
+  # Pretty name for the new parameters file
+  parameters.mod <- paste0(format(round(background_reject_factor.new, 2), nsmall = 2), "_", parameters)
+  
+  # Write to the parameter file
+  write(param_array, file = paste0("tests/", parameters.mod))
+  print(parameters.mod)
+}
+```
+
+Conseguir todos parameters.txt modificados:
+
+```{r}
+path <- here::here("data/test_pics/")
+
+parameters.mod <- dir(here::here("tests/"), pattern = "\\d+.*parameters_test.txt", full.names = T)
+
+parameters.mod
+```
+
+Preparar dataframe de argumentos:
+
+```{r}
+i = 1 # Elegir una foto sobre la que probar los diferentes parametros
+
+arguments <- rcell2::cellArgs2(path = path,
+                               # file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
+                               file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$",
+                               parameters = parameters.mod[i])
+
+arguments
+```
+
+Duplicar los archivos de BF con un nombre nuevo para cada parameters:
+
+> Mejora: nombrarlos por parameter modificado
+
+```{r}
+# Duplicate test BF.tiff files (YFP needs not be if thread == 1)
+test_bf <- arguments$bf
+new_pos <- stringr::str_pad(string = 1:length(parameters.mod), width = 3, side = "left", pad = "0")
+test_bf.new <- sapply(new_pos, function(a,b) sub(pattern = "\\d{3}", replacement = a, x = b), b = test_bf)
+# Do the copying...
+lapply(test_bf.new[-1], function(test_bf.n){
+  file.copy(from = normalizePath(paste(path, test_bf, sep = "/"), mustWork = T),
+            to = paste(path, test_bf.n, sep = "/"), overwrite = T
+            )
+})
+```
+
+Repetir la fila seleccionada del arguments dataframe, para crear nuevo dataframe con una fila por variación de parámeters.
+
+Actualizar la columna parameters para que use los nuevos.
+
+Actualizar la columna de bf para que usen un archivo diferente para cada BF.out.
+
+También la de "pos" para que sean todos diferentes.
+
+```{r}
+arguments.rep <- arguments[rep(1,length(parameters.mod)),]
+
+arguments.rep$bf <- test_bf.new
+arguments.rep$pos <- 1:length(parameters.mod)
+arguments.rep$parameters <- normalizePath(parameters.mod)
+
+arguments.rep
+```
+
+Correr CellID **con un solo thread**:
+
+```{r}
+commands <- 
+  rcell2::cell2(arguments.rep,
+                cell.command = "~/Software/cellID-linux/cell",
+                dry = F,
+                no_cores = 1)
+
+commands$commands
+```
+
+Leer fotitos:
+
+```{r}
+bf.out.imgs.paths <- dir(path, pattern = "^BF.*.out.tif$", full.names = T)
+
+bf.out.imgs <- magick::image_read(bf.out.imgs.paths) %>% 
+  magick::image_annotate(round(bgrf.new,2), color = "white", size = 10, boxcolor = "black")
+
+magick::image_append(bf.out.imgs, stack = T)
 ```
 
 ### Generar arguments
@@ -101,8 +267,8 @@ rcell2::cell2(arguments = arguments,
 Esto se hace con la función `load_cell_data`:
 
 ```{r}
-# cell.data.old <- rcell2::cell.load.alt(path =  path)
-cell_data.new <- rcell2::load_cell_data(path = path)
+# cell.data <- rcell2::cell.load.alt(path =  path)
+cell_data <- rcell2::load_cell_data(path = path)
 ```
 
 Si esa no funciona, pueden intentar con `cell.load.alt`, aunque esta función no está tan probada.
@@ -156,4 +322,3 @@ Para usar los TFP:
 ```{r}
 "test_hu_moments.Rmd"
 ```
-
