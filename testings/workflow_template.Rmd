@@ -1,9 +1,11 @@
 ---
 title: "CellID Wrapper Test 3"
 author: "Nicolás Méndez"
-date: "7/20/2020"
+date: "05/05/2021"
 output: html_document
 ---
+
+<!-- Download a copy of this file with rcell2::get_workflow_template(), defined at R/workflow_template.R -->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
