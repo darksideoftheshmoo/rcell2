@@ -10,9 +10,11 @@ output: html_document
 ```{r build, eval=FALSE, message=FALSE, warning=TRUE}
 devtools::document()
 devtools::load_all(recompile = T, reset = T)
-devtools::install(reload = T, build = T,
+devtools::install(reload = T, 
+                  build = T,
                   quiet = T,
-                  upgrade = "never", keep_source = T)
+                  upgrade = "never",
+                  keep_source = T)
 ```
 
 
