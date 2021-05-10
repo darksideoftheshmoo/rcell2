@@ -99,12 +99,15 @@ cellStrip <- function(cdata,
                       id_column = "ucid", time_colum = "t.frame",
                       ...){
   
-  if(!all.unique(cdata[,id_column,drop=T]) & length(unique(cdata[,id_column,drop=T])) > 1)
-    stop(paste0("Error in cellGif: id column '", 
-                id_column, 
-                "' is not a primary key."))
+  multiple_ids <- length(unique(cdata[, id_column,drop=T])) > 1
+  ids_unique <- all.unique(cdata[, id_column, drop=T])
+  # If there is more than one unique ID, but they are not all different,
+  # then the column cannot be used to split 
+  if(multiple_ids & !ids_unique)
+    warning(paste0("Warning in cellGif: id column '", 
+                   id_column, "' is not a primary key."))
   
-  img <- arrange(cdata, !!as.symbol(time_colum)) %>% 
+  img <- dplyr::arrange(cdata, !!as.symbol(time_colum)) %>% 
     magickCell(paths,
                equalize_images = equalize_images, 
                normalize_images = normalize_images,
