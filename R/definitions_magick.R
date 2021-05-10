@@ -120,6 +120,62 @@ cellStrip <- function(cdata,
   magick::image_append(img, stack = !stack_time_horizontally)
 }
 
+#' Wraps cellMagick to make strips, optionally cutting them.
+#' 
+#' `cdata` is split by `split_col` and then images are generated.
+#' 
+#' `images` are split with `cut`, useful wen strips are too long.
+#' 
+#' @inheritParams cellStrip
+#' @param n_ucids will select the first `n_ucids`
+#' @param cut_strips Use `cut` to split the image series.
+#' 
+cellStrips <- function(cdata,
+                       paths,
+                       n_ucids = NULL,
+                       cut_breaks = 1,
+                       split_col = "ucid",
+                       ch = c("BF.out", "YFP.out"),
+                       sortVar = "t.frame",
+                       ...){
+
+  if(is.null(n_ucids)) n_ucids <- length(unique(cdata[[split_col]]))
+    
+  # Una random
+  # split(cdata, cdata$ucid) %>% sample(1) %>% bind_rows() %>% 
+  # Una específicamente
+  images <- 
+    split(cdata, cdata[[split_col]]) %>% .[1:n_ucids] %>% 
+    lapply(function(ucid.cdata){
+      ucid_images <- 
+        magickCell(cdata = ucid.cdata, paths = paths, 
+                   sortVar = sortVar, ch = ch,
+                   seed = NULL,
+                   return_single_imgs = T,
+                   stack_vertical_first = T,
+                   ...)
+      
+      if(cut_breaks > 1)
+        ucid_images.list <- split(ucid_images, 
+                                   cut(1:length(ucid_images),
+                                       breaks = min(length(ucid_images),
+                                                    cut_breaks)
+                                   ))
+      else
+        ucid_images.list <- list(ucid_images)
+      
+      return(ucid_images.list)
+    }
+    )
+  
+  
+  images <- lapply(images, 
+                   function(images.split)
+                     lapply(images.split, magick::image_append)
+  )
+  
+  return(images)
+}
 
 #' Update a list's value using another list, by common names.
 #' 
