@@ -120,10 +120,26 @@ cellStrip <- function(cdata,
   magick::image_append(img, stack = !stack_time_horizontally)
 }
 
-updateList <- function(l1, l2){
+
+#' Update a list's value using another list, by common names.
+#' 
+#' Names of `l2` present in `l1` will update values in `l1`.
+#' 
+#' Names of `l2` absent in `l1` will be ignored, unless `only.common.names=F`.
+#' 
+#' @param l1 List to be updated (with the "original" or "old" values).
+#' @param l2 List used for updating (with the "newer" values). Note: it needn't have all names
+#' @param ... Arguments passed on to magickCell.
+#' 
+updateList <- function(l1, l2, only.common.names=T){
   if(!is.list(l2) | !is.list(l1)) stop("Error: input must be two named lists.")
-  common.names <- names(l2)[names(l2) %in% names(l1)]
-  l1[common.names] <- l2[common.names]
+  
+  if(only.common.names){
+    common.names <- names(l2)[names(l2) %in% names(l1)]
+    l1[common.names] <- l2[common.names]
+  } else{
+    l1[names(l2)] <- l2[names(l2)]
+  }
   return(l1)
 }
 
