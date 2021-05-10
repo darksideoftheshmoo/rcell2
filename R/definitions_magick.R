@@ -403,11 +403,13 @@ magickCell <- function(cdata, paths,
 
   # Sample the cdata dataframe
   cdataSample <- cdata[,unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
-  # Set seed if specified
-  if(!is.null(seed)) set.seed(seed)
-  # Sample
-  cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
   
+  # Set seed if specified, and sample "n" from the dataframe
+  if(!is.null(seed)){ 
+    set.seed(seed)
+    # Sample
+    cdataSample <- cdata[sample(1:nrow(cdata), size = n, replace = F),] # sample n rows from cdata
+  }
   # Sort cdata
   if(!is.null(sortVar)) cdataSample <- cdataSample[order(cdataSample[[sortVar]]),]  # sort the sample by "sortVar"
 
