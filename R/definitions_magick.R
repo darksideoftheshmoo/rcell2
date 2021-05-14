@@ -99,12 +99,15 @@ cellStrip <- function(cdata,
                       id_column = "ucid", time_colum = "t.frame",
                       ...){
   
-  if(!all.unique(cdata[,id_column,drop=T]) & length(unique(cdata[,id_column,drop=T])) > 1)
-    stop(paste0("Error in cellGif: id column '", 
-                id_column, 
-                "' is not a primary key."))
+  multiple_ids <- length(unique(cdata[, id_column,drop=T])) > 1
+  ids_unique <- all.unique(cdata[, id_column, drop=T])
+  # If there is more than one unique ID, but they are not all different,
+  # then the column cannot be used to split 
+  if(multiple_ids & !ids_unique)
+    warning(paste0("Warning in cellGif: id column '", 
+                   id_column, "' is not a primary key."))
   
-  img <- arrange(cdata, !!as.symbol(time_colum)) %>% 
+  img <- dplyr::arrange(cdata, !!as.symbol(time_colum)) %>% 
     magickCell(paths,
                equalize_images = equalize_images, 
                normalize_images = normalize_images,
@@ -117,10 +120,82 @@ cellStrip <- function(cdata,
   magick::image_append(img, stack = !stack_time_horizontally)
 }
 
-updateList <- function(l1, l2){
+#' Wraps cellMagick to make strips, optionally cutting them.
+#' 
+#' `cdata` is split by `split_col` and then images are generated.
+#' 
+#' `images` are split with `cut`, useful wen strips are too long.
+#' 
+#' @inheritParams cellStrip
+#' @param n_ucids will select the first `n_ucids`
+#' @param cut_strips Use `cut` to split the image series.
+#' 
+cellStrips <- function(cdata,
+                       paths,
+                       n_ucids = NULL,
+                       cut_breaks = 1,
+                       split_col = "ucid",
+                       ch = c("BF.out", "YFP.out"),
+                       sortVar = "t.frame",
+                       ...){
+
+  if(is.null(n_ucids)) n_ucids <- length(unique(cdata[[split_col]]))
+    
+  # Una random
+  # split(cdata, cdata$ucid) %>% sample(1) %>% bind_rows() %>% 
+  # Una específicamente
+  images <- 
+    split(cdata, cdata[[split_col]]) %>% .[1:n_ucids] %>% 
+    lapply(function(ucid.cdata){
+      ucid_images <- 
+        magickCell(cdata = ucid.cdata, paths = paths, 
+                   sortVar = sortVar, ch = ch,
+                   seed = NULL,
+                   return_single_imgs = T,
+                   stack_vertical_first = T,
+                   ...)
+      
+      if(cut_breaks > 1)
+        ucid_images.list <- split(ucid_images, 
+                                   cut(1:length(ucid_images),
+                                       breaks = min(length(ucid_images),
+                                                    cut_breaks)
+                                   ))
+      else
+        ucid_images.list <- list(ucid_images)
+      
+      return(ucid_images.list)
+    }
+    )
+  
+  
+  images <- lapply(images, 
+                   function(images.split)
+                     lapply(images.split, magick::image_append)
+  )
+  
+  return(images)
+}
+
+#' Update a list's value using another list, by common names.
+#' 
+#' Names of `l2` present in `l1` will update values in `l1`.
+#' 
+#' Names of `l2` absent in `l1` will be ignored, unless `only.common.names=F`.
+#' 
+#' @param l1 List to be updated (with the "original" or "old" values).
+#' @param l2 List used for updating (with the "newer" values). Note: it needn't have all names
+#' @param ... Arguments passed on to magickCell.
+#' 
+updateList <- function(l1, l2, only.common.names=T){
   if(!is.list(l2) | !is.list(l1)) stop("Error: input must be two named lists.")
-  common.names <- names(l2)[names(l2) %in% names(l1)]
-  l1[common.names] <- l2[common.names]
+  
+  if(only.common.names){
+    common.names <- names(l2)[names(l2) %in% names(l1)]
+    l1[common.names] <- l2[common.names]
+  } else{
+    l1[names(l2)] <- l2[names(l2)]
+  }
   return(l1)
 }
 
@@ -400,11 +475,13 @@ magickCell <- function(cdata, paths,
 
   # Sample the cdata dataframe
   cdataSample <- cdata[,unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
-  # Set seed if specified
-  if(!is.null(seed)) set.seed(seed)
-  # Sample
-  cdataSample <- cdata[sample(1:nrow(cdata), n, replace = F),] # sample n rows from cdata
   
+  # Set seed if specified, and sample "n" from the dataframe
+  if(!is.null(seed)){ 
+    set.seed(seed)
+    # Sample
+    cdataSample <- cdata[sample(1:nrow(cdata), size = n, replace = F),] # sample n rows from cdata
+  }
   # Sort cdata
   if(!is.null(sortVar)) cdataSample <- cdataSample[order(cdataSample[[sortVar]]),]  # sort the sample by "sortVar"
 

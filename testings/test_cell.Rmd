@@ -25,7 +25,7 @@ library(tidyverse)
 # library(rcell2)
 ```
 
-# Ejemplo de uso con nuevo arguments2
+## Ejemplo de uso con nuevo arguments2
 
 ### CellID parameters
 
@@ -95,7 +95,7 @@ rcell2::cell2(arguments = arguments,
               # dry = F, no_cores = 2, label_cells_in_bf = T)
 ```
 
-# Load cell data
+## Load cell data
 
 ```{r}
 # cell.data.old <- rcell2::cell.load.alt(path =  path)
@@ -105,7 +105,7 @@ cell_data.new$data %>% filter(cellID == 1003) %>%
   rcell2::magickCell(paths = cell_data.new$images, return_single_imgs = T, cell_resize = 200)
 ```
 
-# Load cell mask coords
+## Load cell mask coords
 
 From new -m option
 
@@ -123,7 +123,7 @@ ggsave("masks.pdf", p, device = "pdf")
 p
 ```
 
-# Sin tframes
+## Correr CellID (t.frame único)
 
 ## Arguments setup
 
