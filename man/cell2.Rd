@@ -15,7 +15,7 @@ cell2(
   output_coords_to_tsv = F,
   encode_cellID_in_pixels = F,
   ignore.stdout = T,
-  intern = F
+  intern = T
 )
 }
 \arguments{

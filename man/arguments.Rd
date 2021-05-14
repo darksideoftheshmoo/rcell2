@@ -8,8 +8,8 @@ arguments(
   path,
   parameters,
   BF.pattern = "^BF",
-  file.pattern = "^(BF|[A-Z]FP)_Position(\\\\d+)_time(\\\\d+).tif$",
-  file.pattern.groups.order = c("ch", "pos", "t.frame"),
+  file.pattern = "^(BF|[A-Z]FP)()_Position(\\\\d+)_time(\\\\d+).tif$",
+  file.pattern.groups.order = c("ch", "z", "pos", "t.frame"),
   out.dir = "out",
   tiff.ext = "tif$"
 )
@@ -19,11 +19,11 @@ arguments(
 
 \item{parameters}{path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.}
 
-\item{BF.pattern}{regex pattern to BF images. Defaults to: \code{"^BF"}}
+\item{BF.pattern}{regex pattern to detect BF images only. Defaults to: \code{"^BF"}}
 
 \item{file.pattern}{regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.}
 
-\item{file.pattern.groups.order}{a character vector of components \code{c("ch", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.}
+\item{file.pattern.groups.order}{a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.}
 
 \item{out.dir}{name for output directories paths "out"}
 
@@ -34,4 +34,17 @@ a data.frame with all the information needed to run CellID
 }
 \description{
 Obtener argumentos para CellID
+}
+\details{
+All 4 regex groups are mandatory, but `z` and `t.frame` may be left as empty parenthesis, while also preserving group order defined by `file.pattern.groups.order`.
+
+The "channel" and "pos" regex groups _must always_ match pos and channel identifiers in the file name.
+
+Example `file.pattern` regex, when `file.pattern.groups.order = c("ch", "z", "pos", "t.frame")`:
+
+With Z planes and time: \code{file.pattern = "^(BF|[TYR]FP)_Z([0-9])_Position(\\d+)_time(\\d+).tif$"}
+
+No Z planes, with time (note the empty parentheses): \code{file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$"}
+
+No Z planes, no time: \code{file.pattern = "^(BF|[TYR]FP)()_Position(\\d+)().tif$"}
 }
