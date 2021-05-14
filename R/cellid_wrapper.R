@@ -54,7 +54,7 @@ cell2 <- function(arguments,
                   fill_interior_pixels = F,
                   output_coords_to_tsv = F,
                   encode_cellID_in_pixels = F,
-                  ignore.stdout = T, intern = F){
+                  ignore.stdout = T, intern = T){
   
   if(F){
     no_cores = 2
