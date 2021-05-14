@@ -123,22 +123,28 @@ cell2 <- function(arguments,
                                wait = T,
                                ignore.stdout = ignore.stdout & !intern,
                                intern = intern)
-      if(intern) write(command.output,
-                       tempfile(tmpdir = arguments_pos$output[1],
-                                fileext = ".txt",
-                                pattern = "cellid_log."))
+      if(intern) {
+        cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
+                               fileext = ".txt",
+                               pattern = "cellid_log.")
+        write(command.output,
+              cellid.log)
+      }
     }
     
     print("---- Done with this position.")
     print(command)
-    command
+    
+    return(
+      list(command = command, cellid.log = cellid.log)
+    )
   }
   
   parallel::stopCluster(cl)
   
   cat("\nDone, please examine logs above if anything seems strange :)")
   
-  return(invisible(data.frame(commands = unlist(sent_commands))))
+  return(dplyr::bind_rows(sent_commands))
 }
 
 #' Cluster test
@@ -169,12 +175,27 @@ cellArgs2 <- function(...){
 }
 
 #' Obtener argumentos para CellID
+#' 
+#' @details 
+#' 
+#' All 4 regex groups are mandatory, but `z` and `t.frame` may be left as empty parenthesis, while also preserving group order defined by `file.pattern.groups.order`.
+#' 
+#' The "channel" and "pos" regex groups _must always_ match pos and channel identifiers in the file name.
+#' 
+#' Example `file.pattern` regex, when `file.pattern.groups.order = c("ch", "z", "pos", "t.frame")`:
+#' 
+#' With Z planes and time: \code{file.pattern = "^(BF|[TYR]FP)_Z([0-9])_Position(\\d+)_time(\\d+).tif$"}
+#' 
+#' No Z planes, with time (note the empty parentheses): \code{file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$"}
+#' 
+#' No Z planes, no time: \code{file.pattern = "^(BF|[TYR]FP)()_Position(\\d+)().tif$"}
+#' 
 #'
 #' @param path directory where images are stored, full path.
 #' @param parameters path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.
-#' @param BF.pattern regex pattern to BF images. Defaults to: \code{"^BF"}
+#' @param BF.pattern regex pattern to detect BF images only. Defaults to: \code{"^BF"}
 #' @param file.pattern regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.
-#' @param file.pattern.groups.order a character vector of components \code{c("ch", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.
+#' @param file.pattern.groups.order a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.
 #' @param out.dir name for output directories paths "out"
 #' @param tiff.ext regex pattern for the tif file extension
 #' @return a data.frame with all the information needed to run CellID
@@ -185,14 +206,15 @@ cellArgs2 <- function(...){
 arguments <- function(path,
                       parameters,
                       BF.pattern = "^BF",
-                      file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
-                      file.pattern.groups.order = c("ch", "pos", "t.frame"),
+                      file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$",
+                      # file.pattern = "^(BF|[TYR]FP)()_Position(\\d+)_time(\\d+).tif$",
+                      # file.pattern = "^(BF|[TYR]FP)_Z([0-9])_Position(\\d+)_time(\\d+).tif$",
+                      file.pattern.groups.order = c("ch", "z", "pos", "t.frame"),
                       out.dir = "out",
-                      tiff.ext = "tif$"
-) {
+                      tiff.ext = "tif$"){
   
-  if(!identical(sort(file.pattern.groups.order), sort(c("ch", "pos", "t.frame")))) 
-    stop('file.pattern.groups.order must contain c("ch", "pos", "t.frame")')
+  if(!identical(sort(file.pattern.groups.order), sort(c("ch", "z", "pos", "t.frame")))) 
+    stop('file.pattern.groups.order must contain c("ch", "z", "pos", "t.frame")')
   
   path <- normalizePath(path)
   
@@ -216,42 +238,204 @@ arguments <- function(path,
     dplyr::filter(str_detect(string = image,
                              pattern = BF.pattern)) %>% 
     dplyr::rename(bf = image) %>% 
-    dplyr::select(pos, t.frame, bf)
-  if(nrow(fluor_pics) == 0) stop("Brightfield images missing, Check your directories and file.pattern.")
+    dplyr::select(pos, t.frame, bf, z)
+  if(nrow(brihtfield_pics) == 0) stop("Brightfield images missing, Check your directories and file.pattern.")
   
-  
-  arguments <- dplyr::left_join(
+  arguments.df.ptz <- dplyr::left_join(
     fluor_pics,
     brihtfield_pics,
+    by = c("pos", "t.frame", "z")
+  )
+  
+  arguments.df.pt <- dplyr::left_join(
+    fluor_pics,
+    select(brihtfield_pics, -z),
     by = c("pos", "t.frame")
   )
+  
+  # Check for missing BFs
+  if(   any(is.na(arguments.df.ptz$bf)) ){
+    # If joining by Z induces missing BFs
+    # But joining only by pos and t.frame does not
+    if( all(!is.na(arguments.df.pt$bf)) ){
+      # Warn the user and continue
+      warning("Brightfield images are missing because of insufficient Z planes, continuing by recycling...")
+    } else {
+    # Else, there _really_ are missing BFs, so we must stop now.
+      filter(arguments.df.pt, is.na(bf)) %>% print()
+      stop("Error: there are missing brightfield images")
+    }
+  }
+  
   # Add output column and arrange by position and t.frame
-  arguments <- arguments %>% 
+  arguments.df <- arguments.df.pt %>% 
     mutate(output = paste0(path, "/Position", pos)) %>% 
     mutate(pos = as.integer(pos),
            t.frame = as.integer(t.frame)) %>% 
     arrange(pos, t.frame)
   
-  if(length(parameters) == 1) {arguments$parameters <- parameters} else{
-    arguments <- left_join(
-      arguments,
-      select(parameters, pos, parameters),
-      by = "parameters"
-    )
+  # Recycle parameters if lenght is 1
+  if(length(parameters) == 1){
+    arguments.df$parameters <- parameters
+  } else {
+  # Else bind to the passed parameters data.frame
+    arguments.df <- left_join(arguments.df,
+                              dplyr::select(parameters, pos, parameters),
+                              by = "parameters")
   }
   
-  arguments <- arguments %>% mutate(parameters = normalizePath(parameters))
+  # Normalize parameters' paths
+  arguments.df <- arguments.df %>% mutate(parameters = normalizePath(parameters))
   
-  if(all(is.na(arguments$t.frame))){
-    warning("cellArgs2 warning: No t.frame data extracted, replacing all NAs with '1'. Check your directories and file.pattern if this is unexpected.")
-    arguments$t.frame <- 1
-  } else if(any(is.na(arguments))){
-    print(arguments)
-    stop("cellArgs2 error: at least one of the values in the arguments dataframe is missing, check your directories and file.pattern")
+  if(all(is.na(arguments.df$t.frame))){
+    warning("arguments warning: No t.frame data extracted, replacing all NAs with '1'. Check your directories and file.pattern if this is unexpected.")
+    arguments.df$t.frame <- 1
   }
   
-  return(arguments)
+  if(all(is.na(arguments.df$z)) | all(arguments.df$z == "") ){
+    warning("arguments warning: No 'z' data extracted, replacing with '1'. Check your directories and file.pattern if this is unexpected.")
+    arguments.df$z <- 1
+  }
+  
+  if(any(is.na(arguments.df)) | any(arguments.df == "")){
+    print(arguments.df)
+    stop("arguments error: at least one of the values in the arguments.df dataframe is missing or blank, check your directories and file.pattern")
+  }
+  
+  return(arguments.df)
 }
+
+#' Default parameters list for Cell-ID
+#' 
+#' Returns a list of key-value pairs, for the default Cell-ID parameters.
+#' 
+#' @details 
+#' 
+#' Documentation for each parameter can be found at: https://github.com/darksideoftheshmoo/cellID-linux#parameters
+#' 
+#' Boolean values are for "flag" type parameters
+#' which enable a feature when present (eg. "align_fl_to_bf"),
+#' or, if absent, indicate default behavior.
+#' 
+#' Other parameters have values
+#' which must end up separated from names by a space " "
+#' in the parameters.txt file format that Cell-ID uses:
+#' 
+#' \preformatted{
+#' max_split_over_minor 0.5
+#' max_dist_over_waist 8
+#' max_pixels_per_cell 2000
+#' min_pixels_per_cell 75
+#' background_reject_factor 0.75
+#' tracking_comparison 0.2
+#' align_fl_to_bf
+#' image_type brightfield
+#' bf_fl_mapping list
+#' }
+#' 
+#' @param max_split_over_minor To-do: document or link to explanation.
+#' @param max_dist_over_waist To-do: document or link to explanation.
+#' @param max_pixels_per_cell To-do: document or link to explanation.
+#' @param min_pixels_per_cell To-do: document or link to explanation.
+#' @param background_reject_factor To-do: document or link to explanation.
+#' @param tracking_comparison To-do: document or link to explanation.
+#' @param align_individual_cells To-do: document or link to explanation.
+#' @param align_fl_to_bf To-do: document or link to explanation.
+#' @param image_type To-do: document or link to explanation.
+#' @param bf_fl_mapping To-do: document or link to explanation.
+#' @return A nice list of parameters.
+#' 
+#' @export
+#' 
+#' @seealso \link[rcell2]{parameters.write}, \link[rcell2]{arguments}
+#' 
+parameters.default <- function(
+  max_split_over_minor = 0.50,
+  max_dist_over_waist = 8.00,
+  max_pixels_per_cell = 2000,
+  min_pixels_per_cell = 75,
+  background_reject_factor = 0.75,
+  tracking_comparison = 0.20,
+  align_individual_cells = F,
+  align_fl_to_bf = T,
+  image_type = "brightfield",
+  bf_fl_mapping = "list"){
+  
+  return(list(
+    max_split_over_minor = max_split_over_minor,
+    max_dist_over_waist = max_dist_over_waist,
+    max_pixels_per_cell = max_pixels_per_cell,
+    min_pixels_per_cell = min_pixels_per_cell,
+    background_reject_factor = background_reject_factor,
+    tracking_comparison = tracking_comparison,
+    align_individual_cells = align_individual_cells,
+    align_fl_to_bf = align_fl_to_bf,
+    image_type = image_type,
+    bf_fl_mapping = bf_fl_mapping
+  ))
+}
+
+#' Write parameters to a [temporary] file
+#' 
+#' Parses a \code{parameters.list} list object, and saves its contents in a Cell-ID friendly text file.
+#' 
+#' 
+#' 
+#' @param parameters.list a parameters list for Cell-ID (like one from parameters.default)
+#' @param param.dir directory where parameter files will be written.
+#' @param param.file a file name for the parameters file.
+#' @return A path to the text file where parameters where written.
+#' 
+#' @export
+#' 
+#' @seealso \link[rcell2]{parameters.list}, \link[rcell2]{arguments}
+#' 
+parameters.write <- function(parameters.list = rcell2::parameters.default(), 
+                             param.dir = base::tempdir(),
+                             param.file = NULL){
+  
+  # Check if directory exists
+  param.dir <- normalizePath(param.dir, mustWork = T)
+  
+  if(is.null(param.file))
+    param.file <- tempfile(tmpdir = param.dir, pattern = "parameters_", fileext = ".txt")
+  else
+    param.file <- paste(param.dir, param.file, sep = "/")
+  
+  
+  # Process the list into a valid parameter list
+  # converting values to character type
+  param_array <- 
+    sapply(seq_along(parameters.list), function(i) {
+      # For each parameter, get its name and value
+      item_val <- parameters.list[[i]]
+      item_name <- names(parameters.list)[i]
+      
+      # Boolean values are for "flag" type parameters
+      # Which enable a feature when present (eg. "align_fl_to_bf")
+      if(isTRUE(item_val))
+        r <- item_name
+      # And, if absent, indicate default behavior:
+      else if(isFALSE(item_val))
+        r <- NA
+      # Other parameters have values
+      # which must be separated from names by a space " "
+      else
+        r <- paste0(item_name, " ", item_val)
+      
+      # return "r" to sapply
+      return(r)
+    })
+  
+  # Filter any NAs (which come from FALSE flag-type parameters)
+  param_array <- param_array[!is.na(param_array)]
+  
+  # Write to the parameter file
+  write(x = param_array, file = param.file)
+  
+  return(param.file)
+}
+
 
 #' Cargar el output de cell-id
 #'
