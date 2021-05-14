@@ -69,7 +69,7 @@ Noten el `0+?` enfrente del número, que indica que puede haber un cero o más f
 ```{r}
 path <- "/home/nicomic/Software/cellID-linux/test_data_andy/"
 
-arguments <- rcell2::cellArgs2(path = path, 
+arguments <- rcell2::arguments(path = path, 
                                file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
                                parameters = parameters)
 arguments

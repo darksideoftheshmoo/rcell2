@@ -158,6 +158,17 @@ cluster_test <- function(){
 }
 
 #' Obtener argumentos para CellID
+#' 
+#' rcell2::arguments wrapper, for backwards compatibility.
+#' 
+#' @inheritParams arguments
+#' @export
+#' 
+cellArgs2 <- function(...){
+  arguments(...)
+}
+
+#' Obtener argumentos para CellID
 #'
 #' @param path directory where images are stored, full path.
 #' @param parameters path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.
@@ -171,7 +182,7 @@ cluster_test <- function(){
 # @examples
 # cell.args <- cellArgs(path = path)
 #' @export
-cellArgs2 <- function(path,
+arguments <- function(path,
                       parameters,
                       BF.pattern = "^BF",
                       file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
