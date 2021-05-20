@@ -1,0 +1,369 @@
+---
+title: "Trabajo Final Clustering 2020: Intro"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+    number_sections: true
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: true
+    toc_depth: 2
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+editor_options:
+  chunk_output_type: inline
+author: Nicolás Méndez
+date: Diciembre 13, 2020
+urlcolor: blue
+---
+
+```{r setup}
+devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/utiles", reset = T)
+devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/rcell2", reset = T)
+```
+
+## Load cell data
+
+```{r}
+# cell.data <- readRDS(here::here("data/output/cell.data_20201213_60834cca08e2.RDS"))
+# cell.boundaries <- readRDS(here::here("data/output/cell.boundaries_20201214_6083158baea5.RDS"))
+```
+
+## Spline fit to boundary points
+
+Nota: el spline fit devuelve una cantidad de puntos diferente para cada borde.
+
+Esto es importante porque si la densidad/cantidad de puntos fuera mayor, por
+ejemplo, entonces los angulos valdrian menos, achatando todo.
+
+```{r}
+# whuber's spline.poly as shared in StackExchange
+# https://gis.stackexchange.com/a/24929
+spline.poly <- function(xy, k=3, dof=5, ...) {
+  # Assert: xy is an n by 2 matrix with n >= k.
+  
+  # Wrap k vertices around each end.
+  n <- dim(xy)[1]
+  if (k >= 1) {
+    data <- rbind(xy[(n-k+1):n,], xy, xy[1:k, ])
+  } else {
+    data <- xy
+  }
+  
+  # Spline the x and y coordinates.
+  data.spline <- stats::smooth.spline(x=1:(n+2*k),
+                                      y=data[,1,drop=T], 
+                                      df=dof)
+  x <- data.spline$x
+  x1 <- data.spline$y
+  x2 <- stats::smooth.spline(
+      x=1:(n+2*k), 
+      y=data[,2,drop=T],
+      df=dof
+    )$y
+  
+  # Retain only the middle part.
+  result <- cbind(x = x1, y = x2)[k < x & x <= n+k, ]
+  
+  result <- as.data.frame(result)
+  
+  result
+}
+```
+
+
+### Compute angle differences
+
+* `p2p.diff`: The difference between the smooth path length and the expected path length for a circle.
+* `p2p.ratio`: The fraction of the expected perimeter that corresponds to the perimeter "in excess" respect to a round disk.
+
+```{r}
+# cell.boundaries.list <- split(cell.boundaries, cell.boundaries$id.cell)
+```
+
+```{r}
+cell.perims.list <- 
+  lapply(cell.boundaries.list, function(cell.boundary){
+    xy <- cell.boundary[,c("x", "y")]
+  
+    xy.spline9 <- spline.poly(xy = xy, k = 9, dof = 9)
+    xy.spline27 <- spline.poly(xy = xy, k = 9, dof = 27)
+    xy.spline_nr <- spline.poly(xy = xy, k = 9, dof = nrow(xy)/3)
+    
+    # xy.spline9.poly <- sp::Polygon(xy.spline9, hole = FALSE)
+    xy.spline.poly <- sp::Polygon(xy.spline_nr, hole = FALSE)
+    
+    # plt <- xy.spline.poly@coords %>% as.data.frame() %>% 
+    #   mutate(id = 1:n()) %>% 
+    #   ggplot() + geom_point(aes(V1,V2,text=id))
+    # plotly::ggplotly(plt)
+    
+    # xy.spline9.path.len <- sp::LineLength(xy.spline9.poly)
+    xy.spline.path.len <- sp::LineLength(xy.spline.poly)
+    
+    xy.spline.poly.area <- xy.spline.poly@area
+    # xy.spline.poly.area
+    
+    xy.spline.poly.perim.expected <- 2 * sqrt(xy.spline.poly.area * pi)
+    # xy.spline.poly.perim.expected
+    
+    p2p.diff <- xy.spline.path.len - xy.spline.poly.perim.expected
+    p2p.ratio <- xy.spline.path.len/xy.spline.poly.perim.expected - 1
+    
+    list(
+      p2p.diff = p2p.diff,
+      p2p.ratio = p2p.ratio,
+      xy = xy,
+      # xy.spline9 = xy.spline9,
+      # xy.spline27 = xy.spline27,
+      # xy.spline_nr = xy.spline_nr
+      xy.spline_nr = data.frame(x = xy.spline.poly@coords[,1],
+                                y = xy.spline.poly@coords[,2])[-1,]
+      )
+  })
+```
+
+
+```{r}
+cell.perims <- 
+  bind_rows(.id = "id.cell", 
+            lapply(cell.perims.list, 
+                   function(cell.perim) cell.perim[c("p2p.diff", "p2p.ratio")])
+            ) %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), convert = T)
+```
+
+
+```{r}
+ggplot(cell.perims) +
+  geom_point(aes(x=p2p.diff, y=p2p.ratio))
+```
+
+#### Join to cell.data
+
+```{r}
+cell.data$data2 <- 
+  left_join(cell.data$data, 
+            cell.perims, 
+            by = c("cellID", "t.frame", "pos"))
+```
+
+```{r, eval=F}
+pdata <- read.csv(here::here("data/pdata.csv"))
+
+rcell2::shinyCell(cdata = left_join(cell.data$data2, pdata), 
+                  pdata = pdata, paths = cell.data$images)
+```
+  
+## Compute angles
+
+Uso el ángulo (con signo) basado en tangentes, con imagen en $[-\pi,\pi]$.
+
+```{r}
+angle.rad <- function(v1, v2){
+  # https://stackoverflow.com/questions/21483999/using-atan2-to-find-angle-between-two-vectors
+  # ?atan2(y, x) returns the angle between the x-axis and the vector from the origin to (x, y)
+  angle = atan2(v2[2], v2[1]) - atan2(v1[2], v1[1]);
+  return(angle)
+}
+
+angle.deg <- function(v1,v2) 360 * angle.rad(v1,v2) / (2*pi)
+```
+
+```{r}
+cell.perim.angles <- 
+  lapply(cell.perims.list,
+    function(cell.perim){
+      xy <- cell.perim$xy
+      xy.spline_nr <- cell.perim$xy.spline_nr
+      
+      xy.spline_nr.angles <- 
+        # Para el ángulo entre puntos necesito agregar el ultimo al principio
+        # Asi "cierro" el path/boundary para las cuentas
+        bind_rows(xy.spline_nr[c(nrow(xy.spline_nr)-1,
+                                 nrow(xy.spline_nr)),], 
+                  xy.spline_nr) %>% 
+        mutate(id = 1:n() - 2) %>% 
+        # Calculo las componentes del vector de desplazamiento
+        mutate(delta.x = x-lag(x),
+              delta.y = y-lag(y)) %>% 
+        # Agrego una columna con vector de direccion de referencia
+        mutate(delta.x.prev = 1,
+               delta.y.prev = 0) %>%
+        # mutate(delta.x.prev = lag(delta.x),
+        #        delta.y.prev = lag(delta.y)) %>% 
+        # Calculo el angulo
+        group_by(id) %>% 
+        mutate(giro = angle.deg(v2=c(delta.x, delta.y),
+                               v1=c(delta.x.prev, delta.y.prev))) %>% 
+        # Clean up
+        ungroup() %>% 
+        select(-delta.x, -delta.y, -delta.x.prev, -delta.y.prev) %>% 
+        # Calcular delta giro
+        mutate(giro2 = c(NA, diff(giro))) %>% 
+        # Saco los puntos que habia agregado al principio
+        filter(id > 0) %>% 
+        # Arreglo angulos mayores a 180º
+        mutate(
+         giro3 = case_when(
+          abs(giro2) <= 180 ~ giro2,
+          giro2 < 0 ~ (360 + giro2),
+          giro2 > 0 ~ -(360 - giro2),
+          TRUE ~ NA_real_
+        )) %>% 
+        # Agrego un "lead" para que cada punto corresponda con el angulo
+        # entre los dos vectores que tocan punto
+        # mutate(giro2 = lead(giro2)) %>% 
+        mutate(giro3 = recenter.vector(giro3, 2))
+      
+      return(xy.spline_nr.angles)
+    }
+  )
+```
+
+Nota: acá puede venir bien la función `recenter.vector`, para recentrar las "trazas" de ángulos.
+
+### SD of angles
+
+```{r}
+cell.angles.sd <- 
+  sapply(cell.perim.angles, function(angles){
+    sd(angles$giro3)
+  }) %>% {
+    data.frame(
+      id.cell = names(.),
+      angle.sd = unname(.)
+    )} %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), convert = T)
+```
+
+## Finding patterns in angles
+
+### Podria usar autocorrelacion
+
+```{r}
+ccf(rep(y2, 2), rep(y5, 2))
+ccf(y2, recenter.vector(y5,15))
+```
+
+### Podria probar con "wavelets"
+
+https://www.researchgate.net/figure/The-popular-Mexican-hat-wavelet-the-second-derivative-of-the-Gaussian-red-valid-for-1_fig4_259129836
+
+```{r}
+?wavelets::modwt()
+?wavelets::wt.filter()
+```
+
+### Podria usar DTW
+
+https://stats.stackexchange.com/questions/133404/finding-occurrences-of-specific-patterns-in-time-series
+
+#### Preparar datos
+
+Para usar DTW, primero hay que interpolar las curvas que son mas cortas.
+
+Un "problema" de esto es que la suma de los angulos ya no va a dar 360.
+
+```{r}
+y5 <- xy.spline_nr.angles5$giro3
+y2 <- xy.spline_nr.angles2$giro3
+
+max(length(y2), length(y5))
+
+y2.ip <- approx(y2, n = 92)$y
+
+y5 <- recenter.vector(y5, 50)
+# plot(x = scale(1:length(y5)),
+plot(x = 1:length(y5),
+     y = y5, type = "l", col = "red")
+
+y2.ip <- recenter.vector(y2.ip, 52)
+# lines(x = scale(1:length(y2)),
+lines(x = 1:length(y2.ip),
+      y = y2.ip, col = "blue")
+```
+
+Bueno, no parece estar tan mal, aunque lo de los ángulos es cierto:
+
+```{r}
+sum(y2)
+sum(y2.ip)
+```
+
+Mediana de la longitud de los bordes:
+
+```{r}
+b.median <- median(sapply(cell.perim.angles, nrow)) 
+b.median
+```
+
+Interpolar
+
+```{r}
+cell.perim.angles.ip <- 
+  lapply(cell.perim.angles, function(cell.angles){
+    approx(x = cell.angles$giro3, n = b.median)$y
+  })
+
+angles <- 
+  cell.perim.angles.ip[names(cell.perims.list)[1:9]]
+
+angles <- abind::abind(angles, 
+                       along = 2#, new.names = list(NULL, NULL)
+                       )
+angles <- t(angles)
+
+dim(angles)
+```
+
+```{r}
+plot(x = 1:b.median,
+     y = angles[5,], type = "l", col = "red")
+
+lines(x = 1:b.median,
+     y = angles[2,], col = "blue")
+```
+
+
+#### distancias y clustering
+
+Elegir funcion de distancia
+
+```{r}
+# distfunc <- function(x) as.dist(TSclust::diss(SERIES = x, METHOD = "DWT"))
+distfunc <- function(x) as.dist(TSclust::diss(SERIES = x, METHOD = "DTWARP"))
+```
+
+Elegir funcion de clustering
+
+```{r}
+hclustfunc <- function(x, ...) hclust(x, method="single", ...)
+```
+
+Cluster
+
+```{r}
+d <- distfunc(angles)
+
+cl <- hclustfunc(d)
+```
+
+#### Heatmap
+
+Heatmap
+
+```{r}
+heatmap(
+  angles,
+  Colv = NA, hclustfun = hclustfunc, distfun = distfunc, 
+  # RowSideColors = m.rowcolors, 
+  scale = "none",
+  main = "DTW of angle series"
+)
+```
+

@@ -1,0 +1,44 @@
+---
+title: "Tree classification of cells - Training dataset"
+---
+
+# Training set
+
+* Usar k-means con un montón de clusters para generar las clasificaciones de forma semi-supervisada.
+
+En el curso de clustering hice algo simple con kmeans:
+
+* `clustering2020/trabajo_final/R/03_clustering.Rmd`
+
+## Variables para k-means
+
+Las de curvatura vienen de las máscaras, ver: `curvature_tests.Rmd`
+
+Las de Hu moments también, ver: `workflow_template.Rmd`
+
+```{r}
+mask.vars <- c("p2p.diff", "p2p.ratio", "angle.sd")
+
+nice.vars <- c('a.tot','fft.stat', 'el.p', 'min.axis', 'elongatedness',
+               "p2p.ratio", "angle.sd",
+               'hum_1', 'hum_3')
+
+nice.vars <- c(
+  'a.tot',
+  'fft.stat', 
+  'el.p', 
+  'min.axis',
+  'elongatedness',
+  'hum_1', #'hum_3',
+  "p2p.diff",
+  "p2p.ratio",
+  "angle.sd"
+  )
+```
+
+```{r}
+cl.kmeans <- kmeans(datos[,nice.vars], centers = 9, nstart = 10)
+cl.kmeans2 <- kmeans(datos[,nice.vars], centers = 2, nstart = 10)
+cl.kmeans.s <- kmeans(scale(datos[,nice.vars]), centers = 6, nstart = 10)
+```
+
