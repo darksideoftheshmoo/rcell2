@@ -20,7 +20,7 @@
 #' @param interior_offset logical. If \code{TRUE} the function expects that
 #' cell masks have interior pixels offset from boundary pixels.
 #' @param blank_bg logical. If \code{TRUE} the function assumes that the image
-#' background (i.e., non-mask pixels) are blank.
+#' background (i.e., non-mask pixels) are blank. Set to FALSE if left NULL (the default).
 #' 
 #' @importFrom ijtiff read_tags
 #' 
@@ -140,3 +140,70 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
   as.data.frame(mask_data)
 }
 
+#' Load cellid boundary data to a dataframe
+#' 
+#' Using `data_source = "out.tif"` will give **un**ordered boundary pixels.
+#' 
+#' Using `data_source = "masks.tsv"` will give ordered boundary pixels.
+#' 
+#' @param data.source Either "out.tif" or "masks.tsv"
+#' @param arguments The arguments dataframe used to run cellid (prepared with \code{rcell2::arguments}).
+#' @param pixel.type When \code{data.source = "masks.tsv"}, you may choose the pixel "type". At least one of \code{c("i", "b")} for interior and/or boundary pixels ("b" by default).
+#' @param close.paths When TRUE and \code{data.source = "masks.tsv"}, append the first row to the end of the data.frame (groping by cellID and pos). Useful for plotting of making closed polygons.
+#' @param cell.data When \code{data.source = "out.tif"}, provide the cell.data object (prepared with \code{rcell2::cell.load.alt}).
+#' @param tiff.channel When \code{data.source = "out.tif"}, provide the channel name for images holding boundary data ('BF.out' by default).
+#' 
+#' @return A "cell.boundaries" data.frame.
+#' 
+#' @export
+cell.load.boundaries <- function(data.source,
+                                 ...,
+                                 arguments = NULL,
+                                 pixel.type = "b",
+                                 close.paths = FALSE,
+                                 cell.data = NULL,
+                                 tiff.channel = "BF.out"
+                                 ){
+  
+  option.check <- sum(data.source %in% c("out.tif", "masks.tsv"))
+  if(option.check != 1) stop("'data.source' must be either 'out.tif' or 'masks.tsv' ")
+  
+  if(data.source == "out.tif"){
+    
+    stopifnot(!is.null(cell.data))
+    stopifnot("images" %in% names(cell.data))
+    stopifnot(is.data.frame(cell.data$images))
+    
+    cell.boundaries <-
+      cell.data$images %>% 
+      filter(channel == tiff.channel) %>% 
+      mutate(pos_t.frame = paste(pos, t.frame, sep = "_")) %>% 
+      with(setNames(file, pos_t.frame)) %>% 
+      lapply(FUN = rcell2::read_tiff_masks, ... = ...) %>% 
+      bind_rows(.id = "pos_t.frame") %>% 
+      separate(pos_t.frame, into = c("pos", "t.frame"), convert = T)
+  }
+  
+  if(data.source == "masks.tsv"){  
+    
+    stopifnot(!is.null(arguments))
+    stopifnot(is.data.frame(arguments))
+    
+    cell.boundaries <- 
+      rcell2::tsv_paths_from_args(arguments, ...) %>% 
+      with(setNames(path, pos)) %>% 
+      lapply(readr::read_tsv) %>% 
+      bind_rows(.id = "pos") %>% 
+      mutate(pos = as.integer(pos)) %>% 
+      filter(pixtype %in% pixel.type)
+    
+    if(close.paths){
+      cell.boundaries <- cell.boundaries %>% 
+        group_by(pos, cellID) %>% 
+        dplyr::slice(c(1:n(), 1))
+    }
+  }
+  
+  
+  return(cell.boundaries)
+}

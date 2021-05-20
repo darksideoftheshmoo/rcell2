@@ -21,7 +21,7 @@ that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.}
 cell masks have interior pixels offset from boundary pixels.}
 
 \item{blank_bg}{logical. If \code{TRUE} the function assumes that the image
-background (i.e., non-mask pixels) are blank.}
+background (i.e., non-mask pixels) are blank. Set to FALSE if left NULL (the default).}
 }
 \value{
 A data frame of mask pixels ordered by cellID.
