@@ -185,25 +185,25 @@ cellArgs2 <- function(...){
 #' 
 #' @details 
 #' 
-#' All 4 regex groups are mandatory, but `z` and `t.frame` may be left as empty parenthesis, while also preserving group order defined by `file.pattern.groups.order`.
+#' All 4 regex groups are mandatory, `t.frame` may be left as empty parenthesis, while also preserving group order defined by `file.pattern.groups.order`.
 #' 
 #' The "channel" and "pos" regex groups _must always_ match pos and channel identifiers in the file name.
 #' 
-#' Example `file.pattern` regex, when `file.pattern.groups.order = c("ch", "z", "pos", "t.frame")`:
+#' Example `file.pattern` regex, when `file.pattern.groups.order = c("ch", "pos", "t.frame")`:
 #' 
-#' With Z planes and time: \code{file.pattern = "^(BF|[TYR]FP)_Z([0-9])_Position(\\d+)_time(\\d+).tif$"}
+#' With Z planes time: \code{file.pattern = "^(BF|[TYR]FP|[TYR]\\d{2})_Position(\\d+)_time(\\d+).tif$"}
 #' 
-#' No Z planes, with time (note the empty parentheses): \code{file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$"}
+#' No Z planes, with time (note the empty parentheses): \code{file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"}
 #' 
-#' No Z planes, no time: \code{file.pattern = "^(BF|[TYR]FP)()_Position(\\d+)().tif$"}
+#' No Z planes, no time: \code{file.pattern = "^(BF|[TYR]FP)_Position(\\d+)().tif$"}
 #' 
 #'
+# @param out.dir name for output directories paths "out"
 #' @param path directory where images are stored, full path.
 #' @param parameters path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.
 #' @param BF.pattern regex pattern to detect BF images only. Defaults to: \code{"^BF"}
 #' @param file.pattern regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.
 #' @param file.pattern.groups.order a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.
-#' @param out.dir name for output directories paths "out"
 #' @param tiff.ext regex pattern for the tif file extension
 #' @return a data.frame with all the information needed to run CellID
 #' @import dplyr tidyr
@@ -213,20 +213,21 @@ cellArgs2 <- function(...){
 arguments <- function(path,
                       parameters,
                       BF.pattern = "^BF",
-                      file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$",
-                      # file.pattern = "^(BF|[TYR]FP)()_Position(\\d+)_time(\\d+).tif$",
-                      # file.pattern = "^(BF|[TYR]FP)_Z([0-9])_Position(\\d+)_time(\\d+).tif$",
-                      file.pattern.groups.order = c("ch", "z", "pos", "t.frame"),
-                      out.dir = "out",
+                      # file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$",
+                      # file.pattern.groups.order = c("ch", "z", "pos", "t.frame"),
+                      file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
+                      file.pattern.groups.order = c("ch", "pos", "t.frame"),
+                      # out.dir = "out",
                       tiff.ext = "tif$"){
   
-  if(!identical(sort(file.pattern.groups.order), sort(c("ch", "z", "pos", "t.frame")))) 
-    stop('file.pattern.groups.order must contain c("ch", "z", "pos", "t.frame")')
+  if(!identical(sort(file.pattern.groups.order),
+                sort(c("ch", "pos", "t.frame")))) 
+    stop('arguments error: file.pattern.groups.order must contain c("ch", "pos", "t.frame") in a correct order.')
   
   path <- normalizePath(path)
   
   pic_files <- dir(path, pattern = file.pattern)
-  if(length(pic_files) == 0) stop(paste("cellArgs2 error: no image files retrieved using file pattern:", file.pattern))
+  if(length(pic_files) == 0) stop(paste("arguments error: no image files retrieved using file pattern:", file.pattern))
   
   pics_df <- data.frame(image = pic_files,
                         path = path) %>% 
@@ -235,47 +236,36 @@ arguments <- function(path,
                    regex = file.pattern, 
                    remove = F)
   
+  # All non-BFs are fluor images
   fluor_pics <- pics_df %>% 
     filter(str_detect(string = image,
                                pattern = BF.pattern, 
                                negate = T))
-  if(nrow(fluor_pics) == 0) stop("Fluorescence images missing, Check your directories and file.pattern.")
+  if(nrow(fluor_pics) == 0) stop("arguments error: Fluorescence images missing, Check your directories and file.pattern.")
   
+  # All BFs are BFs
   brihtfield_pics <- pics_df %>% 
     dplyr::filter(str_detect(string = image,
                              pattern = BF.pattern)) %>% 
     dplyr::rename(bf = image) %>% 
-    dplyr::select(pos, t.frame, bf, z)
+    dplyr::select(pos, t.frame, bf)
   if(nrow(brihtfield_pics) == 0) stop("Brightfield images missing, Check your directories and file.pattern.")
   
-  arguments.df.ptz <- dplyr::left_join(
+  # Bind df's
+  arguments.df <- dplyr::left_join(
     fluor_pics,
     brihtfield_pics,
-    by = c("pos", "t.frame", "z")
-  )
-  
-  arguments.df.pt <- dplyr::left_join(
-    fluor_pics,
-    select(brihtfield_pics, -z),
     by = c("pos", "t.frame")
   )
   
   # Check for missing BFs
-  if(   any(is.na(arguments.df.ptz$bf)) ){
-    # If joining by Z induces missing BFs
-    # But joining only by pos and t.frame does not
-    if( all(!is.na(arguments.df.pt$bf)) ){
-      # Warn the user and continue
-      warning("Brightfield images are missing because of insufficient Z planes, continuing by recycling...")
-    } else {
-    # Else, there _really_ are missing BFs, so we must stop now.
-      filter(arguments.df.pt, is.na(bf)) %>% print()
-      stop("Error: there are missing brightfield images")
-    }
+  if(any(is.na(arguments.df$bf))){
+    filter(arguments.df.pt, is.na(bf)) %>% print()
+    stop("arguments error: there are missing brightfield images")
   }
   
   # Add output column and arrange by position and t.frame
-  arguments.df <- arguments.df.pt %>% 
+  arguments.df.out <- arguments.df %>% 
     mutate(output = paste0(path, "/Position", pos)) %>% 
     mutate(pos = as.integer(pos),
            t.frame = as.integer(t.frame)) %>% 
@@ -283,33 +273,28 @@ arguments <- function(path,
   
   # Recycle parameters if lenght is 1
   if(length(parameters) == 1){
-    arguments.df$parameters <- parameters
+    arguments.df.out$parameters <- parameters
   } else {
   # Else bind to the passed parameters data.frame
-    arguments.df <- left_join(arguments.df,
-                              dplyr::select(parameters, pos, parameters),
-                              by = "parameters")
+    arguments.df.out <- left_join(arguments.df.out,
+                                  dplyr::select(parameters, pos, parameters),
+                                  by = "parameters")
   }
   
   # Normalize parameters' paths
-  arguments.df <- arguments.df %>% mutate(parameters = normalizePath(parameters))
+  arguments.df.out <- arguments.df.out %>% mutate(parameters = normalizePath(parameters))
   
-  if(all(is.na(arguments.df$t.frame))){
+  if(all(is.na(arguments.df.out$t.frame))){
     warning("arguments warning: No t.frame data extracted, replacing all NAs with '1'. Check your directories and file.pattern if this is unexpected.")
-    arguments.df$t.frame <- 1
+    arguments.df.out$t.frame <- 1
   }
   
-  if(all(is.na(arguments.df$z)) | all(arguments.df$z == "") ){
-    warning("arguments warning: No 'z' data extracted, replacing with '1'. Check your directories and file.pattern if this is unexpected.")
-    arguments.df$z <- 1
-  }
-  
-  if(any(is.na(arguments.df)) | any(arguments.df == "")){
-    print(arguments.df)
+  if(any(is.na(arguments.df.out)) | any(arguments.df.out == "")){
+    print(arguments.df.out)
     stop("arguments error: at least one of the values in the arguments.df dataframe is missing or blank, check your directories and file.pattern")
   }
   
-  return(arguments.df)
+  return(arguments.df.out)
 }
 
 #' Default parameters list for Cell-ID
@@ -449,7 +434,9 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
 #' @param path Path to images directory
 #' @param pdata Path to metadata CSV file
 #' @param position.pattern Regex describing what the position string looks like (default ".*Position(\\d+).*") including a capturing group for the position ID number (coerced to integer).
-#' @param ucid.zero.pad amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions)
+#' @param fluorescence.pattern Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+_time\\d+.tif$")
+#' @param ucid.zero.pad Amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions).
+#' @param append.posfix String appended to the channel ID extracted by `fluorescence.pattern` (`NULL` by default, but "FP" is usual).
 #' @param ... Arguments passed on to \code{cargar.out_all}. Patterns for "out" files, fluorescence channel, and other options may be changed here.
 #' @return A list of dataframes: data (CellID data), images (images metadata and paths), image_maping (extra mapping metadata from CellID: BF to FL correspondence, channel flag, bf_as_fl flag, and one-letter channel encoding).
 # @examples
@@ -460,7 +447,9 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
 cell.load.alt <- function(path,
                           pdata = NULL,
                           position.pattern = ".*Position(\\d+).*",
+                          fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+_time\\d+.tif$",
                           ucid.zero.pad = 4,
+                          append.posfix = NULL,
                           ...){
   
   path <- normalizePath(path, mustWork = T)
@@ -469,13 +458,20 @@ cell.load.alt <- function(path,
   cat("\n\nLoading CellID output files...\n")
   d.list <- cargar.out_all(.carpeta = path,
                            position.pattern = position.pattern,
+                           fluorescence.pattern = fluorescence.pattern,
                            ...)  # https://stackoverflow.com/questions/40794780/r-functions-passing-arguments-with-ellipsis/40794874
   
+  # Check uniqueness of ucid-t.frame combinations
+  if(nrow(unique(d.list$d[,c("cellID", "pos", "t.frame")])) < nrow(d.list$d)) 
+    stop("\nERROR: There are repeated cellID's in the out_all file!")
+  
+  # Create ucid column
   cat("\rCreating ucid column...                            ")
   d.list$d <- d.list$d %>%
-    # By padding to the same number of digits, cells from positions as 90 and 9 could have the same UCID.
+    # By padding to an invariant number of digits, cells from positions as 90 and 9 _could_ have the same UCID.
     # The next lines fix that bug, which would cells to not be filtered correctly, and be plotted anyways, or other problems.
     # Also, the padding should not be very large, or it will "overflow" R's integer class.
+    # To-do: replace the following code with str_pad
     mutate(cellid.pad = ucid.zero.pad - nchar(as.character(cellID))) %>%
     mutate(
       ucid = as.integer(
@@ -483,13 +479,15 @@ cell.load.alt <- function(path,
                sapply(cellid.pad, FUN = function(pad) paste0(rep(x="0", 
                                                                  times=max(0, pad)), 
                                                              collapse = "")),
-               cellID))) %>%
-    select(-cellid.pad)
+               cellID))) %>% 
+    select(ucid, tidyselect::everything())
   
-  # Check uniqueness of ucid-t.frame combinations
-  if(nrow(unique(d.list$d[,c("ucid", "t.frame")])) < nrow(d.list$d)) 
-    stop("\nERROR: There are repeated cellID's in the out_all file!")
+  if(any(d.list$d$cellid.pad < 0))
+    stop("cellID too large to pad, increase ucid.zero.pad (and check for integer overflow).")
 
+  # Delethe the cellid.pad column
+  d.list$d$cellid.pad <- NULL
+  
   # ellipse.perim = perimeter of theoretical ellipse, calculated using each
   # cell's axis values.
   # el.p = ratio of ellipse perim over the perimeter measured by cellID.
@@ -515,13 +513,17 @@ cell.load.alt <- function(path,
 
   # Create paths dataframe and add three-letter code for channel
   cat("\rCreating image paths dataframe...                            ")
-  paths <- d.list$d.map %>%
-    mutate(channel = paste0(toupper(channel), "FP"))
+  paths <- d.list$d.map
+  if(!is.null(append.posfix)){
+    paths <- mutate(paths, channel = paste0(toupper(channel), append.posfix))
+  }
 
-  paths <- bind_rows( # Bind it with itself, to get entries for BF as well.
+  # Bind paths dataframe it with itself, to get entries for BF as well.
+  paths <- bind_rows(
     paths %>%  # Get FL image paths
       select(pos, t.frame, channel, fluor) %>%
       rename(file = fluor),
+    
     paths %>%  # Get BF image paths
       select(pos, t.frame, channel, bright) %>%
       rename(file = bright) %>%
@@ -588,7 +590,7 @@ read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_ty
 #' @importFrom purrr map
 #' @return A list of two dataframes: `d` contains the actual output, and `out.map` contains image paths and metadata.
 cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
-                           .carpeta = "data/images2/",
+                           .carpeta,
                            position.pattern = ".*Position(\\d+).*",
                            out_file_pattern = "^out_all$",
                            out_mapping_pattern = "^out_bf_fl_mapping$",
@@ -626,14 +628,14 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       col_types = "ciicl",  # types: 2 char columns, 2 int columns, 1 logical column
                       position.pattern = position.pattern) %>%
     bind_rows() %>%
-    mutate(channel = str_replace(string = fluor,
+    mutate(channel = str_replace(string = basename(fluor),
                                  pattern = fluorescence.pattern,
                                  replacement = "\\1")) %>%
     mutate(channel = tolower(channel))
   cat("\n Done loading 'bf_fl_mapping' files!\n")
   
   # keep flag-channel mapping
-  flag.channel.mapping <- d.map %>% select(flag, channel) %>% unique()
+  flag.channel.mapping <- unique(dplyr::select(d.map, flag, channel))
 
   # Return join (discard flag variable)
   cat("\rJoining data and mapping...\033[K")
@@ -643,19 +645,21 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
     select(-flag)
   
   if(nrow(d.out.map) > nrow(d.out)) 
-    stop("Error acargar.out_all: while joining output and mapping, at least one output row matche multiple mappings.")
+    stop("Error at cargar.out_all: while joining output and mapping, at least one output row matche multiple mappings.")
   
   # Add f.tot columns to data
   d.out.map <- mutate(d.out.map,
                       f = f.tot - (a.tot * f.bg),
                       cf = f / a.tot)
 
-  # Right now the out_all is in a "long" format for the (one-letter) channel variable
-  # Spread it to out expectations:
+  # Right now the out_all is in a "long" format for the channel variable
+  # Spread it to match expectations:
   cat("\rSpreading data from channels...\033[K")
   cdata <- d.out.map %>%
     tidyr::pivot_wider(
+      # Names for fluorescence columns come from the "channel" variable
       names_from = channel, names_sep = ".",
+      # Variables that should not change across fluroescence channels are used as IDs
       id_cols = c(cellID,
                   # flag,  # dropped above
                   t.frame,

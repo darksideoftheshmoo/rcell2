@@ -5,7 +5,7 @@
 \title{Una función para leer y combinar todos los archivos "out".}
 \usage{
 cargar.out_all(
-  .carpeta = "data/images2/",
+  .carpeta,
   position.pattern = ".*Position(\\\\d+).*",
   out_file_pattern = "^out_all$",
   out_mapping_pattern = "^out_bf_fl_mapping$",
