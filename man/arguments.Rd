@@ -8,9 +8,8 @@ arguments(
   path,
   parameters,
   BF.pattern = "^BF",
-  file.pattern = "^(BF|[A-Z]FP)()_Position(\\\\d+)_time(\\\\d+).tif$",
-  file.pattern.groups.order = c("ch", "z", "pos", "t.frame"),
-  out.dir = "out",
+  file.pattern = "^(BF|[A-Z]FP)_Position(\\\\d+)_time(\\\\d+).tif$",
+  file.pattern.groups.order = c("ch", "pos", "t.frame"),
   tiff.ext = "tif$"
 )
 }
@@ -25,8 +24,6 @@ arguments(
 
 \item{file.pattern.groups.order}{a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.}
 
-\item{out.dir}{name for output directories paths "out"}
-
 \item{tiff.ext}{regex pattern for the tif file extension}
 }
 \value{
@@ -36,15 +33,15 @@ a data.frame with all the information needed to run CellID
 Obtener argumentos para CellID
 }
 \details{
-All 4 regex groups are mandatory, but `z` and `t.frame` may be left as empty parenthesis, while also preserving group order defined by `file.pattern.groups.order`.
+All 4 regex groups are mandatory, `t.frame` may be left as empty parenthesis, while also preserving group order defined by `file.pattern.groups.order`.
 
 The "channel" and "pos" regex groups _must always_ match pos and channel identifiers in the file name.
 
-Example `file.pattern` regex, when `file.pattern.groups.order = c("ch", "z", "pos", "t.frame")`:
+Example `file.pattern` regex, when `file.pattern.groups.order = c("ch", "pos", "t.frame")`:
 
-With Z planes and time: \code{file.pattern = "^(BF|[TYR]FP)_Z([0-9])_Position(\\d+)_time(\\d+).tif$"}
+With Z planes time: \code{file.pattern = "^(BF|[TYR]FP|[TYR]\\d{2})_Position(\\d+)_time(\\d+).tif$"}
 
-No Z planes, with time (note the empty parentheses): \code{file.pattern = "^(BF|[A-Z]FP)()_Position(\\d+)_time(\\d+).tif$"}
+No Z planes, with time (note the empty parentheses): \code{file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"}
 
-No Z planes, no time: \code{file.pattern = "^(BF|[TYR]FP)()_Position(\\d+)().tif$"}
+No Z planes, no time: \code{file.pattern = "^(BF|[TYR]FP)_Position(\\d+)().tif$"}
 }
