@@ -116,6 +116,13 @@ cell2 <- function(arguments,
                       {if(encode_cellID_in_pixels) " -m" else ""},
                       {if(fill_interior_pixels) {if(encode_cellID_in_pixels) " -i" else " -m -i"} else ""}
     )
+    
+    # Write command to log file
+    cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
+                           fileext = ".txt",
+                           pattern = "cellid_log.")
+    write(c("\n Cell-ID command:\n\n", command, "\n\n"),
+          cellid.log)
 
     if(!dry & ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
     if(!dry) {
@@ -124,15 +131,7 @@ cell2 <- function(arguments,
                                ignore.stdout = ignore.stdout & !intern,
                                intern = intern)
       
-      cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
-                             fileext = ".txt",
-                             pattern = "cellid_log.")
-      
-      write(c("\n Cell-ID command:\n\n", command, "\n\n"),
-            cellid.log)
-      
       if(intern) {
-        
         write(command.output,
               cellid.log, 
               append = T)
