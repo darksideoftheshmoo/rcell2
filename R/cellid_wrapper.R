@@ -123,12 +123,19 @@ cell2 <- function(arguments,
                                wait = T,
                                ignore.stdout = ignore.stdout & !intern,
                                intern = intern)
+      
+      cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
+                             fileext = ".txt",
+                             pattern = "cellid_log.")
+      
+      write(c("\n Cell-ID command:\n\n", command, "\n\n"),
+            cellid.log)
+      
       if(intern) {
-        cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
-                               fileext = ".txt",
-                               pattern = "cellid_log.")
+        
         write(command.output,
-              cellid.log)
+              cellid.log, 
+              append = T)
       }
     }
     
