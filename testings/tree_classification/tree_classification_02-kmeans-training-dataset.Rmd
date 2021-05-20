@@ -2,6 +2,11 @@
 title: "Tree classification of cells - Training dataset"
 ---
 
+```{r setup}
+devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/utiles", reset = T)
+devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/rcell2", reset = T)
+```
+
 # Training set
 
 * Usar k-means con un montón de clusters para generar las clasificaciones de forma semi-supervisada.
@@ -10,6 +15,85 @@ En el curso de clustering hice algo simple con kmeans:
 
 * `clustering2020/trabajo_final/R/03_clustering.Rmd`
 
+# Imagenes
+
+4 experimentos diferentes
+
+```{r}
+path <- "data/image_samples_classification/renamed/" %>% here::here()
+
+parameters.txt <- parameters.write()
+
+my_arguments <- 
+  arguments(path = path,
+            file.pattern = "(BF|YFP)_Position(\\d+)().tif", 
+            parameters = parameters.txt)
+```
+
+
+```{r}
+logs <- 
+  cell2(arguments = my_arguments, 
+        cell.command = "~/Software/cellID-linux/cell", 
+        no_cores = 4, 
+        output_coords_to_tsv = T,
+        encode_cellID_in_pixels = T, 
+        label_cells_in_bf = F, 
+        dry = F)
+```
+
+## Cargar datos
+
+### cell.data
+
+```{r}
+cell.data <- cell.load.alt(path,
+                           fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+.tif$",)
+```
+
+## boundaries
+
+### desde el tiff
+
+Las del TIFF no están ordenadas... buuu!
+
+```{r}
+cell.boundaries <- 
+  cell.load.boundaries(data.source = "out.tif", 
+                       cell.data = cell.data,
+                       blank_bg = TRUE)
+```
+
+
+```{r}
+p <- ggplot(cell.boundaries) +
+  geom_path(aes(x,y,group = cellID)) + facet_wrap(pos~t.frame)
+
+plotly::ggplotly(p)
+```
+
+### desde el TSV
+
+```{r}
+cell.boundaries <- 
+  cell.load.boundaries(data.source = "masks.tsv", 
+                       arguments = my_arguments)
+
+cell.boundaries
+```
+
+
+```{r}
+p <- cell.boundaries %>% 
+  # filter(cellID == 0, pos == 1) %>% 
+  group_by(pos, cellID) %>% dplyr::slice(c(1:n(), 1)) %>%
+  ggplot() +
+  geom_path(aes(x,y,group = cellID)) + facet_wrap(pos~t.frame)
+
+plotly::ggplotly(p)
+```
+
+
 ## Variables para k-means
 
 Las de curvatura vienen de las máscaras, ver: `curvature_tests.Rmd`
@@ -17,24 +101,42 @@ Las de curvatura vienen de las máscaras, ver: `curvature_tests.Rmd`
 Las de Hu moments también, ver: `workflow_template.Rmd`
 
 ```{r}
-mask.vars <- c("p2p.diff", "p2p.ratio", "angle.sd")
+# mask.vars <- c("p2p.diff", "p2p.ratio", "angle.sd")
+# 
+# nice.vars <- c('a.tot','fft.stat', 'el.p', 'min.axis', 'elongatedness',
+#                "p2p.ratio", "angle.sd",
+#                'hum_1', 'hum_3')
+# 
+# nice.vars <- c(
+#   'a.tot',
+#   'fft.stat', 
+#   'el.p', 
+#   'min.axis',
+#   'elongatedness',
+#   'hum_1', #'hum_3',
+#   "p2p.diff",
+#   "p2p.ratio",
+#   "angle.sd"
+#   )
 
-nice.vars <- c('a.tot','fft.stat', 'el.p', 'min.axis', 'elongatedness',
-               "p2p.ratio", "angle.sd",
-               'hum_1', 'hum_3')
+# yeast_classification_functions.R
+# mutate(elongatedness=(maj.axis**2/min.axis))
 
 nice.vars <- c(
   'a.tot',
   'fft.stat', 
   'el.p', 
-  'min.axis',
-  'elongatedness',
-  'hum_1', #'hum_3',
-  "p2p.diff",
-  "p2p.ratio",
-  "angle.sd"
+  'min.axis'
   )
 ```
+
+Funciones para escalar los datos:
+
+```{r}
+rcell2:::standardize_data()
+scale()
+```
+
 
 ```{r}
 cl.kmeans <- kmeans(datos[,nice.vars], centers = 9, nstart = 10)

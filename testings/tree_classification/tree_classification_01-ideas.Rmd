@@ -10,6 +10,9 @@ title: "Tree classification of cells"
 * Usar las máscaras.
   * Hu moments
   * ¿Trazas de ángulos? Quizás contar concavidades (~ cuellos).
+* Probar con reduccion de dimensionalidad
+  * PCA
+  * ¿Cual era el que vimos en IAI-UNSAM? Para pasar de una espiral en 3D a algo bien repartido en un plano 2D. ¿Era semi-supervisado?
 
 # Training set
 
