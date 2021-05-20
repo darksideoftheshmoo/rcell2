@@ -426,10 +426,19 @@ magickCell <- function(cdata, paths,
   if(is.null(cell_resize)) cell_resize <- boxSize
   cell_resize_string <- paste0(cell_resize, "x", cell_resize)
   
+  ch.avail <- unique(paths[,"channel",drop=T])
+  
   # Filter paths by pos and t.frame on cdata
-  if(!all(ch %in% paths[,"channel",drop=T])) stop(paste0("magickCell error: channels '",
-                                                         ch[!ch %in% paths[,"channel",drop=T]],
-                                                         "' are not in the paths dataframe."))
+  if(!all(ch %in% paths[,"channel",drop=T])){
+    stop(cat(
+      paste0("\nmagickCell error: channels '",
+             ch[!ch %in% ch.avail],
+             "' are not in the paths dataframe. ",
+             "\n\nPossible values are: '", 
+             paste(ch.avail, collapse = "', '"),
+             "'\n")
+    ))
+  }
   paths <- filter(paths, pos %in% cdata[,"pos", drop = T] & t.frame %in% cdata[,"t.frame", drop = T])
   
   # Add file path column if absent
@@ -462,6 +471,10 @@ magickCell <- function(cdata, paths,
   # https://livefreeordichotomize.com/2017/07/18/the-making-of-we-r-ladies/
 
   n <- min(c(n, nrow(cdata))) # Limit amount of pics to "n"
+  
+  # To-do:
+  ## Using more than one channel with default options
+  ## does not produce the expected output: one square tile per channel.
 
   # TO-DO
   ## Read only parts of the TIFF matrix to speed up stuff: https://stackoverflow.com/questions/51920316/open-only-part-of-an-image-jpeg-tiff-etc-in-r
@@ -481,6 +494,11 @@ magickCell <- function(cdata, paths,
     set.seed(seed)
     # Sample
     cdataSample <- cdata[sample(1:nrow(cdata), size = n, replace = F),] # sample n rows from cdata
+  } else {
+    # Else, just take the first "n" rows
+    # This was possibly missing: not subsetting of cdata caused all images to be loaded,
+    # even though only a few "n" had been requested. This seems to make magickCell much faster (not really tested).
+    cdataSample <- cdata[1:n,]
   }
   # Sort cdata
   if(!is.null(sortVar)) cdataSample <- cdataSample[order(cdataSample[[sortVar]]),]  # sort the sample by "sortVar"
@@ -547,6 +565,9 @@ magickCell <- function(cdata, paths,
   
   nRow <- ceiling(sqrt(n))
   nCol <- ceiling(n/nRow)
+  
+  max.width <- max(magick::image_info(imga)$width)
+  max.height <- max(magick::image_info(imga)$height)
 
   imgb <- foreach::foreach(i=0:(nRow-1), .combine=c) %do% {
 
@@ -554,8 +575,9 @@ magickCell <- function(cdata, paths,
     j = j[j <= n]
 
     magick::image_apply(imga[j], function(i){
-      magick::image_blank(boxSize, boxSize, "black") %>%
-        magick::image_scale(cell_resize_string) %>%
+      magick::image_blank(width = max.width, height = max.height, color = "black") %>%
+        # Now unnecesary, image_blank size is based on maximum sizes in 'imga'.
+        # magick::image_scale(cell_resize_string) %>%
         magick::image_composite(i) }) %>%
       magick::image_append(stack = stack_vertical_first)
   }
