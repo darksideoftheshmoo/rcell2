@@ -82,7 +82,7 @@ spline.poly <- function(xy, k=3, dof=5, ...) {
 * `p2p.ratio`: The fraction of the expected perimeter that corresponds to the perimeter "in excess" respect to a round disk.
 
 ```{r}
-# cell.boundaries.list <- split(cell.boundaries, cell.boundaries$id.cell)
+cell.boundaries.list <- split(cell.boundaries, cell.boundaries$id.cell)
 ```
 
 ```{r}

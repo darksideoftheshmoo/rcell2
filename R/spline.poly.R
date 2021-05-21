@@ -1,8 +1,8 @@
+#' Splining a polygon with \code{stats::spline}
+#' 
 #' whuber's spline.poly as shared in StackExchange
 #' 
 #' See: https://gis.stackexchange.com/a/24929
-#'
-#' Splining a polygon with \code{stats::spline}
 #'
 #'   The rows of 'xy' give coordinates of the boundary vertices, in order.
 #'   'vertices' is the number of spline vertices to create.
