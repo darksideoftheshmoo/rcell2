@@ -20,7 +20,8 @@ magickCell(
   return_single_imgs = FALSE,
   return_ucid_df = FALSE,
   annotation_params = list(color = "white", background = "black"),
-  stack_vertical_first = FALSE
+  stack_vertical_first = FALSE,
+  return_raw = F
 )
 }
 \arguments{

@@ -367,6 +367,27 @@ cellSpreadPlot <- function(cdata, paths,
   return(plot_list)
 }
 
+
+#' Geometria para agarrar un cuadradito de una imagen con magick por coordenada del centro
+#' 
+#' https://ropensci.org/blog/2017/08/15/magick-10/
+#' 
+#' https://livefreeordichotomize.com/2017/07/18/the-making-of-we-r-ladies/
+#' 
+#' @param xpos x pixel coordinate.
+#' @param ypos y pixel coordinate.
+#' @param boxSize side length of the final square
+#' @return magick::geometry_area configured for cellMagick
+#' 
+getCellGeom <- function(xpos, ypos, boxSize = 50){
+  geometry <- magick::geometry_area(width = boxSize,
+                                    height = boxSize,
+                                    x_off = xpos - base::ceiling(boxSize)/2,
+                                    y_off = ypos - base::ceiling(boxSize)/2)
+  return(geometry)
+}
+
+
 #' Funcion copada para mostrar fotos de Cell-ID basada en magick
 #' 
 #' @description 
@@ -428,7 +449,8 @@ magickCell <- function(cdata, paths,
                        return_ucid_df = FALSE,
                        annotation_params = list(color = "white", 
                                                 background = "black"),
-                       stack_vertical_first = FALSE
+                       stack_vertical_first = FALSE,
+                       return_raw = F
                        ){
   if(.debug) print("F8")
 
@@ -466,20 +488,6 @@ magickCell <- function(cdata, paths,
                                     annotation_params)
   
 
-  # Intento con magick
-  # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
-
-  getCellGeom <- function(xpos, ypos, boxSize = 50){
-    geometry <- magick::geometry_area(width = boxSize,
-                                      height = boxSize,
-                                      x_off = xpos - base::floor(boxSize/2),
-                                      y_off = ypos - base::floor(boxSize/2))
-    return(geometry)
-  }
-
-  # https://ropensci.org/blog/2017/08/15/magick-10/
-  # https://livefreeordichotomize.com/2017/07/18/the-making-of-we-r-ladies/
-
   n.cells <- min(c(n.cells, nrow(cdata))) # Limit amount of pics to "n.cells"
   
   # To-do:
@@ -515,52 +523,63 @@ magickCell <- function(cdata, paths,
 
   imga <-
     foreach::foreach(i=1:nrow(cdataSample), .combine=c) %do% {
-
-    position <- cdataSample$pos[i]
-    ucid <- cdataSample$ucid[i]
-    t_frame <- cdataSample$t.frame[i]
-    picPath.df <- subset(paths, pos == position & channel %in% ch & t.frame == t_frame)
-    picPath <- picPath.df$file[order(match(picPath.df$channel, ch))]  # order paths according to ch argument
-    
-    stopifnot(length(position) == 1 &length(ucid) == 1 &length(t_frame) == 1) # Checks
-    stopifnot(length(picPath) == length(ch) & is.character(picPath)) # Checks
-
-    magick::image_read(picPath) %>%
-      {if (equalize_images) magick::image_normalize(.) else .} %>%
-      {if (normalize_images) magick::image_equalize(.) else .} %>%
-      magick::image_crop(getCellGeom(xpos = cdataSample$xpos[i],
-                                     ypos = cdataSample$ypos[i],
-                                     boxSize)) %>%
-      # Add square black box
-      {magick::image_composite(
-        magick::image_blank(boxSize, boxSize, "black"),
-        ., gravity = "Center"
-      )} %>% 
-      # Resize
-      magick::image_scale(cell_resize_string) %>%
-      # Annotate
-      {if(is.null(annotation_params)) . else 
-        magick::image_annotate(.,
-                               text = paste(paste0("Pos", as.character(position)),
-                                            paste0("t", t_frame),
-                                            ch),
-                               color = annotation_params[["color"]],
-                               boxcolor = annotation_params[["background"]],
-                               size = annotation_params[["size"]],
-                               font = "Comic sans",
-                               gravity = "SouthEast")} %>%
-      {if(is.null(annotation_params)) . else 
-        magick::image_annotate(.,
-                               text = as.character(ucid),
-                               color = annotation_params[["color"]],
-                               boxcolor = annotation_params[["background"]],
-                               size = annotation_params[["size"]],
-                               font = "Comic sans",
-                               gravity = "NorthWest")} %>%
-      # Add black border
-      magick::image_border("black","1x1") %>% 
-      # Tile horizontally
-      magick::image_append(stack = stack_vertical_first)
+  
+      position <- cdataSample$pos[i]
+      ucid <- cdataSample$ucid[i]
+      t_frame <- cdataSample$t.frame[i]
+      picPath.df <- subset(paths, pos == position & channel %in% ch & t.frame == t_frame)
+      picPath <- picPath.df$file[order(match(picPath.df$channel, ch))]  # order paths according to ch argument
+      
+      stopifnot(length(position) == 1 &length(ucid) == 1 &length(t_frame) == 1) # Checks
+      stopifnot(length(picPath) == length(ch) & is.character(picPath)) # Checks
+      
+      imgs.raw <- 
+        magick::image_read(picPath) %>%
+          magick::image_crop(getCellGeom(xpos = cdataSample$xpos[i],
+                                         ypos = cdataSample$ypos[i],
+                                         boxSize))
+      
+      if(return_raw){
+        # Return
+        imgs.raw
+      } else {
+        imgs.proceesed <- imgs.raw %>%
+          {if (equalize_images) magick::image_normalize(.) else .} %>%
+          {if (normalize_images) magick::image_equalize(.) else .} %>%
+          # Add square black box
+          {magick::image_composite(
+            magick::image_blank(boxSize, boxSize, "black"),
+            ., gravity = "Center"
+          )} %>% 
+          # Resize
+          magick::image_scale(cell_resize_string) %>%
+          # Annotate
+          {if(is.null(annotation_params)) . else 
+            magick::image_annotate(.,
+                                   text = paste(paste0("Pos", as.character(position)),
+                                                paste0("t", t_frame),
+                                                ch),
+                                   color = annotation_params[["color"]],
+                                   boxcolor = annotation_params[["background"]],
+                                   size = annotation_params[["size"]],
+                                   font = "Comic sans",
+                                   gravity = "SouthEast")} %>%
+          {if(is.null(annotation_params)) . else 
+            magick::image_annotate(.,
+                                   text = as.character(ucid),
+                                   color = annotation_params[["color"]],
+                                   boxcolor = annotation_params[["background"]],
+                                   size = annotation_params[["size"]],
+                                   font = "Comic sans",
+                                   gravity = "NorthWest")} %>%
+          # Add black border
+          magick::image_border("black","1x1") %>% 
+          # Tile horizontally
+          magick::image_append(stack = stack_vertical_first)
+        
+        # Return
+        imgs.proceesed
+      }
     }
 
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
