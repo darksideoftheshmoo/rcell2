@@ -4,57 +4,7 @@
 \alias{cellMagick}
 \title{magickCell alias}
 \usage{
-cellMagick(
-  cdata,
-  paths,
-  max_composite_size = 1000,
-  cell_resize = NULL,
-  boxSize = 80,
-  n = 100,
-  equalize_images = F,
-  normalize_images = F,
-  ch = "BF.out",
-  sortVar = NULL,
-  seed = NULL,
-  .debug = FALSE,
-  return_single_imgs = FALSE,
-  return_ucid_df = FALSE,
-  annotation_params = list(color = "white", background = "black"),
-  stack_vertical_first = FALSE
-)
-}
-\arguments{
-\item{cdata}{A Rcell data.frame (not the object).}
-
-\item{paths}{A paths dataframe with file path, t.frame, position and channel information of each picture.}
-
-\item{max_composite_size}{Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.}
-
-\item{cell_resize}{Size of the individual cell images. "100x100" by default.}
-
-\item{boxSize}{Size of the box containing the individual cell images. 50 by default.}
-
-\item{n}{maximum number of cells to display.}
-
-\item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default).}
-
-\item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default).}
-
-\item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
-
-\item{sortVar}{Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.}
-
-\item{seed}{Seed value for sampling of cell images. NULL by default, to disable sampling.}
-
-\item{.debug}{Print more messages if TRUE.}
-
-\item{return_single_imgs}{If TRUE, return a vector of images instead of a tile.}
-
-\item{return_ucid_df}{If TRUE, return is a list of magick images and ucid dataframes.}
-
-\item{annotation_params}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
-
-\item{stack_vertical_first}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
+cellMagick(...)
 }
 \description{
 magickCell alias

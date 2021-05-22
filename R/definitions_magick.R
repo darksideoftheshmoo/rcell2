@@ -367,7 +367,17 @@ cellSpreadPlot <- function(cdata, paths,
   return(plot_list)
 }
 
-#' Funcion copada para mostrar fotos basada en magick
+#' Funcion copada para mostrar fotos de Cell-ID basada en magick
+#' 
+#' @description 
+#' El uso más básico es \code{magickCell(cdata=cell.data$data, paths=cell.data$images)}.
+#' 
+#' Para mostrar algunas celulas en particular, solo hay que pasarle un \code{cdata} filtrado.
+#' 
+#' Ver la descripción de argumentos más abajo para aprender sobre las opciones.
+#' 
+#' Al fondo, en los detalles, hay una descripción de como debería ser el \code{paths} dataframe.
+#' 
 #' @details
 #' Paths dataframe structure. Output example from \code{glimpse(paths)}:
 #' 
@@ -384,9 +394,9 @@ cellSpreadPlot <- function(cdata, paths,
 #' @param cdata A Rcell data.frame (not the object).
 #' @param paths A paths dataframe with file path, t.frame, position and channel information of each picture.
 #' @param max_composite_size Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.
-#' @param cell_resize Size of the individual cell images. "100x100" by default.
+#' @param cell_resize Resize string for the individual cell images (\code{NULL} translates to \code{boxSize}x\code{boxSize} by default).
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
-#' @param n maximum number of cells to display.
+#' @param n.cells maximum number of cells to display.
 #' @param equalize_images Use magick's function to "equalize" the image when TRUE (FALSE by default).
 #' @param normalize_images Use magick's function to "normalize" the image when TRUE (FALSE by default).
 #' @param ch Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
@@ -407,7 +417,7 @@ magickCell <- function(cdata, paths,
                        max_composite_size = 1000, 
                        cell_resize = NULL,
                        boxSize = 80, 
-                       n = 100,
+                       n.cells = 25,
                        equalize_images = F, 
                        normalize_images = F,
                        ch = "BF.out",
@@ -470,7 +480,7 @@ magickCell <- function(cdata, paths,
   # https://ropensci.org/blog/2017/08/15/magick-10/
   # https://livefreeordichotomize.com/2017/07/18/the-making-of-we-r-ladies/
 
-  n <- min(c(n, nrow(cdata))) # Limit amount of pics to "n"
+  n.cells <- min(c(n.cells, nrow(cdata))) # Limit amount of pics to "n.cells"
   
   # To-do:
   ## Using more than one channel with default options
@@ -489,16 +499,16 @@ magickCell <- function(cdata, paths,
   # Sample the cdata dataframe
   cdataSample <- cdata[,unique(c("pos", "xpos", "ypos", "ucid", "t.frame", sortVar))]  # keep only the necessary columns
   
-  # Set seed if specified, and sample "n" from the dataframe
+  # Set seed if specified, and sample "n.cells" from the dataframe
   if(!is.null(seed)){ 
     set.seed(seed)
     # Sample
-    cdataSample <- cdata[sample(1:nrow(cdata), size = n, replace = F),] # sample n rows from cdata
+    cdataSample <- cdata[sample(1:nrow(cdata), size = n.cells, replace = F),] # sample n.cells rows from cdata
   } else {
-    # Else, just take the first "n" rows
+    # Else, just take the first "n.cells" rows
     # This was possibly missing: not subsetting of cdata caused all images to be loaded,
-    # even though only a few "n" had been requested. This seems to make magickCell much faster (not really tested).
-    cdataSample <- cdata[1:n,]
+    # even though only a few "n.cells" had been requested. This seems to make magickCell much faster (not really tested).
+    cdataSample <- cdata[1:n.cells,]
   }
   # Sort cdata
   if(!is.null(sortVar)) cdataSample <- cdataSample[order(cdataSample[[sortVar]]),]  # sort the sample by "sortVar"
@@ -563,8 +573,8 @@ magickCell <- function(cdata, paths,
     }
   }
   
-  nRow <- ceiling(sqrt(n))
-  nCol <- ceiling(n/nRow)
+  nRow <- ceiling(sqrt(n.cells))
+  nCol <- ceiling(n.cells/nRow)
   
   max.width <- max(magick::image_info(imga)$width)
   max.height <- max(magick::image_info(imga)$height)
@@ -572,7 +582,7 @@ magickCell <- function(cdata, paths,
   imgb <- foreach::foreach(i=0:(nRow-1), .combine=c) %do% {
 
     j = (1 + i*nCol):(i*nCol + nCol)
-    j = j[j <= n]
+    j = j[j <= n.cells]
 
     magick::image_apply(imga[j], function(i){
       magick::image_blank(width = max.width, height = max.height, color = "black") %>%
@@ -600,26 +610,8 @@ magickCell <- function(cdata, paths,
 #' 
 #' @inheritParams magickCell
 #' 
-cellMagick <- function(cdata, paths,
-                       max_composite_size = 1000, 
-                       cell_resize = NULL,
-                       boxSize = 80, 
-                       n = 100,
-                       equalize_images = F, 
-                       normalize_images = F,
-                       ch = "BF.out",
-                       sortVar = NULL,
-                       seed = NULL, 
-                       .debug=FALSE, 
-                       return_single_imgs = FALSE, 
-                       return_ucid_df = FALSE,
-                       annotation_params = list(color = "white", 
-                                                background = "black"),
-                       stack_vertical_first = FALSE
-                       ){
-  
-  magickCell(cdata, paths, max_composite_size, cell_resize, boxSize, n, equalize_images, normalize_images, 
-             ch, sortVar, seed, .debug, return_single_imgs, return_ucid_df, annotation_params, stack_vertical_first)
+cellMagick <- function(...){
+  magickCell(...)
 }
 
 #' Funcion copada para mostrar fotos basada en magick

@@ -2,7 +2,7 @@
 % Please edit documentation in R/spline.poly.R
 \name{spline.poly}
 \alias{spline.poly}
-\title{whuber's spline.poly as shared in StackExchange}
+\title{Splining a polygon with \code{stats::spline}}
 \usage{
 spline.poly(xy, vertices, k = 3, ...)
 }
@@ -17,10 +17,10 @@ spline.poly(xy, vertices, k = 3, ...)
 Returns an array of points.
 }
 \description{
-See: https://gis.stackexchange.com/a/24929
+whuber's spline.poly as shared in StackExchange
 }
 \details{
-Splining a polygon with \code{stats::spline}
+See: https://gis.stackexchange.com/a/24929
 
   The rows of 'xy' give coordinates of the boundary vertices, in order.
   'vertices' is the number of spline vertices to create.

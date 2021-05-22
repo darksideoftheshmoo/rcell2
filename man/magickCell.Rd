@@ -2,7 +2,7 @@
 % Please edit documentation in R/definitions_magick.R
 \name{magickCell}
 \alias{magickCell}
-\title{Funcion copada para mostrar fotos basada en magick}
+\title{Funcion copada para mostrar fotos de Cell-ID basada en magick}
 \usage{
 magickCell(
   cdata,
@@ -10,7 +10,7 @@ magickCell(
   max_composite_size = 1000,
   cell_resize = NULL,
   boxSize = 80,
-  n = 100,
+  n.cells = 25,
   equalize_images = F,
   normalize_images = F,
   ch = "BF.out",
@@ -30,11 +30,11 @@ magickCell(
 
 \item{max_composite_size}{Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.}
 
-\item{cell_resize}{Size of the individual cell images. "100x100" by default.}
+\item{cell_resize}{Resize string for the individual cell images (\code{NULL} translates to \code{boxSize}x\code{boxSize} by default).}
 
 \item{boxSize}{Size of the box containing the individual cell images. 50 by default.}
 
-\item{n}{maximum number of cells to display.}
+\item{n.cells}{maximum number of cells to display.}
 
 \item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default).}
 
@@ -60,7 +60,13 @@ magickCell(
 A list of two elements: the magick image and the ucids in the image.
 }
 \description{
-Funcion copada para mostrar fotos basada en magick
+El uso más básico es \code{magickCell(cdata=cell.data$data, paths=cell.data$images)}.
+
+Para mostrar algunas celulas en particular, solo hay que pasarle un \code{cdata} filtrado.
+
+Ver la descripción de argumentos más abajo para aprender sobre las opciones.
+
+Al fondo, en los detalles, hay una descripción de como debería ser el \code{paths} dataframe.
 }
 \details{
 Paths dataframe structure. Output example from \code{glimpse(paths)}:
