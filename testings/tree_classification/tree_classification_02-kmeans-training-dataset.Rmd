@@ -26,7 +26,7 @@ parameters.txt <- parameters.write()
 
 my_arguments <- 
   arguments(path = path,
-            file.pattern = "(BF|YFP)_Position(\\d+)().tif", 
+            file.pattern = "(BF|YFP)_Position(\\d+)().tif$", 
             parameters = parameters.txt)
 ```
 
@@ -383,6 +383,14 @@ Andy's `yeast_classification_functions.R`
 ```{r}
 cdata <- cdata %>% 
   mutate(elongatedness=(maj.axis**2/min.axis))
+```
+
+## Save dataset
+
+```{r}
+# saveRDS(cdata, "data/image_samples_classification/cdata.tree.RDS")
+
+cdata <- readRDS("data/image_samples_classification/cdata.tree.RDS")
 ```
 
 

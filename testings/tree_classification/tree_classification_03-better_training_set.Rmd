@@ -1,0 +1,310 @@
+---
+title: "Tree classification of cells - Training dataset"
+---
+
+```{r setup}
+devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/utiles", reset = T)
+devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/rcell2", reset = T)
+```
+
+# Training set
+
+* Usar k-means con un montón de clusters para generar las clasificaciones de forma semi-supervisada.
+
+En el curso de clustering hice algo simple con kmeans:
+
+* `clustering2020/trabajo_final/R/03_clustering.Rmd`
+
+```{r}
+path <- "data/image_samples_classification/renamed/" %>% here::here()
+
+parameters.txt <- parameters.write()
+
+my_arguments <- 
+  arguments(path = path,
+            file.pattern = "(BF|YFP)_Position(\\d+)().tif", 
+            parameters = parameters.txt)
+
+cell.data <- cell.load.alt(path,
+                           fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+.tif$",)
+
+cell.boundaries <- 
+  cell.load.boundaries(data.source = "masks.tsv", 
+                       arguments = my_arguments)
+
+images <- cell.data$images
+cdata <- readRDS("data/image_samples_classification/cdata.tree.RDS")
+
+datos.k1 <- readRDS("data/image_samples_classification/datos.RDS") %>% 
+  mutate(grupo = as.factor(grupo))
+```
+
+```{r}
+magickCell(cdata, images, n.cells = 9, ch = c("BF", "BF.out"), stack_vertical_first = T)
+```
+
+
+```{r}
+nice.vars <- c(
+  'a.tot',
+  'fft.stat',
+  'el.p',
+  'min.axis',
+  # 'elongatedness'
+  #'hum_1',
+  #'hum_3',
+  # "p2p.diff",
+  "p2p.ratio",
+  "angle.sd"
+  )
+
+cdata[,nice.vars] %>% pairs()
+cdata[,nice.vars] %>% scale() %>% pairs()
+```
+
+
+```{r}
+centers <- 50
+
+kmeans.clusters <- cdata[,nice.vars] %>% scale() %>% 
+  kmeans(centers = centers, nstart = 100, iter.max = 1000)
+
+# saveRDS(kmeans.clusters, "data/image_samples_classification/kmeans.50k.RDS")
+```
+
+
+```{r}
+cdata$k <- kmeans.clusters$cluster
+
+data.frame(k=kmeans.clusters$cluster) %>% group_by(k) %>% summarise(n = n()) %>% arrange(k)
+```
+
+```{r}
+imgs <- 
+  lapply(1:centers, function(.k){
+    d <- filter(cdata, k == .k)
+    r1 <- magickCell(d, cell.data$images, n = 25, ch = "BF",
+                     annotation_params = NULL) %>% 
+      magick::image_normalize()
+    r2 <- magickCell(d, cell.data$images, n = 25, ch = "BF.out")
+    
+    magick_project(r1, r2) %>%
+      magick::image_resize(geometry = "500x500") %>% 
+      magick::image_annotate(text = .k, gravity = "northeast", boxcolor = "white", 
+                             size = 10)
+  })
+
+magick::image_join(imgs) %>% 
+  rcell2::square_tile() %>% 
+  magick::image_write("data/image_samples_classification/kmeans.tile.50k.png")
+```
+
+```{r}
+annotations <- 
+  matrix(ncol = 4, byrow = T, c(
+         1,  1, "celulas", "ok_segmentacion_ruidosa",
+         2,  0, "celulas", "fragmentos",
+         3,  1, "celulas", "shmoos_y_buds",
+         4,  0, "no_celulas", "fantasmas_y_clusters",
+         5,  0, "celulas", "fragmentos_y_mal_segmentadas",
+         6,  0, "no_celulas", "fantasmas_y_clusters",
+         7,  1, "celulas", "ok",
+         8,  0, "celulas", "fragmentos_y_mal_segmentadas",
+         9,  1, "celulas", "ok",
+         10, 0, "celulas", "fragmentos_y_mal_segmentadas",
+         11, 1, "celulas", "shmoos_y_buds",
+         12, 0, "celulas", "chicas_desenfocadas_y_fragmentos",
+         13, 0, "no_celulas", "fantasmas_y_clusters",
+         14, 0, "celulas", "fragmentos",
+         15, 0, "no_celulas", "fantasmas_y_clusters",
+         16, 0, "celulas", "fragmentos",
+         17, 0, "no_celulas", "fantasmas_y_clusters",
+         18, 0, "no_celulas", "fantasmas_y_clusters",
+         19, 1, "celulas", "shmoos",
+         20, 1, "celulas", "chicas",
+         21, 0, "no_celulas", "fantasmas_y_fragmentos",
+         22, 1, "celulas", "chicas",
+         23, 0, "no_celulas", "fantasmas_y_clusters",
+         24, 1, "celulas", "con_bud",
+         25, 0, "no_celulas", "fantasmas_chorizo",
+         26, 1, "celulas", "shmoos_y_ok",
+         27, 1, "celulas", "chicas",
+         28, 1, "celulas", "shmoos",
+         29, 1, "celulas", "ok_segmentacion_ruidosa",
+         30, 0, "celulas", "fragmentos",
+         31, 0, "no_celulas", "fantasmas_y_fragmentos",
+         32, 1, "celulas", "ok",
+         33, 0.5, "celulas", "segmentacion_ruidosa_y_fragmentos",
+         34, 0, "celulas", "fantasmas_y_clusters",
+         35, 0, "no_celulas", "fantasmas_y_fragmentos",
+         36, 1, "celulas", "ok",
+         37, 0, "no_celulas", "clusters",
+         38, 1, "celulas", "chicas",
+         39, 0.5, "celulas", "con_bud_mal_segmentadas",
+         40, 0, "no_celulas", "fantasmas_y_clusters",
+         41, 1, "celulas", "ok",
+         42, 0, "no_celulas", "fantasmas_chorizo",
+         43, 1, "celulas", "ok",
+         44, 1, "celulas", "ok_segmentacion_ruidosa",
+         45, 1, "celulas", "ok",
+         46, 1, "celulas", "con_bud_segmentacion_ruidosa",
+         47, 0, "celulas", "con_bud_y_mal_segmentadas",
+         48, 0, "no_celulas", "fantasmas_y_fragmentos",
+         49, 1, "celulas", "ok",
+         50, 0.5, "celulas", "con_bud_y_mal_segmentadas"
+         )
+       )
+
+colnames(annotations) <- c("k", "filtro", "clase1", "clase2")
+
+annotations.df <- 
+  annotations %>% as.data.frame() %>% lapply(type.convert) %>% as.data.frame() %>% 
+  arrange(filtro)
+
+# saveRDS(annotations.df, "data/image_samples_classification/annotations.50k.RDS")
+
+annotations.df %>% left_join(
+  data.frame(k=kmeans.clusters$cluster) %>% group_by(k) %>% summarise(n = n()) %>% arrange(k)
+)
+```
+
+```{r}
+datos <- left_join(cdata, annotations.df)
+```
+
+```{r}
+datos %>% 
+  filter(filtro == 0.5) %>% 
+  ggplot() + 
+  geom_point(aes(x=a.tot,y=fft.stat), data=datos) +
+  geom_point(aes(x=a.tot,y=fft.stat,color=as.factor(k))) +
+  # theme(legend.position = "none") +
+  NULL
+```
+
+
+
+`lm` asi nomas no parece tan útil:
+
+```{r}
+# filtro.lm <- lm(filtro ~ polym(a.tot, fft.stat, el.p, min.axis, p2p.ratio, angle.sd, degree = 2),
+#                 data = datos[,c("filtro", nice.vars)])
+# 
+# datos$filtro.lm <- predict(filtro.lm)
+# 
+# datos %>% 
+#   ggplot() + geom_point(aes(x=filtro,filtro.lm)) +
+#   # ggplot() + geom_point(aes(x=angle.sd,el.p,color=as.factor(k))) +
+#   theme(legend.position = "none")
+```
+
+
+
+```{r}
+datos %>% 
+  ggplot() + geom_point(aes(x=a.tot,fft.stat,color=grupo)) +
+  # ggplot() + geom_point(aes(x=a.tot,fft.stat,color=as.factor(k))) +
+  theme(legend.position = "none")
+
+datos %>% 
+  ggplot() + geom_point(aes(x=a.tot,el.p,color=grupo)) +
+  # ggplot() + geom_point(aes(x=a.tot,el.p,color=as.factor(k))) +
+  theme(legend.position = "none")
+
+datos %>% 
+  ggplot() + geom_point(aes(x=angle.sd,el.p,color=grupo)) +
+  # ggplot() + geom_point(aes(x=angle.sd,el.p,color=as.factor(k))) +
+  theme(legend.position = "none")
+```
+
+```{r}
+lapply(unique(datos$grupo), function(.k){
+  d <- filter(datos, grupo == .k)
+  r1 <- magickCell(d, cell.data$images, n = 25, ch = "BF",
+                   annotation_params = NULL) %>% 
+    magick::image_normalize()
+  r2 <- magickCell(d, cell.data$images, n = 25, ch = "BF.out")
+  
+  magick_project(r1, r2) %>%
+    magick::image_resize(geometry = "500x500") %>% 
+    magick::image_annotate(text = .k, gravity = "northeast", boxcolor = "white", 
+                           size = 10) %>% 
+    magickForKnitr() %>% 
+    knitr::include_graphics()
+})
+```
+
+```{r}
+# saveRDS(datos, "data/image_samples_classification/datos.RDS")
+```
+
+
+### CART
+
+
+
+
+* https://www.statmethods.net/advstats/cart.html
+* https://www.r-bloggers.com/2021/04/decision-trees-in-r/
+
+```{r}
+train <- datos[,c("grupo", nice.vars)]
+
+arbol <- rpart::rpart(grupo ~ ., data = train, method = "class")
+
+# rpart::printcp(arbol)
+# rpart::plotcp(arbol)
+# summary(arbol)
+```
+
+```{r}
+# plot tree
+plot(arbol, uniform=TRUE, main="Classification Tree")
+text(arbol, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+# prune the tree
+arbol.pruned <- rpart::prune(arbol, 
+                             cp=arbol$cptable[which.min(arbol$cptable[,"xerror"]),"CP"])
+```
+
+
+```{r}
+# plot the pruned tree
+par(mar = rep(2,4)) # Set the margin on all sides to 2
+plot(arbol.pruned, uniform=TRUE,margin=1)
+text(arbol.pruned, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+datos.pred <- 
+  bind_cols(datos, data.frame(preds = predict(arbol.pruned, 
+                                              newdata = datos,
+                                              type = 'class')))
+
+addmargins(table(datos.pred$grupo, datos.pred$preds, dnn = c("GT", "pred")))
+```
+
+
+```{r}
+ggplot(datos.pred) +
+  geom_point(aes(x=a.tot,y=fft.stat,color=as.factor(preds)))
+
+ggplot(datos.pred) +
+  geom_point(aes(x=a.tot,y=el.p,color=as.factor(preds)))
+
+ggplot(datos.pred) +
+  geom_point(aes(x=a.tot,y=angle.sd,color=as.factor(preds)))
+
+ggplot(datos.pred) +
+  geom_point(aes(x=fft.stat,y=p2p.ratio,color=as.factor(preds)))
+```
+
+
+```{r}
+ggp <- 
+  GGally::ggpairs(datos.pred[,c("preds", nice.vars)], 
+                  mapping=ggplot2::aes(color=as.factor(preds)))
+```
+
