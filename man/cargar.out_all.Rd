@@ -5,7 +5,7 @@
 \title{Una función para leer y combinar todos los archivos "out".}
 \usage{
 cargar.out_all(
-  .carpeta,
+  path,
   position.pattern = ".*Position(\\\\d+).*",
   out_file_pattern = "^out_all$",
   out_mapping_pattern = "^out_bf_fl_mapping$",
@@ -13,7 +13,7 @@ cargar.out_all(
 )
 }
 \arguments{
-\item{.carpeta}{path a la carpeta donde están os output de CellID}
+\item{path}{path a la carpeta donde están os output de CellID}
 
 \item{position.pattern}{Regex describing what the position string looks like (default 'Position\\d+')}
 

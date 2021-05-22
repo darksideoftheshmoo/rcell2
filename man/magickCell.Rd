@@ -21,7 +21,7 @@ magickCell(
   return_ucid_df = FALSE,
   annotation_params = list(color = "white", background = "black"),
   stack_vertical_first = FALSE,
-  return_raw = F
+  return_raw = FALSE
 )
 }
 \arguments{
@@ -56,6 +56,8 @@ magickCell(
 \item{annotation_params}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
 
 \item{stack_vertical_first}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
+
+\item{return_raw}{Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).}
 }
 \value{
 A list of two elements: the magick image and the ucids in the image.

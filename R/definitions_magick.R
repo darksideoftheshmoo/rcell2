@@ -426,8 +426,9 @@ getCellGeom <- function(xpos, ypos, boxSize = 50){
 #' @param .debug Print more messages if TRUE.
 #' @param return_single_imgs If TRUE, return a vector of images instead of a tile.
 #' @param return_ucid_df If TRUE, return is a list of magick images and ucid dataframes.
-#' @param  annotation_params Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.
-#' @param  stack_vertical_first Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).
+#' @param annotation_params Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.
+#' @param stack_vertical_first Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).
+#' @param return_raw Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).
 #' @return A list of two elements: the magick image and the ucids in the image.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -450,9 +451,17 @@ magickCell <- function(cdata, paths,
                        annotation_params = list(color = "white", 
                                                 background = "black"),
                        stack_vertical_first = FALSE,
-                       return_raw = F
+                       return_raw = FALSE
                        ){
   if(.debug) print("F8")
+  if(!nrow(cdata) > 0){
+    warning("rcell2::magickCell warning: the 'cdata' data.frame is empty, returning NULL.")
+    return(NULL)
+  }
+  if(!nrow(paths) > 0){
+    warning("rcell2::magickCell warning: the 'paths' data.frame is empty, returning NULL.")
+    return(NULL)
+  }
 
   # "100x100" pixels
   if(is.null(cell_resize)) cell_resize <- boxSize

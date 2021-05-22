@@ -455,7 +455,7 @@ cell.load.alt <- function(path,
 
   # Cargar datos out_all y juntar en un solo dataframe usando metadata de "out_bf_fl_mapping"
   cat("\n\nLoading CellID output files...\n")
-  d.list <- cargar.out_all(.carpeta = path,
+  d.list <- cargar.out_all(path = path,
                            position.pattern = position.pattern,
                            fluorescence.pattern = fluorescence.pattern,
                            ...)  # https://stackoverflow.com/questions/40794780/r-functions-passing-arguments-with-ellipsis/40794874
@@ -582,22 +582,21 @@ read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_ty
 #'
 #' @param .nombre.archivos paths de los "out_all"
 #' @param .nombre.archivos.map paths de los "bf_fl_mapping"
-#' @param .carpeta path a la carpeta donde están os output de CellID
+#' @param path path a la carpeta donde están os output de CellID
 #' @param position.pattern Regex describing what the position string looks like (default 'Position\\d+')
 #' @param fluorescence.pattern Regex describing what the fluorescence string looks like (default ".*([GCYRT])FP_Position.*")
 #' @import dplyr tidyr readr
 #' @importFrom purrr map
 #' @return A list of two dataframes: `d` contains the actual output, and `out.map` contains image paths and metadata.
 cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
-                           .carpeta,
+                           path,
                            position.pattern = ".*Position(\\d+).*",
                            out_file_pattern = "^out_all$",
                            out_mapping_pattern = "^out_bf_fl_mapping$",
                            fluorescence.pattern = ".*([A-Z])FP_Position.*"){
-
   # Migrated from cell.load()
-  .nombre.archivos <- list.files(path = .carpeta, pattern = out_file_pattern, recursive = T, include.dirs = T)
-  .nombre.archivos.map <- list.files(path = .carpeta, pattern = out_mapping_pattern, recursive = T, include.dirs = T)
+  .nombre.archivos <- list.files(path = path, pattern = out_file_pattern, recursive = T, include.dirs = T)
+  .nombre.archivos.map <- list.files(path = path, pattern = out_mapping_pattern, recursive = T, include.dirs = T)
   # A bit of error handling
   if(length(.nombre.archivos) == 0) 
     stop("Error in cargar.out_all: no CellID output files found, check your path, options and files.")
@@ -610,7 +609,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   cat("\rLoading datasets...\033[K")
   d.out <- purrr::map(.x = .nombre.archivos,
                       .f = read_tsv.con.pos, 
-                      .carpeta = .carpeta,
+                      .carpeta = path,
                       # col_types = "iiiiiddddddddddddddddddddddddddddddddddddddddddddddddddd", # types: 5 int columns, 51 double columns
                       col_types = readr::cols(.default = "d"), # types: all double, convert later
                       position.pattern = position.pattern) %>%
@@ -623,7 +622,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   cat("\rLoading mapping...              ")
   d.map <- purrr::map(.x = .nombre.archivos.map,
                       .f = read_tsv.con.pos,  # Una función para leer los archivos "out" y agregarles "pos" segun la carpeta que los contiene
-                      .carpeta = .carpeta,
+                      .carpeta = path,
                       col_types = "ciicl",  # types: 2 char columns, 2 int columns, 1 logical column
                       position.pattern = position.pattern) %>%
     bind_rows() %>%

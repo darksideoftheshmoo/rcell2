@@ -3,73 +3,48 @@ title: "CellID Wrapper Test 3"
 author: "Nicolás Méndez"
 date: "7/20/2020"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # Rebuild
 
 ```{r build, eval=FALSE, message=FALSE, warning=TRUE}
 devtools::document()
-devtools::load_all(recompile = T, reset = T)
-devtools::install(reload = T, 
-                  build = T,
-                  quiet = T,
-                  upgrade = "never",
-                  keep_source = T)
+devtools::load_all()
+# devtools::install(reload = T, 
+#                   build = T,
+#                   quiet = T,
+#                   upgrade = "never",
+#                   keep_source = T)
 ```
 
 
-```{r include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-# library(rcell2)
+library(rcell2)
 ```
 
-## Ejemplo de uso con nuevo arguments2
 
-### CellID parameters
+### Generar arguments y CellID parameters
 
-Deshabilitar `align_individual_cells`, generaba artefactos en la fluorescencia de Far1.
+Para varios `t.frames`:
 
-```{r}
-# parameters <- "~/Software/cellID-linux/test_data_tmp2/parameters_example2.txt"
-# parameters <- "../data/time_series_image_samples_bf_as_fl/parameters.txt"
-# parameters <- "~/Software/cellID-linux/test_data_andy/Position001/parameters_vcellid_out.txt"
-# parameters <- "../inst/parameters_test.txt"
-parameters <- tempfile()
+    file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"
 
-param_array <- c(
-  "max_split_over_minor 0.50",
-  "max_dist_over_waist 8.00",
-  "max_pixels_per_cell 2000",
-  "min_pixels_per_cell 75",
-  "background_reject_factor 0.5",
-  "tracking_comparison 0.20",
-  # "align_individual_cells",  # tambien se puede deshabilitar con un "#" en el mismo parameters.txt
-  "align_fl_to_bf",
-  "image_type brightfield",
-  "bf_fl_mapping list")
+Para uno solo se deja vacío el grupo:
 
-write(param_array, file = parameters)
-```
-
-Imprimir contenidos del parameters.txt:
+    file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$"
 
 ```{r}
-writeLines(readLines(parameters))
-```
+parameters.txt <- rcell2::parameters.write()
 
-### Generar arguments
-
-```{r}
 path <- "~/Software/cellID-linux/samples/"
-# path <- "../data/image_samples/"
-# path <- "../data/time_series_image_samples_bf_as_fl/"
-# path <- "~/Software/cellID-linux/test_data_andy/"
-# path <- "~/Software/cellID-linux/test_data_rtcc/"
 
-arguments <- rcell2::cellArgs2(path = path, 
-                               parameters = parameters, 
+arguments <- rcell2::arguments(path = path, 
+                               parameters = parameters.txt, 
                                file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$")
 
 arguments
@@ -78,70 +53,21 @@ arguments
 ### Correr CellID
 
 ```{r}
+cell.command = "~/Software/cellID-linux/cell"
+cell.command = "~/Software/cellID-linux/bin/cell_mask_mod"
+cell.command = system.file("rcellid", package = "rcell2", mustWork = T)
+
 rcell2::cell2(arguments = arguments, 
-              # cell.command = "~/Software/cellID-linux/cell",
-              cell.command = "~/Software/cellID-linux/cell_mask_mod",
-              # cell.command = system.file("cell", package = "rcell2", mustWork = T),
-              dry = T, no_cores = 1)
+              cell.command = cell.command,
+              dry = F, no_cores = 3)
 ```
 
+### Load cell data
 
 ```{r}
-rcell2::cell2(arguments = arguments, 
-              # cell.command = "~/Software/cellID-linux/cell", 
-              cell.command = "~/Software/cellID-linux/cell_mask_mod",
-              dry = F, no_cores = 2)
-              # cell.command = system.file("cell", package = "rcell2", mustWork = T),
-              # dry = F, no_cores = 2, label_cells_in_bf = T)
+cell.data <- rcell2::cell.load.alt(path =  path)
+# cell_data <- rcell2::load_cell_data(path = path)
+
+cell.data$data %>% filter(cellID == 1003) %>% 
+  rcell2::magickCell(paths = cell.data$images)
 ```
-
-## Load cell data
-
-```{r}
-# cell.data.old <- rcell2::cell.load.alt(path =  path)
-cell_data.new <- rcell2::load_cell_data(path = path)
-
-cell_data.new$data %>% filter(cellID == 1003) %>% 
-  rcell2::magickCell(paths = cell_data.new$images, return_single_imgs = T, cell_resize = 200)
-```
-
-## Load cell mask coords
-
-From new -m option
-
-```{r}
-masks <- read_tsv("~/Software/cellID-linux/test_data_tmp/Position01/out_all_masks.tsv")
-
-masks
-```
-
-```{r}
-p <- ggplot(masks) + geom_tile(aes(x=xpos, y=ypos)) + facet_grid(flag~pixtype)
-
-ggsave("masks.pdf", p, device = "pdf")
-
-p
-```
-
-## Correr CellID (t.frame único)
-
-## Arguments setup
-
-```{r}
-path <- "~/Projects/Rdevel/rcell2/data/image_samples/"
-# path <- "~/Projects/Rdevel/rcell2/data/time_series_image_samples/"
-parameters <- "~/Software/cellID-linux/test_data_andy/Position001/parameters_vcellid_out.txt"
-
-arguments <- rcell2::cellArgs2(path = path, parameters = parameters, 
-                               file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$")
-arguments
-```
-
-## Run CellID
-
-```{r}
-rcell2::cell2(arguments = arguments, 
-              cell.command = "~/Software/cellID-linux/cell", 
-              dry = F, no_cores = 7)
-```
-
