@@ -58,7 +58,6 @@ Imports:
     readr,
     shinyjs,
     rlang,
-    ijtiff,
     data.table
 Suggests: 
     tidyverse,

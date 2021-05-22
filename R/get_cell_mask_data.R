@@ -22,7 +22,7 @@
 #' @param blank_bg logical. If \code{TRUE} the function assumes that the image
 #' background (i.e., non-mask pixels) are blank. Set to FALSE if left NULL (the default).
 #' 
-#' @importFrom ijtiff read_tags
+# @importFrom ijtiff read_tags
 #' 
 #' @return A data frame of mask pixels ordered by cellID.
 #' @export

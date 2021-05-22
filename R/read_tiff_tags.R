@@ -54,7 +54,7 @@ read_description <- function(x){
 #'   only. To read from the 2nd and 7th frames, use `frames = c(2, 7)`, to read
 #'   from all frames, use `frames = "all"`.
 #'
-#' @importFrom ijtiff read_tags
+# @importFrom ijtiff read_tags
 #'
 #' @return A list of lists.
 #'
@@ -63,5 +63,6 @@ read_description <- function(x){
 #' 
 #' @export
 read_tiff_tags <- function(path,frames=1){
-  lapply(ijtiff::read_tags(path,frames),read_description)
+  # lapply(ijtiff::read_tags(path,frames),read_description)
+  stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
 }
