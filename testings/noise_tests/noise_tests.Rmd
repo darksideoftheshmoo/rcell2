@@ -1,0 +1,72 @@
+---
+title: "Task name: Short title"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, message=F}
+devtools::load_all()
+library(utiles)
+```
+
+# Load pics
+
+```{r}
+pics <- dir(path = "noise_test_imgs/", full.names = T)
+names(pics) <- basename(pics)
+
+imgs <- 
+  lapply(pics, function(path){
+    image <- path %>% 
+      magick::image_read() %>% 
+      magick::image_data()
+    df <- 
+      matrix(image, nrow = dim(image)[2], byrow = T) %>% 
+      matrix_to_df()
+    df$dim_1 <- dim(image)[2]
+    df$dim_2 <- dim(image)[3]
+    
+    df
+  }) %>% 
+  bind_rows(.id = "pic")
+
+imgs %>% 
+  ggplot() +
+  geom_tile(aes(x,y,fill=as.integer(pix_value))) +
+  scale_fill_gradient(low = "black", high = "white") +
+  facet_wrap(~pic) + scale_y_reverse()
+```
+
+# Plot distributions
+
+```{r}
+imgs %>% 
+  ggplot() + geom_histogram(aes(x = as.integer(pix_value))) + 
+  facet_grid(pic~., scales = "free")
+
+imgs %>% 
+  ggplot() +
+  geom_tile(aes(x,y,fill=as.integer(pix_value))) +
+  geom_tile(aes(x,y), fill="red", data = filter(imgs, pix_value < 32)) +
+  scale_fill_gradient(low = "black", high = "white") +
+  facet_wrap(~pic) + scale_y_reverse()
+```
+
+```{r}
+imgs %>% 
+  group_by(pic) %>% mutate(pix_value = scale(as.integer(pix_value))) %>% 
+  ggplot() + geom_histogram(aes(x = pix_value)) + 
+  facet_grid(pic~., scales = "free")
+
+
+imgs %>% 
+  group_by(pic) %>% mutate(pix_value = scale(as.integer(pix_value))) %>% {
+    ggplot(.) +
+    geom_tile(aes(x,y,fill=pix_value)) +
+    geom_tile(aes(x,y), fill="red", data = filter(., pix_value < -0.7)) +
+    scale_fill_gradient(low = "black", high = "white") +
+    facet_wrap(~pic) + scale_y_reverse()
+  }
+```
+
