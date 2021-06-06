@@ -94,8 +94,6 @@ imgs$pic %>% unique() %>%
 ```
 
 ```{r}
-shuffle <- function(v) sample(v, length(v), replace = F)
-
 imgs.scaled <- imgs %>% 
   group_by(pic) %>% 
   mutate(pix_value = scale(as.integer(pix_value))) %>% 
