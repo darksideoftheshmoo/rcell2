@@ -71,12 +71,17 @@ img %>% magick::image_normalize() %>%
 ```
 
 ```{r}
-# img %>% image_convolve('DoG:0,0,2') %>% image_negate() %>% image_normalize()
-# img %>% image_convolve('DoG:0,0,2') %>% image_negate() %>% image_equalize()
-# img %>% image_convolve('DoG:0,0,2') %>% image_normalize()
-# img %>% image_convolve('DoG:0,0,2') %>% image_equalize()
+img %>%
+  magick::image_data() %>% as.numeric() %>% .[,,1] %>% ijtiff_to_df() %>% 
+  ggplot() +
+  geom_tile(aes(x,y,fill=pix_value)) + scale_fill_gradient(low = "black", high = "white")
 
-c(img, img %>% magick::image_convolve('DoG:0,0,2') %>% magick::image_equalize())
+img %>% magick::image_convolve('DoG:0,0,2', bias = "50%") %>% 
+  magick::image_data() %>% as.numeric() %>% .[,,1] %>% ijtiff_to_df() %>% 
+  ggplot() +
+  geom_tile(aes(x,y,fill=pix_value)) + scale_fill_gradient(low = "black", high = "white")  
+
+c(img, img %>% magick::image_convolve('DoG:0,0,2', bias = "50%") %>% magick::image_equalize())
 ```
 
 ## The Hessian / Ridge detection
@@ -188,10 +193,10 @@ img.hessian.df %>%
 img.data.df %>% 
   ggplot() +
   geom_tile(aes(x,y,fill=pix_value)) +
-  geom_point(aes(x,y,color=hessian), color = "red",
-             data = img.hessian.df %>% filter(hessian > 0.5)
+  geom_point(aes(x,y,color=hessian), #color = "red",
+             data = img.hessian.df #%>% filter(hessian > 0.5, x <60)
              ) +
-  scale_fill_gradient(low = "black", high = "white") #+ scale_color_viridis_c()
+  scale_fill_gradient(low = "black", high = "white") + scale_color_viridis_c()
 ```
 
 
