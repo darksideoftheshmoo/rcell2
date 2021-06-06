@@ -13,7 +13,7 @@ library(utiles)
 # Load pics
 
 ```{r}
-pics <- dir(path = "noise_test_imgs/", full.names = T)
+pics <- dir(path = "noise_test_imgs/", full.names = T, pattern = "tif")
 names(pics) <- basename(pics)
 
 imgs <- 
@@ -30,12 +30,22 @@ imgs <-
     df
   }) %>% 
   bind_rows(.id = "pic")
+```
 
+```{r}
+imgs <- imgs %>% filter(pic == "background.tif") %>% 
+  mutate(pic = "background.tif_shuffled") %>% 
+  mutate(pix_value = sample(pix_value, replace = F, size = length(pix_value))) %>% 
+  bind_rows(imgs)
+```
+
+
+```{r}
 imgs %>% 
   ggplot() +
   geom_tile(aes(x,y,fill=as.integer(pix_value))) +
   scale_fill_gradient(low = "black", high = "white") +
-  facet_wrap(~pic) + scale_y_reverse()
+  facet_wrap(~pic) + scale_y_reverse() + coord_equal()
 ```
 
 # Plot distributions
@@ -50,7 +60,7 @@ imgs %>%
   geom_tile(aes(x,y,fill=as.integer(pix_value))) +
   geom_tile(aes(x,y), fill="red", data = filter(imgs, pix_value < 32)) +
   scale_fill_gradient(low = "black", high = "white") +
-  facet_wrap(~pic) + scale_y_reverse()
+  facet_wrap(~pic) + scale_y_reverse() + coord_equal()
 ```
 
 ```{r}
@@ -64,9 +74,46 @@ imgs %>%
   group_by(pic) %>% mutate(pix_value = scale(as.integer(pix_value))) %>% {
     ggplot(.) +
     geom_tile(aes(x,y,fill=pix_value)) +
-    geom_tile(aes(x,y), fill="red", data = filter(., pix_value < -0.7)) +
+    geom_tile(aes(x,y), fill="red", data = filter(., pix_value < -0.9)) +
     scale_fill_gradient(low = "black", high = "white") +
-    facet_wrap(~pic) + scale_y_reverse()
+    facet_wrap(~pic) + scale_y_reverse() + coord_equal()
   }
 ```
 
+The background is not pure noise, it is patterned... :/
+
+And this is obvious in it's ACF plot:
+
+```{r}
+imgs$pic %>% unique() %>% 
+  lapply(function(pic_name){
+    imgs %>% filter(pic == pic_name) %>% 
+      with(pix_value) %>% as.integer() %>% 
+      acf(main = pic_name)
+  })
+```
+
+```{r}
+shuffle <- function(v) sample(v, length(v), replace = F)
+
+imgs.scaled <- imgs %>% 
+  group_by(pic) %>% 
+  mutate(pix_value = scale(as.integer(pix_value))) %>% 
+  mutate(is_edge = pix_value < -0.9) %>% group_by(pic, is_edge) %>% 
+  mutate(pix_value = ifelse(is_edge, pix_value, shuffle(pix_value)))
+
+
+imgs.scaled %>% 
+  ggplot() +
+  geom_tile(aes(x,y,fill=as.integer(pix_value))) +
+  scale_fill_gradient(low = "black", high = "white") +
+  facet_wrap(~pic) + scale_y_reverse() + coord_equal()
+
+imgs.scaled$pic %>% unique() %>% 
+  lapply(function(pic_name){
+    par(mar=rep(4,4))
+    imgs.scaled %>% filter(pic == pic_name) %>% 
+      with(pix_value) %>% as.integer() %>% 
+      acf(main = pic_name)
+  })
+```
