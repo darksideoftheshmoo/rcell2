@@ -1,0 +1,352 @@
+---
+title: "Task name: Short title"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+    number_sections: true
+editor_options:
+  chunk_output_type: inline
+author: NM
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+urlcolor: blue
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
+---
+
+## Libraries
+
+`mmand` with examples: https://www.r-project.org/nosvn/pandoc/mmand.html
+
+```{r}
+# install.packages("mmand")
+```
+
+
+```{r setup, message=F}
+knitr::opts_chunk$set(message = F)
+knitr::opts_knit$set(root.dir = here::here())
+# knitr::opts_chunk$set(cache = T)
+
+library(utiles)
+library(dplyr)
+library(ggplot2)
+# library(tidyr)
+# library(purrr)
+# library(plotly)
+# library(renv)
+
+library(mmand)
+library(magick)
+```
+
+<!-- your code -->
+
+## Load data
+
+```{r}
+pics <- dir(path = "testings/erosion_dilation/test_imgs/", full.names = T, pattern = "tif")
+
+pic_mats <- lapply(pics, read_tif_to_matrix)
+
+lapply(pic_mats, plot_matrix)
+```
+
+## mmand Examples
+
+```{r}
+fan <- png::readPNG(system.file("images", "fan.png", package="mmand"))
+class(fan)
+# display(fan)
+```
+
+```{r}
+m <- pic_mats[[2]]
+```
+
+
+```{r}
+# ?gaussianSmooth
+m.smooth <- gaussianSmooth(x = m, sigma = c(1,1))
+plot_matrix(m)
+plot_matrix(m.smooth)
+```
+
+
+```{r}
+# ?shapeKernel
+# ?erode
+# ?dilate
+
+k <- shapeKernel(width = rep(2,2), type="diamond") 
+#  type = c("box", "disc", "diamond")
+
+plot_matrix(m) + ggtitle("Original")
+plot_matrix(erode(m,k)) + ggtitle("Erode")
+plot_matrix(dilate(m,k)) + ggtitle("Dilate")
+plot_matrix(dilate(m,k) - erode(m,k)) + ggtitle("DE over original matrix")
+plot_matrix(dilate(m.smooth,k) - erode(m.smooth,k)) + ggtitle("DE over smooth matrix")
+```
+
+```{r}
+# ?gaussianSmooth
+m.smooth <- gaussianSmooth(x = m, sigma = c(2,2))
+plot_matrix(m.smooth)
+```
+
+
+```{r}
+k <- shapeKernel(width = rep(5,2), type="diamond") 
+
+plot_matrix(dilate(m,k) - erode(m,k)) + ggtitle("DE over original matrix")
+plot_matrix(dilate(m.smooth,k) - erode(m.smooth,k)) + ggtitle("DE over smooth matrix")
+```
+
+### Choice: erode images once
+
+```{r}
+m <- pic_mats[[2]]
+
+k <- shapeKernel(width = rep(2,2), type="diamond") 
+
+plot_matrix(m) + ggtitle("Original")
+plot_matrix(erode(m,k)) + ggtitle("Erode")
+plot_matrix(dilate(m,k)) + ggtitle("Dilate")
+plot_matrix(dilate(m,k) - erode(m,k)) + ggtitle("DE over original matrix")
+plot_matrix(dilate(m.smooth,k) - erode(m.smooth,k)) + ggtitle("DE over smooth matrix")
+plot_matrix(erode(erode(m,k), k)) + ggtitle("Erode and Erode")
+```
+
+```{r}
+k <- shapeKernel(width = rep(2,2), type="diamond")
+
+pic_mats.erode <- lapply(pic_mats, erode, kernel = k)
+pic_mats.erode.smooth <- lapply(pic_mats.erode, mmand::gaussianSmooth, sigma = rep(1,2))
+
+lapply(pic_mats.erode, plot_matrix)
+```
+
+### Choice: use gaussian smoothing
+
+This seems like good imput for the hessian stuff:
+
+```{r}
+m.smooth <- gaussianSmooth(x = m, sigma = rep(1,2))
+
+pic_mats.smooth <- lapply(pic_mats, mmand::gaussianSmooth, sigma = rep(1,2))
+
+lapply(pic_mats.smooth, plot_matrix)
+```
+
+### Choice: erode after gaussian smoothing
+
+```{r}
+k <- shapeKernel(width = rep(3,2), type="diamond")
+pic_mats.smooth.erode <- lapply(pic_mats.smooth, erode, kernel = k)
+
+lapply(pic_mats.smooth.erode, plot_matrix)
+```
+
+
+## Have fun!
+
+### DoG stuff
+
+```{r}
+m <- pic_mats[[2]]
+
+k <- shapeKernel(width = rep(2,2), type="diamond") 
+
+plot_matrix(m) + ggtitle("Original")
+plot_matrix(erode(m,k)) + ggtitle("Erode")
+plot_matrix(dilate(m,k)) + ggtitle("Dilate")
+plot_matrix(dilate(m,k) - erode(m,k)) + ggtitle("DE over original matrix")
+plot_matrix(dilate(m.smooth,k) - erode(m.smooth,k)) + ggtitle("DE over smooth matrix")
+plot_matrix(erode(erode(m,k), k)) + ggtitle("Erode and Erode")
+```
+
+```{r}
+img.dog <- erode(m,k) %>% 
+  # smoothie::kernel2dsmooth(kernel.type = "gauss",
+  #                          nx=10, ny=10, sigma=0.5) %>%
+  smoothie::kernel2dsmooth(kernel.type = "LoG",
+                           nx=5, ny=5, sigma=5)
+
+plot_matrix(-img.dog)
+```
+
+### Hessian stuff
+
+#### Compute
+
+```{r}
+hessian_magick <- function(img.data, w=4, neg_data=F){
+  # w <- 4
+  x.range <- w:(dim(img.data)[1]-w)
+  y.range <- w:(dim(img.data)[2]-w)
+  
+  img.hessian <- matrix(nrow = dim(img.data)[1], ncol = dim(img.data)[2])
+  
+  for(x.pix in x.range){
+    for(y.pix in y.range){
+      d <- img.data[(-w:w)+x.pix,(-w:w)+y.pix] %>% 
+        utiles::ijtiff_to_df() %>% 
+        dplyr::rename(z = pix_value)
+      
+      if(neg_data){d$z <- -d$z}
+    
+      d.lm <- lm(z ~ poly(x, degree = 2, raw = T) + poly(y, degree = 2, raw = T) + x*y, data = d)
+      d.lm.s <- summary(d.lm)
+      coef <- d.lm.s$coefficients[,1]
+      names(coef) <- c("intercept", "x1", "x^2", "y1", "y^2", "xy")
+      
+      hessian <- matrix(byrow = T, ncol = 2, c(
+        coef["x^2"], coef["xy"], 
+        coef["xy"], coef["y^2"]
+      ))
+      
+      major_eigenvalue <- eigen(hessian)$values[1]
+      
+      img.hessian[x.pix,y.pix] <- major_eigenvalue
+    }
+  }
+  
+  return(img.hessian)
+}
+```
+
+```{r}
+lapply(pic_mats, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+
+Hessian directo sobre las fotos:
+
+```{r}
+pic_hessians <- lapply_paralelo(pic_mats, hessian_magick, par_packages = c("dplyr"))
+
+lapply(pic_hessians, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+Hessian sobre las fotos suavizadas:
+
+```{r}
+pic_hessians.smooth <- lapply_paralelo(pic_mats.smooth, hessian_magick, par_packages = c("dplyr"))
+
+lapply(pic_hessians.smooth, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+Hessian sobre las fotos erosionadas:
+
+```{r}
+pic_hessian.erode <- lapply_paralelo(pic_mats.erode, hessian_magick, par_packages = c("dplyr"))
+
+lapply(pic_hessian.erode, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+> Que pasa si corro lo mismo *sobre* el resultado anterior?
+
+```{r}
+pic_hessian2.erode <- lapply_paralelo(pic_hessian.erode, hessian_magick, par_packages = c("dplyr"), neg_data=T)
+
+lapply(pic_hessian2.erode, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+> Que pasa si le cambio el window?
+
+```{r}
+pic_hessian.erode3 <- lapply_paralelo(pic_mats.erode, hessian_magick, par_packages = c("dplyr"), w=3)
+
+lapply(pic_hessian.erode3, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+Hessian sobre las fotos suavizadas y luego erosionadas:
+
+```{r}
+pic_hessian.smooth.erode <- lapply_paralelo(pic_mats.smooth.erode, hessian_magick, par_packages = c("dplyr"))
+
+# lapply(pic_mats.smooth.erode, function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessian.smooth.erode, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+Hessian sobre las fotos erosionadas y luego suavizadas:
+
+```{r}
+pic_hessian.erode.smooth <- lapply_paralelo(pic_mats.erode.smooth, hessian_magick, par_packages = c("dplyr"))
+
+# lapply(pic_mats.smooth.erode, function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessian.erode.smooth, function(m) plot_matrix(m) + scale_fill_viridis_c())
+```
+
+Creo que `pic_hessian.erode.smooth` es la mejor porque:
+
+* Conserva un pelín mejor la forma original respecto a `pic_hessians.smooth` y `pic_hessian.smooth.erode`.
+* Es mas uniforme el borde respecto a `pic_hessians` y `pic_hessian.erode`.
+
+```{r}
+lapply(pic_mats[2], function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessians[2], function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessians.smooth[2], function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessian.erode[2], function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessian.smooth.erode[2], function(m) plot_matrix(m) + scale_fill_viridis_c())
+lapply(pic_hessian.erode.smooth[2], function(m) plot_matrix(m) + scale_fill_viridis_c()) # esta
+```
+
+
+#### Threshold and binarize
+
+```{r}
+# m.h <- pic_hessians.smooth[[2]]
+m <- pic_mats[[2]]
+m.h <- pic_hessian.erode.smooth[[2]]
+
+plot_matrix(m) #%>% plotly::ggplotly()
+plot_matrix(m.h) #%>% plotly::ggplotly()
+```
+
+```{r}
+hist(m.h)
+```
+
+Nice!
+
+```{r}
+# m.h.bin <- (m.h > median(m.h, na.rm = T)*1.5) * 1
+m.h.bin <- (m.h > quantile(m.h, probs = 0.7, na.rm = T)) * 1
+# m.h.bin <- (m.h > 0.2) * 1
+
+plot_matrix(m.h.bin)
+```
+
+#### Dilate/Erode the masks
+
+Dilation-erosion makes a weird thing:
+
+```{r}
+k <- shapeKernel(width = rep(3,2), type="disc")
+
+de <- function(m,k) dilate(m,k) - erode(m,k)
+# de <- function(m,k) dilate(erode(m,k),k)
+# ed <- function(m,k) erode(dilate(m,k),k)
+plot_matrix(m.h.bin)
+plot_matrix(erode(m.h.bin, k))
+plot_matrix(dilate(m.h.bin, k))
+plot_matrix(de(m.h.bin, k))
+```
+
+## Save results
+
+```{r}
+
+```
+
