@@ -86,6 +86,8 @@ c(img, img %>% magick::image_convolve('DoG:0,0,2', bias = "50%") %>% magick::ima
 
 ## The Hessian / Ridge detection
 
+### Load image data
+
 ```{r}
 # https://opensky.ucar.edu/islandora/object/technotes%3A514/datastream/PDF/view
 # install.packages("smoothie")
@@ -93,6 +95,8 @@ c(img, img %>% magick::image_convolve('DoG:0,0,2', bias = "50%") %>% magick::ima
 # img.data <- as.numeric(img[[1]])[,,1] * (65536 - 1)
 img.data <- as.numeric(img[[1]])[,,1] * (256 - 1)
 ```
+
+### Build hessian with lm
 
 Segun SO, deberia conseguir el "Hessian" usando valores chiquitos de x e y,
 a partir de parabolas. No se si lo que hice está bien...
@@ -136,6 +140,8 @@ hessian <- matrix(byrow = T, ncol = 2, c(
 hessian
 ```
 
+### Get hessian eigenvalues
+
 > To detect ridges, we want to find areas in the image that look like the last of the plots above, so we're looking for areas where the major eigenvalue of the Hessian is large (compared to the minor eigenvalue).
 > 
 > The simplest way to detect that is just to calculate the major eigenvalue at each pixel - and that's what the ridge filter below does.
@@ -145,6 +151,8 @@ hessian
 ```{r}
 eigen(hessian)
 ```
+
+### Compute for all points
 
 ```{r}
 w <- 4
@@ -180,6 +188,7 @@ img.data.df <- ijtiff_to_df(img.data)
 img.hessian.df <- ijtiff_to_df(img.hessian) %>% rename(hessian = pix_value)
 ```
 
+### Plot results
 
 ```{r}
 img.data.df %>% 
@@ -199,6 +208,7 @@ img.data.df %>%
   scale_fill_gradient(low = "black", high = "white") + scale_color_viridis_c()
 ```
 
+## Smooth and DoG 
 
 ```{r}
 img.dog <- img.data %>% 
