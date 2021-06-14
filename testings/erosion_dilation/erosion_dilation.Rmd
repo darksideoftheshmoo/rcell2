@@ -621,6 +621,11 @@ m.contracted <-
 
 Esta tambien fallo porque es mala para las diagonales :(
 
+En ese caso deberia "mirar" a una escala un poco mas grande, si dos vecinos del
+pixel sobre una frontera "diagonal" contienen todos los vecinos de ese pixel.
+
+Tambien habria que asegurar que esos dos pixeles "parent" no sean borrados.
+
 ```{r}
 containment_condition <- function(ids, n1, n2) {
   # setdiff(1, 1:3)

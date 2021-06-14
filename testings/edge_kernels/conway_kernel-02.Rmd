@@ -60,6 +60,9 @@ plot_matrix(dilate(m.smooth,k) - erode(m.smooth,k)) + ggtitle("DE over smooth ma
 
 El problema de este es que en muchas geometrias de frontera,
 el pixel del medio es un camino mas corto entre otros dos localmente
+pero que esta en la frontera que queremos borrar!
+
+Entonces borra corners bien, pero fronteras mal :(
 
 ### Regla vecinos conectados
 
@@ -92,7 +95,8 @@ check_neighs <- function(m33, max_dist=sqrt(2)){
   closest_neigh_dist <- dists %>% apply(MARGIN = 2, function(x) min(x, na.rm=T))
   
   # If TRUE we *can* kill this pixel,
-  # because neighbours do not depend on this one to be connected
+  # because neighbours do not depend on this one to be connected directly
+  # i.e. they are all adyacent to at least one of other non-central pixels
   closest_neigh_dist.condition <- all(closest_neigh_dist <= max_dist)
   
   # ¿But should we kill it? A 1-filled matrix will say "you may kill"
@@ -372,6 +376,7 @@ knitr::include_graphics(dir("/tmp/test1", full.names = T))
 
 ```{r}
 mask <- utiles::read_tif_to_matrix("testings/edge_kernels/48pix.tif", binarize = T)
+plot_binary_matrix(mask)
 
 iterate_erode <- function(mask, ..., .dir=tempdir()){
   
@@ -430,5 +435,10 @@ iterate_erode(mask)
 
 ## Proxima idea
 
-* Buscar el patron 101 / 1001 / 10001 / etc. en la secuencia de ir alrededor al pixel central, para encontrar si el pixel del medio conecta dos pixeles de alrededor.
-* Si se muere, pasar la vida al de al lado (ojo con oscilaciones, debe haber un criterio de terminacion, quizas decir que con un poquito de vida queda totalmente vivo para la comparación con la iteracion anterior).
+Quizas integrando `contract_by_cointainment` de `erosion_dilation.Rmd` logre algo.
+
+Ese si hacia bien el erosion sobre las fronteras (rectas al menos).
+Hay que arreglarlo para que coma diagonales tmb (todo sin comer los "parents").
+
+Una facil seria erosionar "a mano" pixeles de diagonales (siempre que
+no sean parents de otro) por patrón hardcoreado.
