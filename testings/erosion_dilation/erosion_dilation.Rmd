@@ -369,7 +369,8 @@ library(tidyverse)
 library(igraph)
 library(mmand)
 library(utiles)
-m.h.bin <- readRDS("m.h.bin.RDS")
+m.h.bin <- utiles::read_tif_to_matrix("testings/edge_kernels/48pix.tif", binarize = T)
+# m.h.bin <- readRDS("m.h.bin.RDS")
 ```
 
 
@@ -541,8 +542,7 @@ graph_to_coords_df <- function(cgraph){
 
 ```{r}
 coords_df_to_mat <- function(df, ncols, nrows, fill_var=1, default_val=0){
-  output.mat <- matrix(0, ncol = ncol(binary_mask), nrow = nrow(binary_mask))
-  graph.coords.df
+  output.mat <- matrix(0, ncol = ncols, nrow = nrows)
   
   if(fill_var == 1){
     df[,fill_var] <- 1
@@ -619,7 +619,7 @@ m.contracted <-
 
 ### Tengo todos tus vecinos (o más!)
 
-ESta tambien fallo porque es mala para las diagonales :(
+Esta tambien fallo porque es mala para las diagonales :(
 
 ```{r}
 containment_condition <- function(ids, n1, n2) {
@@ -700,27 +700,27 @@ contract_by_cointainment <- function(cgraph, .plot=F){
   # Luckily if vertices are "clustered", the cluster memberships can be used as a mapping vector directly.
   n.nodes <- length(V(cgraph))
   contract.df <- cgraph.e.df[cgraph.e.df$samehood, c("from", "to")]
-  contract.df <- bind_rows(contract.df, 
+  contract.df <- bind_rows(contract.df,
                            data.frame(from = 1:n.nodes, to = 1:n.nodes)) # Force all nodes to be present
   sh.graph <- igraph::graph_from_edgelist(as.matrix(contract.df))
   sh.graph <- simplify(sh.graph)
   sh.graph.cl <- igraph::clusters(sh.graph)
-  
-  if(.plot) 
+
+  if(.plot)
     plot(sh.graph,
        vertex.size = 8, vertex.label.cex = 0.5, edge.width=0.1, edge.color="black")
-  
-  cgraph.contract <- igraph::contract(graph = cgraph, 
+
+  cgraph.contract <- igraph::contract(graph = cgraph,
                                       mapping = sh.graph.cl$membership,
                                       vertex.attr.comb = "concat")
-  
+
   cgraph.contract <- simplify(cgraph.contract)
   
   if(.plot)
     plot(cgraph.contract,
          vertex.size = 8, vertex.label.cex = 0.5, edge.width=0.1, edge.color="black")
   
-  # return(cgraph.contract)
+  # return(cgraph.contract) # only for plotting
   return(cgraph.non.childs)
 }
 ```
@@ -877,5 +877,6 @@ No fue trivial usar "centrality" directo sobre la imagen no binaria:
 #   coord_equal() + scale_y_reverse()
 ```
 
-
 ## Fin
+
+Deberia usar centrality con las intensidades de pixeles (quizas).
