@@ -194,7 +194,9 @@ cell.load.boundaries <- function(data.source,
       with(setNames(path, pos)) %>% 
       lapply(readr::read_tsv) %>% 
       bind_rows(.id = "pos") %>% 
-      mutate(pos = as.integer(pos)) %>% 
+      mutate(pos = as.integer(pos),
+             # CellID positions are zero-indexed, add 1 and enter the R inferno:
+             x=x+1,y=y+1) %>% 
       filter(pixtype %in% pixel.type)
     
     if(close.paths){
