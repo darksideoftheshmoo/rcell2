@@ -179,7 +179,7 @@ cell.load.boundaries <- function(data.source,
       filter(channel == tiff.channel) %>% 
       mutate(pos_t.frame = paste(pos, t.frame, sep = "_")) %>% 
       with(setNames(file, pos_t.frame)) %>% 
-      lapply(FUN = rcell2::read_tiff_masks, ... = ...) %>% 
+      lapply(FUN = rcell2::read_tiff_masks, ...) %>% 
       bind_rows(.id = "pos_t.frame") %>% 
       separate(pos_t.frame, into = c("pos", "t.frame"), convert = T)
   }
