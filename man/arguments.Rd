@@ -6,7 +6,7 @@
 \usage{
 arguments(
   path,
-  parameters,
+  parameters = rcell2::parameters.write(),
   BF.pattern = "^BF",
   file.pattern = "^(BF|[A-Z]FP)_Position(\\\\d+)_time(\\\\d+).tif$",
   file.pattern.groups.order = c("ch", "pos", "t.frame"),
@@ -16,7 +16,7 @@ arguments(
 \arguments{
 \item{path}{directory where images are stored, full path.}
 
-\item{parameters}{path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns.}
+\item{parameters}{path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns. Defaults to \code{parameters.write()}.}
 
 \item{BF.pattern}{regex pattern to detect BF images only. Defaults to: \code{"^BF"}}
 
