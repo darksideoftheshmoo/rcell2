@@ -55,6 +55,11 @@ datos.k1 <- readRDS("data/image_samples_classification/datos.RDS") %>%
 
 ```{r}
 one.ucid <- cdata[15,]$ucid
+
+one.boundary <- cell.boundaries %>% 
+  filter(cellID == cdata[15,]$cellID,
+         pos == cdata[15,]$pos,
+         t.frame == cdata[15,]$t.frame)
 ```
 
 
@@ -206,6 +211,12 @@ img.data.df %>%
              data = img.hessian.df #%>% filter(hessian > 0.5, x <60)
              ) +
   scale_fill_gradient(low = "black", high = "white") + scale_color_viridis_c()
+```
+
+Ahora hay que combinarlo con el boundary, pero eso esta en las coordenadas de la imagen BF, no en el "crop" de la celula:
+
+```{r}
+cdata %>% filter(ucid == one.ucid) %>% .[1,c("xpos", "ypos")] %>% unlist()
 ```
 
 ## Smooth and DoG 
