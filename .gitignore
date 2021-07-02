@@ -34,3 +34,9 @@ inst/rcellid
 /time_of_t0.txt
 /data/image_samples_classification/*
 /testings/noise_tests/noise_test_imgs/*.tif
+
+data/image_samples_kernels/
+
+data/image_vision_anns/
+
+data/time_series_image_samples/
