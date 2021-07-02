@@ -496,9 +496,9 @@ tagCellServer <- function(input, output, session) {
          contentType = "image/jpeg")
   }, deleteFile=TRUE)
   
-  # Reactive PLOT 1: user plot  ----------------
+  # Reactive PLOT: user plot  ----------------
   output$plot <- shiny::renderPlot({
-    print("tagCellServer 11: ith_cell reactive plot observer")
+    print("tagCellServer 11: ith_cell reactive user plot observer")
     if(debug_messages) print("- Rendering plot 1")
     
     ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
@@ -509,7 +509,13 @@ tagCellServer <- function(input, output, session) {
     
     ucid_data <- filter(cdata, ucid %in% ith_ucid)
     
-    if(!is.null(tag_ggplot)){
+    if(is.null(tag_ggplot)){
+      print("tagCellServer 11: no tag_ggplot object provided, rendering defult plot!")
+      tag_ggplot <- ggplot() +
+        geom_line(aes(x=t.frame, y=a.tot)) + 
+        geom_vline(xintercept = as.numeric(ith_t.frame), color = "black")
+      tag_ggplot_render <- tag_ggplot %+% ucid_data
+    } else {
       # Add data
       tag_ggplot_render <- tag_ggplot %+% ucid_data
       
@@ -557,11 +563,11 @@ tagCellServer <- function(input, output, session) {
           # ggplot2::guides(text = FALSE) +  # http://www.sthda.com/english/wiki/ggplot2-legend-easy-steps-to-change-the-position-and-the-appearance-of-a-graph-legend-in-r-software
           theme(legend.position = "bottom", legend.title = element_blank())
       }
-      
-      # Render
-      if(debug_messages) print("-- Rendering plot")
-      tag_ggplot_render
     }
+    
+    # Render
+    if(debug_messages) print("-- Rendering plot")
+    tag_ggplot_render
   })
 }
 
