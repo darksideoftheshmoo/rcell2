@@ -459,7 +459,10 @@ tagCellServer <- function(input, output, session) {
     if(debug_messages) print("- Rendering image 1")
     
     # Make the image match the plot's width
-    output_plot_width <- session$clientData$output_plot_width
+    if(is.null(cell_resize)){
+      output_plot_width <- session$clientData$output_plot_width
+      cell_resize <- output_plot_width/length(tag_channels_select)
+    }
     # session$clientData$output_plot_height
     
     if(nrow(d) > 0) {
@@ -470,7 +473,7 @@ tagCellServer <- function(input, output, session) {
                                  p,
                                  # ch=input$image_channel, 
                                  # cell_resize=cell_resize,
-                                 cell_resize=output_plot_width/length(tag_channels_select),
+                                 cell_resize=cell_resize,
                                  ch=tag_channels_select, 
                                  n = n_max, 
                                  equalize_images = equalize_images,

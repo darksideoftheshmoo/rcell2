@@ -14,8 +14,8 @@
 #' @param paths dataframe of image paths 
 #' @param cell_tags list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...)
 #' @param randomize_ucids Randomize ucid order.
-#' @param tag_box_size size of the image crop in pixels
-#' @param cell_resize resize of the image crop in pixels
+#' @param tag_box_size size of the image crop in pixels (integer)
+#' @param cell_resize resize of the image crop in pixels (integer)
 #' @param tag_channels_select a vector giving names for the image channels: c("BF", "YFP.out", etc....)
 #' @param equalize_images Use magick's function to "equalize" the images.
 #' @param normalize_images Use magick's function to "normalize" the images.
@@ -80,7 +80,7 @@ tagCell <- function(cdata,
                     cell_tags,
                     randomize_ucids = FALSE,
                     tag_box_size = 50,
-                    cell_resize=100,
+                    cell_resize=NULL,
                     tag_channels_select=c("BF"),
                     n_max=10,
                     seed = 1,
