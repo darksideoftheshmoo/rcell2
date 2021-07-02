@@ -11,7 +11,7 @@ tagCell(
   cell_tags,
   randomize_ucids = FALSE,
   tag_box_size = 50,
-  cell_resize = 100,
+  cell_resize = NULL,
   tag_channels_select = c("BF"),
   n_max = 10,
   seed = 1,
@@ -33,9 +33,9 @@ tagCell(
 
 \item{randomize_ucids}{Randomize ucid order.}
 
-\item{tag_box_size}{size of the image crop in pixels}
+\item{tag_box_size}{size of the image crop in pixels (integer)}
 
-\item{cell_resize}{resize of the image crop in pixels}
+\item{cell_resize}{resize of the image crop in pixels (integer)}
 
 \item{tag_channels_select}{a vector giving names for the image channels: c("BF", "YFP.out", etc....)}
 

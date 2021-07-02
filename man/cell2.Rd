@@ -10,10 +10,10 @@ cell2(
   no_cores = NULL,
   debug_flag = 0,
   dry = F,
-  label_cells_in_bf = F,
-  fill_interior_pixels = F,
-  output_coords_to_tsv = F,
   encode_cellID_in_pixels = F,
+  fill_interior_pixels = F,
+  label_cells_in_bf = F,
+  output_coords_to_tsv = F,
   ignore.stdout = T,
   intern = T
 )
@@ -29,13 +29,13 @@ cell2(
 
 \item{dry}{Do everything without actually running CellID, print the commands that would have been issued.}
 
-\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l').}
+\item{encode_cellID_in_pixels}{Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').}
 
 \item{fill_interior_pixels}{Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').}
 
-\item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').}
+\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l', default FALSE).}
 
-\item{encode_cellID_in_pixels}{Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').}
+\item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').}
 
 \item{ignore.stdout}{Set to FALSE to see CellID output from a system call.}
 
