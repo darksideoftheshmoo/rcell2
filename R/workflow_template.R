@@ -8,6 +8,6 @@
 #' @return 
 get_workflow_template <- function(file_name = "rcell2_workflow_template.Rmd"){
   if(file.exists("rcell2_workflow_template.Rmd")) stop("get_workflow_template error: file", file_name, "exists.")
-  download.file(url = "https://raw.githubusercontent.com/darksideoftheshmoo/rcell2/master/testings/workflow_template.Rmd", 
+  download.file(url = "https://raw.githubusercontent.com/darksideoftheshmoo/rcell2/master/inst/workflow_template.Rmd",
                 destfile = file_name)
 }
