@@ -1,0 +1,215 @@
+---
+title: "Yeast Linear Classification"
+author: "Nicolás Méndez"
+date: "11/2/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# devtools::load_all("~/Projects/Rdevel/rcell2/", reset = T)
+# devtools::document()
+# devtools::install()
+# library(rcell2)
+library(utiles)
+library(tidyverse)
+# source("R/utils.R")
+```
+
+# Métodos
+
+## LDA
+
+> Linear Classification in R
+
+https://machinelearningmastery.com/linear-classification-in-r/
+
+```{r}
+?MASS::lda
+```
+
+> LDA is a classification method that finds a linear combination of data attributes that best separate the data into classes.
+> 
+> Es como PCA porque reduce las dimensiones, pero se enfoca en maximizar la separabilidad entre categorías conocidas.
+> 
+> PCA reduce las dimensiones enfocándose en las variables con más variabilidad.
+> 
+> Se parece al perceptrón. Quizás sea igual a la alternativa analítica del perceptrón que usamos en ML-UNSAM: ¿algo de fisher? creo que si:
+
+$$\frac{(\mu_1 - \mu_2)^2}{s_1^2 + s_2^2} = maximizar$$
+
+* Stat quest: https://www.youtube.com/watch?v=azXCzI57Yfc
+* https://stats.stackexchange.com/questions/65160/lda-vs-perceptron
+
+> [LDA] makes the assumption that the densities are multivariate normal with the same covariance matrix. This is a strong assumption, but if it is approximately correct, you get a good classifier. 
+
+Creo que LDA tiene el problema del perceptrón: si los datos no son linealmente separables, la convergencia no se asegura (o es inestable).
+
+```{r}
+data(iris)
+
+fit <- MASS::lda(Species~., data = iris)
+
+summary(fit)
+```
+
+```{r}
+plot(fit)
+```
+
+Plots: https://www.r-bloggers.com/2018/03/discriminant-analysis-statistics-all-the-way/
+
+```{r}
+# install.packages("questionr")
+# install.packages("klaR")
+# library(klaR)
+klaR::partimat(Species~.,data=iris,method="lda")
+```
+
+
+```{r}
+predictions <- predict(fit, iris[,1:4])$class
+
+table(predictions, iris$Species)
+```
+
+### PLS-DA
+
+> Partial least squares-discriminant analysis (PLS-DA) is a versatile algorithm that can be used for predictive and descriptive modelling as well as for discriminative variable selection.
+
+https://pubs.rsc.org/en/content/articlelanding/2018/an/c8an00599k
+
+# Prueba con celulas tagueadas
+
+## Load cell.data
+
+Time course switching Dai, con YFP y TFP.
+
+```{r}
+path <- "data/20191212_Timecourse_FAR1-NG_RtCC/full_dataset/"
+
+cell_data.rds <- "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/output/cellid_output_files/cell.data_BF-YFP-TFP-cell.load.alt_20201028_2a70158c79282.RDS" # cell.load.alt BF, TFP & YFP
+cell_data <- readRDS(cell_data.rds)
+
+paths <- cell_data$images
+
+pdata <- read_csv("/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/split_all/pdata.csv")
+
+cdata.rds <- "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/output/filtrado_NAs/cdata.good_20201028_31ad46b643675.RDS" # cell.load.alt con datos TFP NA-filtered cdata 
+cdata <- readRDS(cdata.rds)
+```
+
+## Tag con shinyCell
+
+### Buscar fantasmas
+
+```{r}
+fantasmas <- 
+  cdata %>% left_join(pdata) %>% filter(t.frame==0) %>% 
+  shinyCell(pdata, paths, filters = c(filter_progress, filter_progress2),
+            plotType = "Hex")
+
+saveRDS(fantasmas, "/tmp/fantasmas1.RDS")
+```
+
+
+```{r}
+fantasmas2 <- fantasmas$cdata %>% filter(filter) %>% 
+  shinyCell(pdata, paths,
+            plotType = "Hex")
+
+saveRDS(fantasmas2, "/tmp/fantasmas2.RDS")
+```
+
+```{r}
+tags1.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress12923661b03e.txt") %>% 
+  mutate(otros = case_when(
+  is.na(otros) ~ FALSE,
+  otros ~ TRUE,
+  TRUE ~ NA)) %>% 
+  filter(otros) %>% with(ucid)
+
+tags2.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress129248050268.txt") %>% 
+  mutate(otros = case_when(
+  is.na(otros) ~ FALSE,
+  otros ~ TRUE,
+  TRUE ~ NA)) %>% 
+  filter(otros) %>% with(ucid)
+
+tags3.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress12926f829721.txt") %>% 
+  mutate(otros = case_when(
+  is.na(otros) ~ FALSE,
+  otros ~ TRUE,
+  TRUE ~ NA)) %>% 
+  filter(otros) %>% with(ucid)
+
+ucid.tags.otros <- c(tags1.otros, tags2.otros, tags3.otros)
+```
+
+### Tags con shinyCell
+
+```{r}
+tags <- filter(fantasmas2$cdata, filter & !ucid %in% ucid.tags.otros & ucid >= max(ucid.tags.otros)) %>% 
+  tagCell(pdata, paths, 
+        cell_tags = list(fantasma = TRUE, otros = TRUE),
+        tag_channels_select = "BF.out")
+```
+
+
+```{r}
+d <- 
+  filter(fantasmas2$cdata, filter) %>% 
+  filter(ucid < max(ucid.tags.otros)) %>% 
+  mutate(clase = ifelse(ucid %in% ucid.tags.otros, "otros", "fantasma")) %>% 
+  mutate(clase = ifelse(ucid %in% c(230399, 220149), "fantasma", clase))
+
+shinyCell(d, pdata, paths, initial_facet = "~clase")
+
+saveRDS(d, "linear_tests.fantasmas.RDS")
+```
+
+```{r}
+d <- readRDS("linear_tests.fantasmas.RDS")
+
+fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.local.bg.t, data = d)
+fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.tot.t + f.local.bg.t, data = d)
+fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.tot.t + f.local.bg.t + f.bg.t, data = d)
+
+summary(fit)
+```
+
+```{r}
+predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.local.bg.t")])$class
+predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.tot.t", "f.local.bg.t")])$class
+predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.tot.t", "f.local.bg.t", "f.bg.t")])$class
+
+table(predictions, d$clase)
+```
+
+### Buscar celulas normales
+
+```{r}
+normales <- cdata %>% left_join(pdata) %>% 
+  shinyCell(pdata, paths, plotType = "Hex")
+```
+
+### Buscar shmoos
+
+```{r}
+shmoos <- cdata %>% left_join(pdata) %>% 
+  shinyCell(pdata, paths, plotType = "Hex")
+```
+
+## Tags con shinyCell
+
+```{r}
+tags <- tagCell(cdata, pdata, paths, 
+                cell_tags = list(fantasma = TRUE, 
+                                 bud = TRUE, 
+                                 cell = c("not_a_cell", "normal_cell", "weird_cell")),
+                tag_channels_select = "BF.out", 
+                cell_resize = 200)
+```
+

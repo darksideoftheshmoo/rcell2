@@ -1,0 +1,67 @@
+---
+title: "Split stacks"
+author: "Nicolás Méndez"
+date: "7/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Separar stacks de Stacks_2_5min
+
+```{r}
+path <- "../data/arresto-lavado/Stacks_2_5min/"
+path.pics <- dir(path, full.names = T, pattern = "Position\\d+_[a-zA-Z]{2,3}.tif") %>% normalizePath()
+
+# pics <- lapply(path.pics, ijtiff::read_tif)  # me crashea la sesión
+path.pics %>% basename()
+```
+
+
+```{r}
+paths <- data.frame(pic.path = path.pics,
+                    pic.file = basename(path.pics)) %>% 
+  extract(pic.file, c("pos", "ch"), regex = "Stack_Position(\\d+)_([A-Za-z]+)\\.tif$") %>% 
+  mutate(pos = as.numeric(pos))
+
+head(paths)
+```
+
+El stack de la posicion 40 esta truncado y no se puede leer acá.
+
+```{r, eval=F}
+.paths <- paths %>% 
+  filter(pos != 1)  # La posición 40 está truncada en el BF
+  # filter(pos == 40)  # La posición 40 está truncada en el BF
+
+head(.paths)
+```
+
+
+```{r, eval=F}
+# ?FP_Position*_time*.tif
+# for(pic.path in paths$pic.path[79:96]){
+split_dir <- "split/"
+
+for(pic.path in .paths$pic.path){
+  
+  pic <- ijtiff::read_tif(pic.path)
+  
+  pic.n_stacks <- dim(pic)[4]
+  
+  for(i in 1:pic.n_stacks){
+    
+    dir <- pic.path %>% dirname() %>% {paste(., split_dir, sep = "/")}
+    
+    filename <- pic.path %>% basename() %>% str_replace("Stack_Position(\\d+)_([A-Za-z]+).tif$",
+                                                        "\\2_Position\\1") %>% 
+      {paste0(., "_time", str_pad(as.character(i), width = 2, pad = "0"), ".tif")}
+    
+    dir.create(dir, showWarnings = F)
+    
+    ijtiff::tif_write(pic[,,,i], path = paste0(dir, filename), overwrite = T)
+  }
+}
+```

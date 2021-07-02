@@ -1,0 +1,279 @@
+---
+title: "Task name: Short title"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+    number_sections: true
+editor_options:
+  chunk_output_type: inline
+author: NM
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+urlcolor: blue
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
+---
+
+```{r setup, message=F}
+knitr::opts_chunk$set(message = F)
+knitr::opts_knit$set(root.dir = here::here())
+
+library(tidyverse)
+library(utiles)
+library(rcell2)
+
+# knitr::opts_chunk$set(cache = T)
+```
+
+<!-- your code -->
+
+## Run cell ID
+
+```{r}
+path <- "data/image_vision_anns/"
+
+cid.arguments <- arguments(path, 
+                           file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$")
+```
+
+
+```{r, eval=F}
+cell2(cid.arguments, "~/Software/cellID-linux/cell", 
+      encode_cellID_in_pixels = T)
+```
+
+
+```{r}
+cell.data <- cell.load.alt(path, 
+                           fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+.tif$")
+```
+
+BF paths:
+
+```{r}
+bf <-
+   filter(cell.data$images,
+          channel == "BF", pos == 1) %>%
+  with(file)
+
+bf.out <-
+   filter(cell.data$images,
+          channel == "BF.out", pos == 1) %>%
+  with(file)
+```
+
+Load images:
+
+```{r}
+bf.img <- magick::image_read(bf) %>% magick::image_data() %>% as.numeric() %>% .[, , 1]
+out.img <- read_tif_to_matrix(bf.out)
+
+magick::image_read(bf) %>% rcell2::magickForKnitr() %>% knitr::include_graphics()
+magick::image_read(bf.out) %>% rcell2::magickForKnitr() %>% knitr::include_graphics()
+
+plot_matrix(bf.img)
+plot_matrix(out.img)
+```
+
+## Cargar el BF.out editado en krita
+
+```{r}
+bf.out2 <- read_tif_to_matrix("data/image_vision_anns/edited_masks/BF_Position001.tif.out_edited.tif")
+```
+
+Binarizar:
+
+```{r}
+bf.mask <- (bf.out2 > 0) * 1
+
+image(bf.img, useRaster = T)
+image(bf.mask, col = c("white", "black"), useRaster = T)
+```
+
+## Datos y Arquitecturas
+
+* HED:
+    * https://towardsdatascience.com/review-multichannel-segment-colon-histology-images-biomedical-image-segmentation-d7e57902fbfc
+    * https://github.com/lc82111/Keras_HED
+* UNET: https://www.researchgate.net/figure/Convolutional-neural-network-CNN-architecture-based-on-UNET-Ronneberger-et-al_fig2_323597886
+
+### Partir la imagen en muchos cachos de 100x100
+
+Para keras/tf hace falta una estructura de directorios mal documentada.
+
+Y peor documentadas estan las redes en internet.
+
+Por ejemplo, el codigo de Unet solo toma bien imagenes con dimensiones en 
+potencias de 2. Si no las dimensiones en la de-convolucion no coinciden
+con las domensiones de la convolucion "espejada".
+
+```{r}
+ancho <- ceiling(128/2)
+muchos <- 500
+r_offset <- -1
+
+range.expand <- function(r, n, l_offset=0, r_offset=0) r + c(-n+l_offset, n+r_offset)
+range.fill <- function(r) r[1]:r[2]
+
+dim(bf.mask)
+rangos.max <- {dim(bf.mask) -ancho -r_offset} %>% setNames(c("y", "x"))
+xy.samples <- sapply(rangos.max, function(r) sample(ancho:r, muchos, replace = T))
+
+dir.create("/tmp/samples/train/image/img", F, T)
+dir.create("/tmp/samples/train/mask/img", F, T)
+unlink(x = "/tmp/samples/train/image/img/*")
+unlink(x = "/tmp/samples/train/mask/img/*")
+
+null <- 
+  sapply(1:muchos, function(i){
+    # i=11
+    # print(i)
+    xy <- xy.samples[i,,drop=T]
+    y.range <- range.expand(r = xy["y"], n = ancho, r_offset = r_offset)
+    x.range <- range.expand(r = xy["x"], n = ancho, r_offset = r_offset)
+
+    sub.pic <- bf.img[range.fill(y.range), range.fill(x.range)]
+    sub.mask <- bf.mask[range.fill(y.range), range.fill(x.range)]
+    
+    tiff::writeTIFF(sub.pic,  bits.per.sample = 8, where = paste0("/tmp/samples/train/image/img/", i, ".tif"))
+    tiff::writeTIFF(sub.mask, bits.per.sample = 8, where = paste0("/tmp/samples/train/mask/img/", i, ".tif"))
+    
+    return(NA)
+  })
+```
+```{r}
+ancho <- ceiling(128/2)
+muchos <- 100
+r_offset <- -1
+
+range.expand <- function(r, n, l_offset=0, r_offset=0) r + c(-n+l_offset, n+r_offset)
+range.fill <- function(r) r[1]:r[2]
+
+dim(bf.mask)
+rangos.max <- {dim(bf.mask) -ancho -r_offset} %>% setNames(c("y", "x"))
+xy.samples <- sapply(rangos.max, function(r) sample(ancho:r, muchos, replace = T))
+
+dir.create("/tmp/samples/test/image/img", F, T)
+dir.create("/tmp/samples/test/mask/img", F, T)
+unlink(x = "/tmp/samples/test/image/img/*")
+unlink(x = "/tmp/samples/test/mask/img/*")
+
+null <- 
+  sapply(1:muchos, function(i){
+    # i=11
+    # print(i)
+    xy <- xy.samples[i,,drop=T]
+    y.range <- range.expand(r = xy["y"], n = ancho, r_offset = r_offset)
+    x.range <- range.expand(r = xy["x"], n = ancho, r_offset = r_offset)
+
+    sub.pic <- bf.img[range.fill(y.range), range.fill(x.range)]
+    sub.mask <- bf.mask[range.fill(y.range), range.fill(x.range)]
+    
+    tiff::writeTIFF(sub.pic,  bits.per.sample = 8, where = paste0("/tmp/samples/test/image/img/", i, ".tif"))
+    tiff::writeTIFF(sub.mask, bits.per.sample = 8, where = paste0("/tmp/samples/test/mask/img/", i, ".tif"))
+    
+    return(NA)
+  })
+```
+
+```{r}
+ancho <- ceiling(128/2)
+muchos <- 100
+r_offset <- -1
+
+range.expand <- function(r, n, l_offset=0, r_offset=0) r + c(-n+l_offset, n+r_offset)
+range.fill <- function(r) r[1]:r[2]
+
+dim(bf.mask)
+rangos.max <- {dim(bf.mask) -ancho -r_offset} %>% setNames(c("y", "x"))
+xy.samples <- sapply(rangos.max, function(r) sample(ancho:r, muchos, replace = T))
+
+dir.create("/tmp/samples/validation/image/img", F, T)
+dir.create("/tmp/samples/validation/mask/img", F, T)
+unlink(x = "/tmp/samples/validation/image/img/*")
+unlink(x = "/tmp/samples/validation/mask/img/*")
+
+null <- 
+  sapply(1:muchos, function(i){
+    # i=11
+    # print(i)
+    xy <- xy.samples[i,,drop=T]
+    y.range <- range.expand(r = xy["y"], n = ancho, r_offset = r_offset)
+    x.range <- range.expand(r = xy["x"], n = ancho, r_offset = r_offset)
+
+    sub.pic <- bf.img[range.fill(y.range), range.fill(x.range)]
+    sub.mask <- bf.mask[range.fill(y.range), range.fill(x.range)]
+    
+    tiff::writeTIFF(sub.pic,  bits.per.sample = 8, where = paste0("/tmp/samples/validation/image/img/", i, ".tif"))
+    tiff::writeTIFF(sub.mask, bits.per.sample = 8, where = paste0("/tmp/samples/validation/mask/img/", i, ".tif"))
+    
+    return(NA)
+  })
+```
+
+### Importar en Colab
+
+* https://stackoverflow.com/a/58050474
+* https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image_dataset_from_directory
+* https://www.tensorflow.org/tutorials/images/segmentation
+* https://colab.research.google.com/github/tensorflow/docs/blob/master/site/en/tutorials/load_data/images.ipynb#scrollTo=3vhAMaIOBIee
+* https://towardsdatascience.com/a-keras-pipeline-for-image-segmentation-part-1-6515a421157d
+
+```{python}
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+data_dir = "/content/drive/MyDrive/Colab Notebooks/Colab Data/yeast_vision/"
+val_dir = "/content/drive/MyDrive/Colab Notebooks/Colab Data/yeast_vision/validation/"
+
+files = os.listdir(data_dir)
+
+files
+```
+
+
+```{python}
+data_generator = ImageDataGenerator()
+
+image_generator = data_generator.flow_from_directory(data_dir + "image/", color_mode="grayscale", batch_size=32,
+                                                     target_size=(101, 101),
+                                                     class_mode=None, seed=123)
+
+mask_generator = data_generator.flow_from_directory(data_dir + "mask/", color_mode="grayscale", batch_size=32,
+                                                    target_size=(101, 101),
+                                                    class_mode=None, seed=123)
+
+train_generator = zip(image_generator, mask_generator)
+```
+
+
+```{python}
+data_generator2 = ImageDataGenerator()
+
+image_generator2 = data_generator.flow_from_directory(val_dir + "image/", color_mode="grayscale", batch_size=32,
+                                                     target_size=(101, 101),
+                                                     class_mode=None, seed=123)
+
+mask_generator2 = data_generator.flow_from_directory(val_dir + "mask/", color_mode="grayscale", batch_size=32,
+                                                    target_size=(101, 101),
+                                                    class_mode=None, seed=123)
+
+validation_generator = zip(image_generator2, mask_generator2)
+```
+
+## Colabs
+
+https://colab.research.google.com/drive/19UB-HnquxG5-1-3ocrtv9yUzkrQdjP7J#scrollTo=jeCoSsGanP2B
+
+y este con ejemplos
+
+https://colab.research.google.com/github/tensorflow/docs/blob/master/site/en/tutorials/load_data/images.ipynb#scrollTo=wO0InzL66URu
