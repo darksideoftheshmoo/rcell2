@@ -29,10 +29,10 @@ cellid <- function(args, debug_flag=0){
 #' @param no_cores Position-wise parallelization,internally capped to number of positions in cell.args.
 #' @param dry Do everything without actually running CellID, print the commands that would have been issued.
 #' @param debug_flag Set to 0 to disable CellID printf messages (builtin CellID only).
-#' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l').
-#' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').
-#' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
 #' @param encode_cellID_in_pixels Set to TRUE to write cell interior and boundary pixels with intensity-encoded CellIDs and blank the rest of the image (CellID option '-s').
+#' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').
+#' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l', default FALSE).
+#' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
 #' @param ignore.stdout Set to FALSE to see CellID output from a system call.
 #' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.
 #' @return A dataframe with one column indicating the issued commands. Use rcell2::load_cell_data to get the results from the CellID output, typically located at the images path.
@@ -50,10 +50,10 @@ cell2 <- function(arguments,
                   no_cores = NULL, 
                   debug_flag=0,
                   dry = F,
-                  label_cells_in_bf = F,
-                  fill_interior_pixels = F,
-                  output_coords_to_tsv = F,
                   encode_cellID_in_pixels = F,
+                  fill_interior_pixels = F,
+                  label_cells_in_bf = F,
+                  output_coords_to_tsv = F,
                   ignore.stdout = T, intern = T){
   
   if(F){
