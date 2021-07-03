@@ -216,15 +216,33 @@ En PCA también.
 cdata.m <- cdata.shiny.filtered.tagged %>% 
   dplyr::select(a.tot, fft.stat, el.p, f.t) %>% as.matrix()
 
-cdata.t <- Rtsne::Rtsne(scale(cdata.m), initial_dims=ncol(cdata.m),
+cdata.t <- Rtsne::Rtsne(scale(cdata.m), 
+                        initial_dims=ncol(cdata.m),
                         perplexity = 40)
-
 cdata.p <- princomp(scale(cdata.m))
+
+cdata.tsne <- 
+  cbind(cdata.shiny.filtered.tagged, 
+        as.data.frame(cdata.t$Y))
+
+cdata.pca <- 
+  cbind(cdata.shiny.filtered.tagged, 
+        as.data.frame(cdata.p$scores[,1:2]))
 ```
 
 ```{r}
-cbind(cdata.shiny.filtered.tagged, 
-      as.data.frame(cdata.t$Y)) %>% 
+summary(cdata.p)
+
+cdata.p$loadings
+```
+
+```{r}
+summary(cdata.t)
+```
+
+
+```{r}
+cdata.tsne %>% 
   ggplot() + 
   geom_path(aes(V1,V2, group=ucid,
                             color=as.factor(ucid)),
@@ -235,8 +253,7 @@ cbind(cdata.shiny.filtered.tagged,
                             shape=as.factor(categoria))) + 
   guides(color=FALSE) + ggtitle("tSNE") +theme_minimal()
 
-cbind(cdata.shiny.filtered.tagged, 
-      as.data.frame(cdata.p$scores[,1:2])) %>% 
+cdata.pca %>% 
   ggplot() + geom_path(aes(Comp.1,Comp.2, group=ucid,
                             color=as.factor(ucid)),
             size = .1) + 
@@ -249,8 +266,7 @@ cbind(cdata.shiny.filtered.tagged,
 ```
 
 ```{r, fig.height=10}
-cbind(cdata.shiny.filtered.tagged, 
-      as.data.frame(cdata.t$Y)) %>% 
+cdata.tsne %>% 
   ggplot() + 
   geom_path(aes(V1,V2, group=ucid),
             size = .2) + 
@@ -261,10 +277,7 @@ cbind(cdata.shiny.filtered.tagged,
   guides(color=FALSE) + ggtitle("tSNE") +
   facet_wrap(~ucid+categoria) + theme_minimal()
 
-
-
-cbind(cdata.shiny.filtered.tagged, 
-      as.data.frame(cdata.p$scores[,1:2])) %>% 
+cdata.pca %>% 
   ggplot() + 
   geom_path(aes(Comp.1,Comp.2, group=ucid),
             size = .2) + 
@@ -274,6 +287,60 @@ cbind(cdata.shiny.filtered.tagged,
                             shape=as.factor(categoria))) + 
   guides(color=FALSE) + ggtitle("PCA") +
   facet_wrap(~ucid+categoria) + theme_minimal()
+```
+
+```{r, fig.height=10}
+cdata.tsne %>% 
+  dplyr::select(a.tot, fft.stat, el.p, f.t, 
+                ucid, t.frame,categoria) %>%
+  group_by(ucid) %>% 
+  dplyr::mutate_at(1:4, ~ scale(.)) %>% 
+  pivot_longer(cols=c(a.tot, fft.stat, el.p, f.t, )) %>% 
+  ggplot() + 
+  geom_line(aes(x=t.frame, value, color=name),
+            size = .5) +
+  facet_wrap(~ucid+categoria) + theme_minimal() + ggtitle("Vars")
+```
+
+
+```{r, fig.height=10}
+cdata.tsne %>% 
+  dplyr::select(a.tot, fft.stat, el.p, f.t, 
+                V1,V2,
+                ucid, t.frame,categoria) %>%
+  group_by(ucid) %>% 
+  dplyr::mutate_at(1:6, ~ scale(.)) %>% 
+  pivot_longer(cols=c(V1,V2,
+                      a.tot, fft.stat, el.p, f.t, )) %>% 
+  ggplot() + 
+  geom_line(aes(x=t.frame, value, color=name),
+            size = .5) +
+  facet_wrap(~ucid+categoria) + theme_minimal() + ggtitle("tSNE")
+
+cdata.pca %>% 
+  dplyr::select(a.tot, fft.stat, el.p, f.t, 
+                Comp.1,Comp.2,
+                categoria,ucid, t.frame) %>%
+  group_by(ucid) %>% 
+  dplyr::mutate_at(1:6, ~ scale(.)) %>% 
+  pivot_longer(cols=c(Comp.1,Comp.2,
+                      a.tot, fft.stat, el.p, f.t)) %>% 
+  ggplot() + 
+  geom_line(aes(x=t.frame, value, color=name),
+            size = .5) +
+  facet_wrap(~ucid+categoria) + theme_minimal() + ggtitle("PCA")
+```
+
+
+```{r}
+strips <- cdata.shiny.filtered.tagged %>% rcell2:::cellStrips(paths)
+```
+
+```{r}
+magick::image_join(strips) %>% 
+  magick::image_append(stack = T) %>% 
+  lapply(magickForKnitr) %>% 
+  lapply(knitr::include_graphics)
 ```
 
 
