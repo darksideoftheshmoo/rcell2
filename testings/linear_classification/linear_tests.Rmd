@@ -1,24 +1,283 @@
 ---
-title: "Yeast Linear Classification"
+title: "Yeast Linear Classification and Dimentionality reduction"
 author: "Nicolás Méndez"
 date: "11/2/2020"
 output: html_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
+
+# Setup
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 # devtools::load_all("~/Projects/Rdevel/rcell2/", reset = T)
 # devtools::document()
 # devtools::install()
-# library(rcell2)
+library(rcell2)
 library(utiles)
 library(tidyverse)
 # source("R/utils.R")
 ```
 
-# Métodos
+# Taguear celulas
+
+## Load cell.data
+
+Time course switching Dai, con YFP y TFP.
+
+```{r}
+path <- "data/20191212_Timecourse_FAR1-NG_RtCC/full_dataset/"
+
+cell_data.rds <- "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/output/cellid_output_files/cell.data_BF-YFP-TFP-cell.load.alt_20201028_2a70158c79282.RDS" # cell.load.alt BF, TFP & YFP
+cell_data <- readRDS(cell_data.rds)
+
+paths <- cell_data$images
+
+pdata <- read_csv("/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/split_all/pdata.csv")
+
+cdata.rds <- "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/output/filtrado_NAs/cdata.good_20201028_31ad46b643675.RDS" # cell.load.alt con datos TFP NA-filtered cdata 
+cdata <- readRDS(cdata.rds)
+```
+
+## Tag con shinyCell
+
+### Buscar fantasmas
+
+```{r}
+# fantasmas <- 
+#   cdata %>% left_join(pdata) %>% filter(t.frame==0) %>% 
+#   shinyCell(pdata, paths, filters = c(filter_progress, filter_progress2),
+#             plotType = "Hex")
+# 
+# saveRDS(fantasmas, "/tmp/fantasmas1.RDS")
+```
+
+
+```{r}
+# fantasmas2 <- fantasmas$cdata %>% filter(filter) %>% 
+#   shinyCell(pdata, paths,
+#             plotType = "Hex")
+# 
+# saveRDS(fantasmas2, "/tmp/fantasmas2.RDS")
+```
+
+```{r}
+# tags1.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress12923661b03e.txt") %>% 
+#   mutate(otros = case_when(
+#   is.na(otros) ~ FALSE,
+#   otros ~ TRUE,
+#   TRUE ~ NA)) %>% 
+#   filter(otros) %>% with(ucid)
+# 
+# tags2.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress129248050268.txt") %>% 
+#   mutate(otros = case_when(
+#   is.na(otros) ~ FALSE,
+#   otros ~ TRUE,
+#   TRUE ~ NA)) %>% 
+#   filter(otros) %>% with(ucid)
+# 
+# tags3.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress12926f829721.txt") %>% 
+#   mutate(otros = case_when(
+#   is.na(otros) ~ FALSE,
+#   otros ~ TRUE,
+#   TRUE ~ NA)) %>% 
+#   filter(otros) %>% with(ucid)
+# 
+# ucid.tags.otros <- c(tags1.otros, tags2.otros, tags3.otros)
+```
+
+### Tags con shinyCell
+
+```{r}
+# tags <- filter(fantasmas2$cdata, filter & !ucid %in% ucid.tags.otros & ucid >= max(ucid.tags.otros)) %>% 
+#   tagCell(pdata, paths, 
+#         cell_tags = list(fantasma = TRUE, otros = TRUE),
+#         tag_channels_select = "BF.out")
+```
+
+
+```{r}
+# d <- 
+#   filter(fantasmas2$cdata, filter) %>% 
+#   filter(ucid < max(ucid.tags.otros)) %>% 
+#   mutate(clase = ifelse(ucid %in% ucid.tags.otros, "otros", "fantasma")) %>% 
+#   mutate(clase = ifelse(ucid %in% c(230399, 220149), "fantasma", clase))
+# 
+# shinyCell(d, pdata, paths, initial_facet = "~clase")
+# 
+# saveRDS(d, "linear_tests.fantasmas.RDS")
+```
+
+```{r}
+# d <- readRDS("linear_tests.fantasmas.RDS")
+# 
+# fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.local.bg.t, data = d)
+# fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.tot.t + f.local.bg.t, data = d)
+# fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.tot.t + f.local.bg.t + f.bg.t, data = d)
+# 
+# summary(fit)
+```
+
+```{r}
+# predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.local.bg.t")])$class
+# predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.tot.t", "f.local.bg.t")])$class
+# predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.tot.t", "f.local.bg.t", "f.bg.t")])$class
+# 
+# table(predictions, d$clase)
+```
+
+### Buscar celulas normales
+
+```{r}
+# normales <- cdata %>% left_join(pdata) %>% 
+#   shinyCell(pdata, paths, plotType = "Hex")
+```
+
+### Buscar shmoos
+
+```{r}
+# shmoos <- cdata %>% left_join(pdata) %>% 
+#   shinyCell(pdata, paths, plotType = "Hex")
+```
+
+## Tags con tagCell
+
+```{r}
+tags <- tagCell(sample_n(cdata, 20), pdata, paths, 
+                cell_tags = list(fantasma = TRUE, 
+                                 bud = TRUE, 
+                                 cell = c("not_a_cell", "normal_cell", "weird_cell")),
+                tag_channels_select = "BF.out", 
+                cell_resize = 200)
+
+tags
+```
+
+## Tags con shinyCell
+
+```{r}
+# cdata.shiny <- cdata %>% filter(pos == 1) %>% 
+#   left_join(pdata) %>% 
+#   shinyCell(pdata, paths, launch.browser = "firefox", initial_vars = c("xpos", "ypos"))
+
+# saveRDS(cdata.shiny, "cdata.shiny.p1.RDS")
+
+# cdata.shiny <- readRDS("testings/linear_classification/cdata.shiny.p1.RDS")
+```
+
+En `cdata.shiny.p1.RDS` guardo tags de trazas buenas de la posicion 1.
+
+```{r}
+pdata %>% filter(pos == 1)
+```
+
+Para empezar esta bien.
+
+```{r}
+# cdata.shiny.tags <- 
+#   cdata.shiny$cdata %>% filter(filter) %>% 
+#   tagCell(pdata, paths, 
+#                 cell_tags = list(categoria = c("fantasma", "normal", "weird_cell" , "otra")),
+#                 tag_channels_select = c("BF.out", "TFP"), 
+#                 cell_resize = 200)
+
+# saveRDS(cdata.shiny.tags, "cdata.shiny.tags.p1.RDS")
+
+# cdata.shiny.tags <- readRDS("testings/linear_classification/cdata.shiny.tags.p1.RDS")
+```
+
+# Métodos Unsupervised
+
+## t-SNE & PCA
+
+https://github.com/jkrijthe/Rtsne
+
+`install.packages("Rtsne") # Install Rtsne package from CRAN`
+
+```{r}
+cdata.shiny <- readRDS("testings/linear_classification/cdata.shiny.p1.RDS")
+cdata.shiny.tags <- readRDS("testings/linear_classification/cdata.shiny.tags.p1.RDS")
+
+cdata.shiny.filtered.tagged <- 
+  cdata.shiny$cdata %>% 
+  filter(filter) %>% 
+  left_join(
+    cdata.shiny.tags %>% select(ucid, categoria)
+  )
+```
+
+
+Usar `scale` fue importante en t-SNE también, a pesar de que `normalize=TRUE` por defecto.
+
+En PCA también.
+
+```{r}
+cdata.m <- cdata.shiny.filtered.tagged %>% 
+  dplyr::select(a.tot, fft.stat, el.p, f.t) %>% as.matrix()
+
+cdata.t <- Rtsne::Rtsne(scale(cdata.m), initial_dims=ncol(cdata.m),
+                        perplexity = 40)
+
+cdata.p <- princomp(scale(cdata.m))
+```
+
+```{r}
+cbind(cdata.shiny.filtered.tagged, 
+      as.data.frame(cdata.t$Y)) %>% 
+  ggplot() + 
+  geom_path(aes(V1,V2, group=ucid,
+                            color=as.factor(ucid)),
+            size = .1) + 
+  
+  geom_point(aes(V1,V2,
+                            color=as.factor(ucid),
+                            shape=as.factor(categoria))) + 
+  guides(color=FALSE) + ggtitle("tSNE") +theme_minimal()
+
+cbind(cdata.shiny.filtered.tagged, 
+      as.data.frame(cdata.p$scores[,1:2])) %>% 
+  ggplot() + geom_path(aes(Comp.1,Comp.2, group=ucid,
+                            color=as.factor(ucid)),
+            size = .1) + 
+  
+  geom_point(aes(Comp.1,Comp.2, group=ucid,
+                            color=as.factor(ucid),
+                            shape=as.factor(categoria))) +
+  
+  guides(color=FALSE) + ggtitle("PCA") +theme_minimal()
+```
+
+```{r, fig.height=10}
+cbind(cdata.shiny.filtered.tagged, 
+      as.data.frame(cdata.t$Y)) %>% 
+  ggplot() + 
+  geom_path(aes(V1,V2, group=ucid),
+            size = .2) + 
+  
+  geom_point(aes(V1,V2,
+                            color=as.factor(categoria),
+                            shape=as.factor(categoria))) + 
+  guides(color=FALSE) + ggtitle("tSNE") +
+  facet_wrap(~ucid+categoria) + theme_minimal()
+
+
+
+cbind(cdata.shiny.filtered.tagged, 
+      as.data.frame(cdata.p$scores[,1:2])) %>% 
+  ggplot() + 
+  geom_path(aes(Comp.1,Comp.2, group=ucid),
+            size = .2) + 
+  
+  geom_point(aes(Comp.1,Comp.2,
+                            color=as.factor(categoria),
+                            shape=as.factor(categoria))) + 
+  guides(color=FALSE) + ggtitle("PCA") +
+  facet_wrap(~ucid+categoria) + theme_minimal()
+```
+
+
+# Métodos Supervisados
 
 ## LDA
 
@@ -75,141 +334,9 @@ predictions <- predict(fit, iris[,1:4])$class
 table(predictions, iris$Species)
 ```
 
-### PLS-DA
+## PLS-DA
 
 > Partial least squares-discriminant analysis (PLS-DA) is a versatile algorithm that can be used for predictive and descriptive modelling as well as for discriminative variable selection.
 
 https://pubs.rsc.org/en/content/articlelanding/2018/an/c8an00599k
-
-# Prueba con celulas tagueadas
-
-## Load cell.data
-
-Time course switching Dai, con YFP y TFP.
-
-```{r}
-path <- "data/20191212_Timecourse_FAR1-NG_RtCC/full_dataset/"
-
-cell_data.rds <- "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/output/cellid_output_files/cell.data_BF-YFP-TFP-cell.load.alt_20201028_2a70158c79282.RDS" # cell.load.alt BF, TFP & YFP
-cell_data <- readRDS(cell_data.rds)
-
-paths <- cell_data$images
-
-pdata <- read_csv("/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/split_all/pdata.csv")
-
-cdata.rds <- "/run/media/nicomic/ACLN1/ACL/Uscope/datos_RtCC/2019-Dai-Far1-NG_reentry/Far1-NG/20191212_Timecourse_FAR1-NG_RtCC/output/filtrado_NAs/cdata.good_20201028_31ad46b643675.RDS" # cell.load.alt con datos TFP NA-filtered cdata 
-cdata <- readRDS(cdata.rds)
-```
-
-## Tag con shinyCell
-
-### Buscar fantasmas
-
-```{r}
-fantasmas <- 
-  cdata %>% left_join(pdata) %>% filter(t.frame==0) %>% 
-  shinyCell(pdata, paths, filters = c(filter_progress, filter_progress2),
-            plotType = "Hex")
-
-saveRDS(fantasmas, "/tmp/fantasmas1.RDS")
-```
-
-
-```{r}
-fantasmas2 <- fantasmas$cdata %>% filter(filter) %>% 
-  shinyCell(pdata, paths,
-            plotType = "Hex")
-
-saveRDS(fantasmas2, "/tmp/fantasmas2.RDS")
-```
-
-```{r}
-tags1.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress12923661b03e.txt") %>% 
-  mutate(otros = case_when(
-  is.na(otros) ~ FALSE,
-  otros ~ TRUE,
-  TRUE ~ NA)) %>% 
-  filter(otros) %>% with(ucid)
-
-tags2.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress129248050268.txt") %>% 
-  mutate(otros = case_when(
-  is.na(otros) ~ FALSE,
-  otros ~ TRUE,
-  TRUE ~ NA)) %>% 
-  filter(otros) %>% with(ucid)
-
-tags3.otros <- read.csv("/tmp/RtmpfJzDyF/tagCell_progress12926f829721.txt") %>% 
-  mutate(otros = case_when(
-  is.na(otros) ~ FALSE,
-  otros ~ TRUE,
-  TRUE ~ NA)) %>% 
-  filter(otros) %>% with(ucid)
-
-ucid.tags.otros <- c(tags1.otros, tags2.otros, tags3.otros)
-```
-
-### Tags con shinyCell
-
-```{r}
-tags <- filter(fantasmas2$cdata, filter & !ucid %in% ucid.tags.otros & ucid >= max(ucid.tags.otros)) %>% 
-  tagCell(pdata, paths, 
-        cell_tags = list(fantasma = TRUE, otros = TRUE),
-        tag_channels_select = "BF.out")
-```
-
-
-```{r}
-d <- 
-  filter(fantasmas2$cdata, filter) %>% 
-  filter(ucid < max(ucid.tags.otros)) %>% 
-  mutate(clase = ifelse(ucid %in% ucid.tags.otros, "otros", "fantasma")) %>% 
-  mutate(clase = ifelse(ucid %in% c(230399, 220149), "fantasma", clase))
-
-shinyCell(d, pdata, paths, initial_facet = "~clase")
-
-saveRDS(d, "linear_tests.fantasmas.RDS")
-```
-
-```{r}
-d <- readRDS("linear_tests.fantasmas.RDS")
-
-fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.local.bg.t, data = d)
-fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.tot.t + f.local.bg.t, data = d)
-fit <- MASS::lda(clase ~ fft.stat + el.p + a.tot + f.tot.t + f.local.bg.t + f.bg.t, data = d)
-
-summary(fit)
-```
-
-```{r}
-predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.local.bg.t")])$class
-predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.tot.t", "f.local.bg.t")])$class
-predictions <- predict(fit, d[,c("fft.stat", "el.p", "a.tot", "f.tot.t", "f.local.bg.t", "f.bg.t")])$class
-
-table(predictions, d$clase)
-```
-
-### Buscar celulas normales
-
-```{r}
-normales <- cdata %>% left_join(pdata) %>% 
-  shinyCell(pdata, paths, plotType = "Hex")
-```
-
-### Buscar shmoos
-
-```{r}
-shmoos <- cdata %>% left_join(pdata) %>% 
-  shinyCell(pdata, paths, plotType = "Hex")
-```
-
-## Tags con shinyCell
-
-```{r}
-tags <- tagCell(cdata, pdata, paths, 
-                cell_tags = list(fantasma = TRUE, 
-                                 bud = TRUE, 
-                                 cell = c("not_a_cell", "normal_cell", "weird_cell")),
-                tag_channels_select = "BF.out", 
-                cell_resize = 200)
-```
 
