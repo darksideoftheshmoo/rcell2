@@ -1,0 +1,103 @@
+category	index	Variable Name	Description
+
+# Cell-ID Output Variables
+
+# Category: General measurements
+
+	1	pos	Position number (i.e., id of image field); same for a single cell through every set of images of a time course. This variable is created by Rcell when the dataset is loaded.
+
+	2	cellID	Cell identification number. In FRET experiments the cells in the upper and lower part of the split image are differentiated by an offset of 1000 added to this value.
+
+	3	ucid	Unique cell id. A variable that identifies cells across different positions; defined as pos*offset+cellID, where offset is 100000. This variable is created by Rcell when the dataset is loaded.
+
+	4	t.frame	Time frame of the cell (0 through n − 1 where n = number of points in the time course). Not every cell is necessarily found in every time point.
+
+	5	time	Time of that time frame in seconds. The time unit is an absolute number of seconds from some time in the distance past, but the time elapsed between time frames is more meaningful (only meaningful if using Metamorph images).
+
+	6	xpos	x coordinate of the centroid of the cell
+
+	7	ypos	y coordinate of the centroid of the cell
+
+	8	f.tot	Sum of the fluorescence image for all the pixels found in that cell
+
+	9	a.tot	Area of the cell in pixels
+
+	10	fft.stat	Statistic derived from the one-dimensional fast-Fourier-transform (FFT) of the function: radius vs. angle, where the radius is the distance from the cell centroid to the boundary at a given angle. Its value is the root of the squared sum of the ratio FFT(ω)/FFT(0) over all ω>0; for a perfect circle FFT_stat is 0, and we interpret this statistic as a measure of non-circularity.
+
+	11	perim	Circumference of the cell in pixel units
+
+	12	maj.axis	Length of the major axis in pixel units
+
+	13	min.axis	Length of the minor in pixel units
+
+	14	flag	Indicates the image type. For example, for YFP and CFP images, all YFP images would be flag 0 and all CFP would be flag 1, assuming that the YFP image was taken earliest in time
+
+	15	rot.vol	Volume of rotation of the cell around its major axis
+
+	16	con.vol	Volume of the cell as determined by the conical volume method (Gordon et al., 2007).
+
+	17	a.vacuole	Vacuole area: calculated from the region inside the cell that is less brightly fluorescent. In exponentially growing cells expressing fluorescence localized to the cytoplasm, this “dark” region corresponds to the vacuole. Prefix type (prepended to channel name/posfix).
+
+	18	f.vacuole	Vacuole fluorescence: calculated from the region inside the cell that is less brightly fluorescent. In exponentially growing cells expressing fluorescence localized to the cytoplasm, this “dark” region corresponds to the vacuole. Prefix type (prepended to channel name/posfix).
+
+	19	f.bg	Fluorescence background level; the mode of the distribution of all fluorescence pixels not associated with any cell. Prefix type (prepended to channel name/posfix).
+
+# Category: to calculate membrane proximal fluorescence (for relocalization experiments)
+
+	20	f.tot.p1	Fluorescence of all the pixels interior to the boundary that is one pixel wider than the cell boundary. Numbers thus include the original cell plus an annular region one pixel around the outside of the cell. Prefix type (prepended to channel name/posfix).
+
+	21	a.tot.p1	Area of all the pixels interior to the boundary that is one pixel wider than the cell boundary. Numbers thus include the original cell plus an annular region one pixel around the outside of the cell.
+
+	22	f.tot.m1	Fluorescence of all pixels interior to the boundary that is one pixel smaller than the cell boundary. Prefix type (prepended to channel name/posfix).
+
+	23	a.tot.m1	Area of all pixels interior to the boundary that is one pixel smaller than the cell boundary
+
+	24	f.tot.m2	Fluorescence of all pixels interior to the boundary that is two pixels smaller than the cell boundary. Prefix type (prepended to channel name/posfix).
+
+	25	a.tot.m2	Area of all pixels interior to the boundary that is two pixels smaller than the cell boundary
+
+	26	f.tot.m3	Fluorescence of all pixels interior to the boundary that is three pixels smaller than the cell boundary. Prefix type (prepended to channel name/posfix).
+
+	27	a.tot.m3	Area of all pixels interior to the boundary that is three pixels smaller than the cell boundary
+
+# Category: Information obtained from the “nuclear image” type (Variables contain the area and fluorescence of concentric disks of user-defined radius.)
+
+	28	f.nucl	Total fluorescence in the found nucleus. To find the nucleus, Cell-ID moves a disc with a radius of two pixels around the interior of the cell and finds the location where the disc has the maximum total fluorescence. From that location it calculates the fluorescence within a circle of four pixels of radius. This process is done for every fluorescence image. If some pixels of the disc fall outside the cell boundary, they are not used in the quantification. Prefix type (prepended to channel name/posfix).
+
+	29	a.nucl	Area of the found nucleus. Prefix type (prepended to channel name/posfix).
+
+	30	f.nucl1 to f.nucl6	Same as f.nucl, but using a disc of increasing radius to calculate the fluorescence for each image. f.nucl1 uses a disc of 2 pixels of radius, f.nucl2 uses a disc of 3 pixels, and so forth up to f.nucl6 which uses a disc of 7 pixels of radius. Prefix type (prepended to channel name/posfix).
+
+	31	a.nucl1 to a.nucl6	The area corresponding to f.nucl1 to f.nucl6. Prefix type (prepended to channel name/posfix).
+
+	32	f.nucl.tag1 to f.nucl.tag6	Same as f.nucl1 to f.nucl6, but the fluorescence is calculated from the nuclear tagged fluorescent channel, specified in step 15b. If no nuclear channel is specified, these variables are equal to f.nucl1 to 6. Prefix type (prepended to channel name/posfix).
+
+# Category: More background information
+
+	33	f.local.bg	Measure of the background level at pixels located 5 radial pixels further out than the cell boundary; thus, a measure of the local fluorescence background level, the average fluorescence per pixel. Only pixels along the annular boundary NOT associated with ANY cell are included; background level here is the mean of the pixels. Prefix type (prepended to channel name/posfix).
+
+	34	a.local.bg	The number of pixels used in the background calculation for local.bg
+
+	35	a.local	Total number of pixels along the annular region, including all pixels (i.e., pixels associated with cells and pixels not associated with any cell)
+
+	36	f.local2.bg	Same as f.local.bg, see a.local2 below. Prefix type (prepended to channel name/posfix).
+
+		a.local2.bg	Same as a.local.bg, see a.local2 below. Prefix type (prepended to channel name/posfix).
+
+		a.local2	Same information as the previous three variables, but using the background level at pixels located x radial pixels outward of the cell boundary, where x is one half of the minor axis of the cell.
+
+# Category: More volume measurements
+
+	37	a.surf	Surface area as calculated by the union of spheres method (Gordon et al., 2007)
+
+	38	sphere.vol	Volume a measured by the union of spheres method (Gordon et al., 2007) 
+
+# Category: Extra variables added by rcell2
+
+		ellipse.perim	Perimeter of the ellipse constructed from each cell's axis values (maj.axis and min.axis, google the formula for details). This would be a reasonable perimeter estimation when cells are roundish.
+
+		el.p	ellipse.perim / perim = Ratio of ellipse perim over the perimeter measured by cellID. If this number is small ( < ~0.7), then it's probably not a cell.
+
+		f	f.tot - (a.tot * f.bg) = Background corrected total fluorescence. Prefix type (prepended to channel name/posfix).
+
+		cf	f / a.tot = Background corrected fluorescence concentration. Prefix type (prepended to channel name/posfix).

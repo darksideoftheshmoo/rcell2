@@ -2,13 +2,14 @@
 #' @param images A magick image vector, with images of the same size preferably.
 #' @param nRow An integer indicating number of rows. If specified, nCol must be specified too.
 #' @param nCol An integer indicating number of rows. If specified, nRow must be specified too.
+#' @param annotate_images_with_index Annotate images with their index (default TRUE).
 #' @return A single magick image of the squared tile.
 # @examples
 # square_tile(images)
 #' @import magick dplyr
 #' @rawNamespace import(foreach, except = c("when", "accumulate"))
 #' @export
-square_tile <- function(images, nRow = NULL, nCol = NULL){
+square_tile <- function(images, nRow = NULL, nCol = NULL, annotate_images_with_index=T){
   
   if(sum(is.null(nRow), is.null(nCol)) == 1) 
     stop("square_tile error: if at least one of nRow or nCol is specified, both of them must.")
@@ -25,9 +26,11 @@ square_tile <- function(images, nRow = NULL, nCol = NULL){
       row_images_index <- row_images_index[row_images_index <= length(images)]
     }
     print(row_images_index)
-    images[row_images_index] %>% 
-      magick::image_border(color = "white", geometry = "20x20") %>% 
-      magick::image_annotate(text = row_images_index, size = 20, gravity = "north") %>% 
+    images[row_images_index] %>% {
+      if(annotate_images_with_index)
+        magick::image_border(., color = "white", geometry = "20x20") %>% 
+         magick::image_annotate(text = row_images_index, size = 20, gravity = "north")
+      else .} %>% 
       magick::image_append()
   }
   
@@ -231,7 +234,11 @@ cellSpread <- function(cdata, paths,
     magick::image_border("green","1x1")
   cell_tile_array <- blank_image  # initialize
   
+  n_pics <- y.cuts*x.cuts
+  
   for(channel in ch){
+    # Formas rapidas de crecer una lista
+    # https://stackoverflow.com/a/29870770
     image_array <- blank_image  # initialize or reset
     
     for(row_i in 1:y.cuts){
@@ -244,13 +251,15 @@ cellSpread <- function(cdata, paths,
         cdata.bin_n <- nrow(cdata.bin)
         
         if(cdata.bin_n >= 1){
+          # Get the pic for a random cell in the bin:
           cdata.bin.one <- sample_n(cdata.bin, 1)
           
           img <- magickCell(cdata = cdata.bin.one, 
                             paths = paths, return_single_imgs = T,
                             ch = channel, boxSize = boxSize, ...) %>% 
+            # Add annotation for amount of cells in the bin
             magick::image_annotate(text = cdata.bin_n, gravity = "northeast", 
-                                   color = "white", boxcolor = "black")
+                                   color = "white", boxcolor = "purple")
         } else {
           img <- blank_image
         }
@@ -259,13 +268,22 @@ cellSpread <- function(cdata, paths,
       }
     }
     
-    cell_tile <- square_tile(image_array[-1], nRow = y.cuts, nCol = x.cuts)
+    # Make the square tile, without index labeling
+    cell_tile <- square_tile(image_array[-1], 
+                             nRow = y.cuts, nCol = x.cuts, 
+                             # This prevents individual pics from being annotate
+                             annotate_images_with_index=F)
     
+    # Prepare X and Y axis labels, using the bin ranges:
     axis_text_box <- magick::image_blank(width = boxSize, height = boxSize,  color = "white")
+    
     axis_label_box_x <- magick::image_blank(width = boxSize*(x.cuts+1), height = boxSize/2, color = "white") %>% 
       image_annotate(text = xvar, size = boxSize/4, gravity = "Center", color = "black", degrees = 0)
+    
     axis_label_box_y <- magick::image_blank(width = boxSize/2, height = boxSize*(y.cuts+1), color = "white") %>% 
       image_annotate(text = yvar, size = boxSize/4, gravity = "Center", color = "black", degrees = -90)
+    
+    saveRDS(object = cdata.binned$x_bins, file = tempfile(tmpdir = "/tmp", fileext = "RDS"))
     
     axis_text_boxes_x <- 
       rep(axis_text_box, x.cuts) %>% 
@@ -279,6 +297,7 @@ cellSpread <- function(cdata, paths,
                              gravity = "Center", color = "black", degrees = -45) %>% 
       image_append(stack = T)
     
+    # Add X and Y axis labels, if requested:
     if(for_plotting){
       cell_tile_labeled <- cell_tile
     } else {

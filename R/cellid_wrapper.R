@@ -1,3 +1,14 @@
+#' Cell-ID output descriptions
+cell2_output_descriptions <- function(){
+  descs <- read.csv(sep = "\t", file = system.file("output_descriptions2.txt", package = "rcell2"))
+  descs <- descs[!(is.na(descs$Variable.Name) | descs$Variable.Name == ""), -1:-2]
+  
+  descs.list <- as.list(descs$Description)
+  names(descs.list) <- descs$Variable.Name
+  
+  return(descs.list)
+}
+
 #' Correr Cell-ID desde R usando .C()
 #'
 #' @param args el comando de cellid entero, tal como se ejecutaria en bash "cell -p ..."
@@ -545,7 +556,8 @@ cell.load.alt <- function(path,
   cell.data <- list(data = d.list$d,
                     images = d.list$d.paths,
                     mapping = d.list$d.map,
-                    channels = unique(d.list$flag.channel.mapping))
+                    channels = unique(d.list$flag.channel.mapping),
+                    variable_descriptions = cell2_output_descriptions())
   
   cat("\rDone loading CellID data!                            \n")
   return(cell.data)

@@ -91,11 +91,19 @@ shinyCell <- function(cdata,
   # https://github.com/MangoTheCat/shinyAppDemo/blob/master/R/launchApp.R
   # Here shinyAppUI() must be executed in order to pass a fluidPage object to shinyApp/runApp
   if(!isFALSE(launch.browser)) {
+    default_browser <- getOption("browser")
     options(browser = launch.browser)
-    launch.browser <- TRUE
+    
+    saved <- shiny::runApp(list(ui = shinyAppUI(), 
+                                server = shinyAppServer), 
+                           launch.browser = T)
+    options(browser = default_browser)
+    
+  } else {
+    saved <- shiny::runApp(list(ui = shinyAppUI(), 
+                                server = shinyAppServer))
   }
-  saved <- shiny::runApp(list(ui = shinyAppUI(), server = shinyAppServer), 
-                         launch.browser = launch.browser)
+
 
   # Imprimir cosas antes de cerrar la app
   print("Chau! returning 'invisible' results...")
