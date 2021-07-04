@@ -11,13 +11,12 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# devtools::load_all("~/Projects/Rdevel/rcell2/", reset = T)
+devtools::load_all("~/Projects/Rdevel/rcell2/", reset = T)
 # devtools::document()
 # devtools::install()
-library(rcell2)
+# library(rcell2)
 library(utiles)
 library(tidyverse)
-# source("R/utils.R")
 ```
 
 # Taguear celulas
@@ -214,7 +213,10 @@ En PCA también.
 
 ```{r}
 cdata.m <- cdata.shiny.filtered.tagged %>% 
-  dplyr::select(a.tot, fft.stat, el.p, f.t) %>% as.matrix()
+  dplyr::select(a.tot, 
+                # f.t,
+                # f.bg.t,
+                fft.stat, el.p) %>% as.matrix()
 
 cdata.t <- Rtsne::Rtsne(scale(cdata.m), 
                         initial_dims=ncol(cdata.m),
@@ -223,11 +225,13 @@ cdata.p <- princomp(scale(cdata.m))
 
 cdata.tsne <- 
   cbind(cdata.shiny.filtered.tagged, 
-        as.data.frame(cdata.t$Y))
+        as.data.frame(cdata.t$Y)) %>% 
+  arrange(ucid, t.frame)
 
 cdata.pca <- 
   cbind(cdata.shiny.filtered.tagged, 
-        as.data.frame(cdata.p$scores[,1:2]))
+        as.data.frame(cdata.p$scores[,1:2])) %>% 
+  arrange(ucid, t.frame)
 ```
 
 ```{r}
@@ -240,29 +244,38 @@ cdata.p$loadings
 summary(cdata.t)
 ```
 
+## Plot result
 
 ```{r}
 cdata.tsne %>% 
   ggplot() + 
-  geom_path(aes(V1,V2, group=ucid,
-                            color=as.factor(ucid)),
+  geom_path(aes(V1, V2, 
+                group=ucid,
+                color=as.factor(categoria)),
             size = .1) + 
   
-  geom_point(aes(V1,V2,
-                            color=as.factor(ucid),
-                            shape=as.factor(categoria))) + 
-  guides(color=FALSE) + ggtitle("tSNE") +theme_minimal()
+  geom_point(aes(V1, V2,
+                 # shape=as.factor(categoria),
+                 color=as.factor(categoria)
+             )) + 
+  guides(color=FALSE) +
+  ggtitle("tSNE") +theme_minimal()
 
 cdata.pca %>% 
-  ggplot() + geom_path(aes(Comp.1,Comp.2, group=ucid,
-                            color=as.factor(ucid)),
+  ggplot() +
+  geom_path(aes(Comp.1, Comp.2, 
+                group=ucid,
+                color=as.factor(categoria)),
             size = .1) + 
   
-  geom_point(aes(Comp.1,Comp.2, group=ucid,
-                            color=as.factor(ucid),
-                            shape=as.factor(categoria))) +
+  geom_point(aes(Comp.1, Comp.2, 
+                 group=ucid,
+                 # shape=as.factor(categoria),
+                 color=as.factor(categoria)
+                 )) +
   
-  guides(color=FALSE) + ggtitle("PCA") +theme_minimal()
+  guides(color=FALSE) +
+  ggtitle("PCA") +theme_minimal()
 ```
 
 ```{r, fig.height=10}
@@ -288,6 +301,20 @@ cdata.pca %>%
   guides(color=FALSE) + ggtitle("PCA") +
   facet_wrap(~ucid+categoria) + theme_minimal()
 ```
+
+## View results with shinyCell
+
+```{r}
+# devtools::load_all("~/Projects/Rdevel/rcell2/", reset = T)
+
+# shinyCell(cdata.tsne, pdata, paths, launch.browser = "firefox", initial_vars = c("V1", "V2"))
+shinyCell(cdata.pca %>% filter(ucid == 10170), pdata, paths,
+          # launch.browser = "firefox",
+          # launch.browser = T,
+          plotType = "Pics",
+          initial_vars = c("Comp.1", "Comp.2"))
+```
+
 
 ```{r, fig.height=10}
 cdata.tsne %>% 
