@@ -95,7 +95,7 @@ cell2 <- function(arguments,
     setup_strategy = "sequential"  #https://github.com/rstudio/rstudio/issues/6692
     # outfile = NULL
   )
-  parallel::clusterExport(cl, "arguments")
+  parallel::clusterExport(cl, "arguments", envir = environment())
   doParallel::registerDoParallel(cl)
   
   sent_commands <- foreach::foreach(pos=positions) %dopar% {
