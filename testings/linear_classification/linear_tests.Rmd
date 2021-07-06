@@ -156,43 +156,58 @@ tags
 ## Tags con shinyCell
 
 ```{r}
-# cdata.shiny <- cdata %>% filter(pos == 1) %>% 
-#   left_join(pdata) %>% 
-#   shinyCell(pdata, paths, launch.browser = "firefox", initial_vars = c("xpos", "ypos"))
+cdata.shiny <- cdata %>% filter(pos == 44) %>%
+  left_join(pdata) %>%
+  shinyCell(pdata, paths,
+            launch.browser = "firefox",
+            initial_vars = c("xpos", "ypos"))
 
-# saveRDS(cdata.shiny, "cdata.shiny.p1.RDS")
+# saveRDS(cdata.shiny, "cdata.shiny.p44.RDS")
 
 # cdata.shiny <- readRDS("testings/linear_classification/cdata.shiny.p1.RDS")
 ```
 
-En `cdata.shiny.p1.RDS` guardo tags de trazas buenas de la posicion 1.
+En `cdata.shiny.p1.RDS` guardo tags de trazas buenas de la posicion 1, hay normales y fantasmas.
+
+En `cdata.shiny.p33.RDS` guardo tags de trazas buenas de la posicion 3, hay alargadas-gordas y fantasmas.
+
+En `cdata.shiny.p44.RDS` guardo tags de trazas buenas de la posicion 3, hay alargadas-gordas y fantasmas.
+
 
 ```{r}
-pdata %>% filter(pos == 1)
+pdata %>% filter(pos %in% c(1,33,44))
 ```
 
 Para empezar esta bien.
 
 ```{r}
-# cdata.shiny.tags <- 
-#   cdata.shiny$cdata %>% filter(filter) %>% 
-#   tagCell(pdata, paths, 
-#                 cell_tags = list(categoria = c("fantasma", "normal", "weird_cell" , "otra")),
-#                 tag_channels_select = c("BF.out", "TFP"), 
-#                 cell_resize = 200)
+cdata.shiny1 <- readRDS("testings/linear_classification/cdata.shiny.p1.RDS")$cdata
+cdata.shiny33 <- readRDS("testings/linear_classification/cdata.shiny.p33.RDS")$cdata
+cdata.shiny44 <- readRDS("testings/linear_classification/cdata.shiny.p44.RDS")$cdata
 
-# saveRDS(cdata.shiny.tags, "cdata.shiny.tags.p1.RDS")
+cdata.shiny.tags <-
+  cdata %>% 
+  left_join(select(cdata.shiny1, ucid, t.frame, filter), by = c("ucid", "t.frame")) %>% 
+  left_join(select(cdata.shiny33, ucid, t.frame, filter), by = c("ucid", "t.frame")) %>% 
+  left_join(select(cdata.shiny44, ucid, t.frame, filter), by = c("ucid", "t.frame")) %>% 
+  filter(filter | filter.x | filter.y) %>% select(-filter, -filter.x, -filter.y) %>% 
+  tagCell(pdata, paths,
+                cell_tags = list(categoria = c("ghost", "poor_segmentation",
+                                               "normal", "budding", "dead",
+                                               # "large",
+                                               "multiple_shmoo", "shmoo" ,
+                                               "other")),
+                tag_channels_select = c("BF.out", "TFP"),
+                cell_resize = 200)
 
-# cdata.shiny.tags <- readRDS("testings/linear_classification/cdata.shiny.tags.p1.RDS")
+saveRDS(cdata.shiny.tags, "cdata.shiny.tags.3pos.RDS")
+
+cdata.shiny.tags <- readRDS("testings/linear_classification/cdata.shiny.tags.3pos.RDS")
 ```
 
 # Métodos Unsupervised
 
-## t-SNE & PCA
-
-https://github.com/jkrijthe/Rtsne
-
-`install.packages("Rtsne") # Install Rtsne package from CRAN`
+## rgl:plot3d
 
 ```{r}
 cdata.shiny <- readRDS("testings/linear_classification/cdata.shiny.p1.RDS")
@@ -202,47 +217,91 @@ cdata.shiny.filtered.tagged <-
   cdata.shiny$cdata %>% 
   filter(filter) %>% 
   left_join(
-    cdata.shiny.tags %>% select(ucid, categoria)
+    cdata.shiny.tags %>% select(ucid, categoria) %>% mutate(categoria=as.factor(categoria))
   )
 ```
 
+```{r}
+options(rgl.useNULL = TRUE) # Suppress the separate window.
+
+mycolors <- c('red', 'green', 'blue')
+cdata.shiny.filtered.tagged$color <- mycolors[ as.numeric(cdata.shiny.filtered.tagged$categoria) ]
+
+rgl::setupKnitr()
+
+x <- cdata.shiny.filtered.tagged$a.tot
+y <- cdata.shiny.filtered.tagged$fft.stat
+z <- cdata.shiny.filtered.tagged$el.p
+colores <- cdata.shiny.filtered.tagged$color
+
+rgl::plot3d(x,y,z,col=colores, size=10, alpha=0.2, #main = "Original variables",
+            xlab="a.tot", ylab="fft.stat", zlab="el.p")
+rgl::rglwidget()
+```
+
+## t-SNE & PCA
+
+https://github.com/jkrijthe/Rtsne
+
+`install.packages("Rtsne") # Install Rtsne package from CRAN`
 
 Usar `scale` fue importante en t-SNE también, a pesar de que `normalize=TRUE` por defecto.
 
 En PCA también.
 
 ```{r}
+descs <- rcell2:::cell2_output_descriptions()
+
+myvars <- 
+sapply(names(cell_data$data), function(s){
+  startsWith(x = s, prefix = names(descs)[-(1:7)]) %>% any()
+}) %>% {.[.]} %>% names
+```
+
+
+```{r}
 cdata.m <- cdata.shiny.filtered.tagged %>% 
-  dplyr::select(a.tot, 
+  # mutate(sarasa = f.local.bg.t - f.tot.t/a.tot) %>%
+  dplyr::select(# sarasa,
                 # f.t,
+                # cf.t,
                 # f.bg.t,
-                fft.stat, el.p) %>% as.matrix()
+                a.tot, fft.stat, el.p) %>%
+  # {.[,names(.) %in% myvars]} %>% 
+  as.matrix()
 
 cdata.t <- Rtsne::Rtsne(scale(cdata.m), 
                         initial_dims=ncol(cdata.m),
                         perplexity = 40)
 cdata.p <- princomp(scale(cdata.m))
-
-cdata.tsne <- 
-  cbind(cdata.shiny.filtered.tagged, 
-        as.data.frame(cdata.t$Y)) %>% 
-  arrange(ucid, t.frame)
-
-cdata.pca <- 
-  cbind(cdata.shiny.filtered.tagged, 
-        as.data.frame(cdata.p$scores[,1:2])) %>% 
-  arrange(ucid, t.frame)
 ```
 
 ```{r}
 summary(cdata.p)
 
 cdata.p$loadings
+
+cdata.p$scores %>% summary()
 ```
 
 ```{r}
 summary(cdata.t)
 ```
+
+```{r}
+cdata.tsne <- 
+  cbind(cdata.shiny.filtered.tagged, 
+        as.data.frame(cdata.t$Y)) %>% 
+  arrange(ucid, t.frame)
+
+cdata.pca <- 
+  bind_cols(cdata.shiny.filtered.tagged, 
+            as.data.frame(cdata.p$scores)) %>% 
+  arrange(ucid, t.frame)
+```
+
+
+
 
 ## Plot result
 
@@ -258,25 +317,41 @@ cdata.tsne %>%
                  # shape=as.factor(categoria),
                  color=as.factor(categoria)
              )) + 
-  guides(color=FALSE) +
+  # guides(color=FALSE) +
   ggtitle("tSNE") +theme_minimal()
 
 cdata.pca %>% 
   ggplot() +
   geom_path(aes(Comp.1, Comp.2, 
                 group=ucid,
-                color=as.factor(categoria)),
+                color=categoria),
             size = .1) + 
   
   geom_point(aes(Comp.1, Comp.2, 
                  group=ucid,
                  # shape=as.factor(categoria),
-                 color=as.factor(categoria)
+                 color=categoria
                  )) +
   
-  guides(color=FALSE) +
+  # guides(color=FALSE) +
   ggtitle("PCA") +theme_minimal()
 ```
+
+```{r}
+mycolors <- c('red', 'green', 'blue')
+cdata.pca$color <- mycolors[ as.numeric(cdata.pca$categoria) ]
+
+rgl::setupKnitr()
+
+x <- cdata.pca$Comp.1
+y <- cdata.pca$Comp.2
+z <- cdata.pca$Comp.3
+colores <- cdata.pca$color
+
+rgl::plot3d(x,y,z,col=colores, size=10, alpha=0.2,
+            xlab="Comp.1", ylab="Comp.2", zlab="Comp.3")
+```
+
 
 ```{r, fig.height=10}
 cdata.tsne %>% 
