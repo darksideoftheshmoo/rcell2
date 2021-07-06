@@ -1,5 +1,5 @@
 ---
-title: "Task name: Short title"
+title: "Medidas metricas o cosas que correlacionan bien con el foco"
 output:
   html_document:
     df_print: paged

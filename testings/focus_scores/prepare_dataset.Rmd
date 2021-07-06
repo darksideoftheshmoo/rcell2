@@ -1,0 +1,112 @@
+---
+title: "Medidas metricas o cosas que correlacionan bien con el foco"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 2
+    number_sections: true
+editor_options:
+  chunk_output_type: inline
+author: NM
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+urlcolor: blue
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
+---
+
+## Libraries
+
+`mmand` with examples: https://www.r-project.org/nosvn/pandoc/mmand.html
+
+```{r}
+# install.packages("mmand")
+```
+
+
+```{r setup, message=F}
+knitr::opts_chunk$set(message = F)
+knitr::opts_knit$set(root.dir = here::here())
+# knitr::opts_chunk$set(cache = T)
+devtools::load_all(reset = T)
+library(utiles)
+library(dplyr)
+library(ggplot2)
+# library(tidyr)
+# library(purrr)
+# library(plotly)
+# library(renv)
+
+library(magick)
+```
+
+
+## Z-position
+
+There is a tag in metamorph's tif: `<prop id="z-position" type="float" value="6716.22">`
+
+```{r}
+image.path <- 
+  "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/BF_Position033.tif"
+```
+
+
+```{r}
+get_prop_values <- function(image.path, prop.id = "z-position"){
+  
+  image.info <- tiff::readTIFF(image.path, info = T, payload = F)
+
+  # image.info %>% select(-description)
+  
+  description.xml <- xml2::read_xml(x = image.info$description)
+
+  description.list <- xml2::as_list(description.xml)
+  
+  description.list$MetaData$PlaneInfo[3]
+  
+  description.list$MetaData$PlaneInfo[[3]] %>% attributes() %>% .[["id"]]
+  
+  which.z_info <- sapply(description.list$MetaData$PlaneInfo, function(plane.info){
+    attributes(plane.info)[["id"]] == prop.id
+  })
+  
+  # which.z_info <- which(which.z_info)[1] # keep the first one
+  prop.values <- 
+    sapply(which(which.z_info), function(which.z_info){
+      prop.attributes <- description.list$MetaData$PlaneInfo[[which.z_info]] %>% attributes()
+    
+      prop.value <- as.numeric(prop.attributes$value)
+    
+      prop.value
+    }) %>% unname()
+  
+  if(length(prop.values) > 1) warning(paste("Found more than one prop with id", prop.id))
+  
+  return(prop.values)
+}
+```
+
+```{r}
+get_prop_values(image.path, prop.id = "z-position")
+```
+
+```{r}
+image.paths <- dir("/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/", pattern = "^BF.*tif$",
+                   full.names = T)
+
+image.paths <- setNames(image.paths, basename(image.paths))
+
+z_positions <- sapply(image.paths, get_prop_values, prop.id = "z-position")
+
+data.frame(BF = names(z_positions), zpos = unname(z_positions))
+```
+
