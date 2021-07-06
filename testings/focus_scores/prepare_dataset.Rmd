@@ -50,7 +50,7 @@ library(magick)
 ```
 
 
-## Z-position
+## Parse Z-position
 
 There is a tag in metamorph's tif: `<prop id="z-position" type="float" value="6716.22">`
 
@@ -59,6 +59,7 @@ image.path <-
   "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/BF_Position033.tif"
 ```
 
+### Write function
 
 ```{r}
 get_prop_values <- function(image.path, prop.id = "z-position"){
@@ -95,9 +96,13 @@ get_prop_values <- function(image.path, prop.id = "z-position"){
 }
 ```
 
+### test function
+
 ```{r}
 get_prop_values(image.path, prop.id = "z-position")
 ```
+
+### apply to all BFs
 
 ```{r}
 image.paths <- dir("/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/", pattern = "^BF.*tif$",
@@ -107,6 +112,145 @@ image.paths <- setNames(image.paths, basename(image.paths))
 
 z_positions <- sapply(image.paths, get_prop_values, prop.id = "z-position")
 
-data.frame(BF = names(z_positions), zpos = unname(z_positions))
+z_positions.df <- data.frame(BF = names(z_positions), zpos = unname(z_positions))
+
+z_positions.df
+```
+
+### Save result
+
+```{r}
+# write.csv(z_positions.df, "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/zdata.csv")
+```
+
+```{r}
+z_positions.df <- read.csv("/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/zdata.csv")
+
+plot(z_positions.df$zpos)
+```
+
+## Rename files for segmentation
+
+```{r}
+image.paths <- dir("/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/", pattern = "^BF.*tif$",
+                   full.names = T)
+```
+
+Puedo usar la 10 o la 33 como referencia de foco cero.
+
+Cualquiera va:
+
+```{r}
+magick::image_read(image.paths[33]) %>% 
+  magick::image_normalize() %>% 
+  rcell2::magickForKnitr() %>% knitr::include_graphics()
+magick::image_read(image.paths[10]) %>% 
+  magick::image_normalize() %>% 
+  rcell2::magickForKnitr() %>% knitr::include_graphics()
+```
+
+Si uso la 10, el desenfocado de 2um para segmentar es la primera imagen o la ultima.
+
+Cualquiera va:
+
+```{r}
+magick::image_read(image.paths[1]) %>% 
+  magick::image_normalize() %>% 
+  rcell2::magickForKnitr() %>% knitr::include_graphics()
+
+magick::image_read(image.paths[40]) %>% 
+  magick::image_normalize() %>% 
+  rcell2::magickForKnitr() %>% knitr::include_graphics()
+```
+
+```{r}
+bf <- image.paths[40]
+new.dir <- paste0(dirname(bf), 
+                  "/images_renamed")
+
+dir.create(new.dir)
+
+new.dir
+```
+
+
+```{r}
+positions <- 1:length(image.paths)
+```
+
+
+```{r}
+bfs <- sapply(positions, function(pos){
+  
+  pos_string <- stringr::str_pad(pos, side = "left", width = 2, pad = 0)
+  
+  new_name <- paste0(
+    new.dir, "/BF_Position", pos_string, ".tif"
+  )
+  
+  file.symlink(from = bf, to = new_name)
+  
+  new_name
+})
+```
+
+
+```{r}
+tfps <- sapply(positions, function(pos){
+  
+  image.path <- image.paths[pos]
+  
+  pos_string <- stringr::str_pad(pos, side = "left", width = 2, pad = 0)
+  
+  new_name <- paste0(
+    new.dir, "/TFP_Position", pos_string, ".tif"
+  )
+  
+  file.symlink(from = image.path, to = new_name)
+  
+  new_name
+})
+```
+
+## Run segmentation
+
+```{r}
+parameters.list <- rcell2::parameters.default()
+
+parameters.list$background_reject_factor <-
+  utiles::value.to.range(parameters.list$background_reject_factor, width = 0.5, by = 0.1)
+
+parameters.df <- expand.grid(parameters.list)
+
+# lapply(1:nrow(parameters.df), function(i){
+#   parameters.list <- parameters.df[i,]
+# })
+
+parameters.list.one <- parameters.df[1,]
+
+parameters.txt <- rcell2::parameters.write(parameters.list.one)
+```
+
+
+```{r}
+new.dir <- "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/images_renamed"
+
+cellid.args <- rcell2::arguments(new.dir,
+                                 file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                 parameters = parameters.txt)
+
+cellid.args
+```
+
+```{r}
+cellid.args.one <- cellid.args[1,]
+
+cellid.args.one
+```
+
+```{r}
+rcell2::cell2(arguments = cellid.args.one, 
+              cell.command = "~/Software/cellID-linux/cell", 
+              output_coords_to_tsv = T)
 ```
 
