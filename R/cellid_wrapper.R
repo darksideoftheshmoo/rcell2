@@ -444,7 +444,7 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
 #' @param path Path to images directory
 #' @param pdata Path to metadata CSV file
 #' @param position.pattern Regex describing what the position string looks like (default ".*Position(\\d+).*") including a capturing group for the position ID number (coerced to integer).
-#' @param fluorescence.pattern Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+_time\\d+.tif$")
+#' @param fluorescence.pattern Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$")
 #' @param ucid.zero.pad Amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions).
 #' @param append.posfix String appended to the channel ID extracted by `fluorescence.pattern` (`NULL` by default, but "FP" is usual).
 #' @param ... Arguments passed on to \code{cargar.out_all}. Patterns for "out" files, fluorescence channel, and other options may be changed here.
@@ -457,7 +457,7 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
 cell.load.alt <- function(path,
                           pdata = NULL,
                           position.pattern = ".*Position(\\d+).*",
-                          fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+_time\\d+.tif$",
+                          fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$",
                           ucid.zero.pad = 4,
                           append.posfix = NULL,
                           ...){

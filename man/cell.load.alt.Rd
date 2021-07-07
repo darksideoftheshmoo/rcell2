@@ -8,7 +8,7 @@ cell.load.alt(
   path,
   pdata = NULL,
   position.pattern = ".*Position(\\\\d+).*",
-  fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\\\d{2})_Position\\\\d+_time\\\\d+.tif$",
+  fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\\\d+)_Position\\\\d+_time\\\\d+.tif$",
   ucid.zero.pad = 4,
   append.posfix = NULL,
   ...
@@ -21,7 +21,7 @@ cell.load.alt(
 
 \item{position.pattern}{Regex describing what the position string looks like (default ".*Position(\\d+).*") including a capturing group for the position ID number (coerced to integer).}
 
-\item{fluorescence.pattern}{Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d{2})_Position\\d+_time\\d+.tif$")}
+\item{fluorescence.pattern}{Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$")}
 
 \item{ucid.zero.pad}{Amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions).}
 
