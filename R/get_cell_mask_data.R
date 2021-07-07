@@ -150,7 +150,7 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
 #' @param arguments The arguments dataframe used to run cellid (prepared with \code{rcell2::arguments}).
 #' @param pixel.type When \code{data.source = "masks.tsv"}, you may choose the pixel "type". At least one of \code{c("i", "b")} for interior and/or boundary pixels ("b" by default).
 #' @param close.paths When TRUE and \code{data.source = "masks.tsv"}, append the first row to the end of the data.frame (groping by cellID and pos). Useful for plotting of making closed polygons.
-#' @param cell.data When \code{data.source = "out.tif"}, provide the cell.data object (prepared with \code{rcell2::cell.load.alt}).
+#' @param cell.data When \code{data.source = "out.tif"}, you **must** provide the cell.data object (prepared with \code{rcell2::cell.load.alt}).
 #' @param tiff.channel When \code{data.source = "out.tif"}, provide the channel name for images holding boundary data ('BF.out' by default).
 #' 
 #' @return A "cell.boundaries" data.frame.

@@ -23,7 +23,7 @@ cell.load.boundaries(
 
 \item{close.paths}{When TRUE and \code{data.source = "masks.tsv"}, append the first row to the end of the data.frame (groping by cellID and pos). Useful for plotting of making closed polygons.}
 
-\item{cell.data}{When \code{data.source = "out.tif"}, provide the cell.data object (prepared with \code{rcell2::cell.load.alt}).}
+\item{cell.data}{When \code{data.source = "out.tif"}, you **must** provide the cell.data object (prepared with \code{rcell2::cell.load.alt}).}
 
 \item{tiff.channel}{When \code{data.source = "out.tif"}, provide the channel name for images holding boundary data ('BF.out' by default).}
 }
