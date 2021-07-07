@@ -344,9 +344,20 @@ cdata <- left_join(cell.data$data, pdata)
 ```{r}
 cdata.shiny <- 
   shinyCell(cdata, pdata, cell.data$images, initial_vars = c("xpos", "ypos"))
+```
 
+This cell is in focus at positions 10 and 33: 
+
+```{r}
 cdata.filtered <- cdata.shiny$cdata %>% filter(filter)
 ```
+
+Save it for later:
+
+```{r}
+# saveRDS(cdata.filtered, paste0(new.dir, "/", "cdata.one.RDS"))
+```
+
 
 ### Moisaic pics
 
@@ -467,6 +478,163 @@ cdata.filtered %>%
           "f.tfp.p1+f.tfp.m1-2*f.tfp") +
   theme_minimal()
 ```
+## Try pixel focus metrics
+
+### Plain intensity
+
+```{r}
+boundary.points <- cell.boundaries %>% 
+  left_join(select(cdata.filtered, pos, cellID, ucid), by = c("pos", "cellID")) %>% 
+  semi_join(cdata.filtered, by = c("pos", "cellID"))
+
+boundary.points.list <- split(boundary.points, ~ ucid)
+
+boundary.itys <- 
+  lapply(boundary.points.list, function(boundary.points.one){
+    pos.one <- boundary.points.one$pos[1]
+  
+    file.one <- cell.data$images %>% 
+      filter(pos == pos.one, channel == "tfp") %>% with(file)
+    
+    img.data.matrix <- utiles::read_tif_to_matrix(file.one) # utiles::plot_matrix(img.data.matrix)
+    
+    img.data.df <- matrix_to_df(img.data.matrix)
+    
+    left_join(boundary.points.one, img.data.df)
+  })
+
+boundary.itys.df <- bind_rows(boundary.itys, .id = "ucid") %>% 
+  left_join(pdata)
+
+boundary.itys.df
+```
+
+```{r}
+boundary.itys.df %>% 
+  group_by(pos, zpos) %>% 
+  summarise(LoG.q95 = boot::boot(data = pix_value, statistic = function(x, o, ...) quantile(x, 0.95), R=50)$t0,
+            LoG.q05 = boot::boot(data = pix_value, statistic = function(x, o, ...) quantile(x, 0.05), R=50)$t0,
+            LoG.q50 = boot::boot(data = pix_value, statistic = function(x, o, ...) quantile(x, 0.5), R=50)$t0,
+            LoG.mean = mean(pix_value)
+            ) %>% 
+  ggplot() +
+  geom_point(aes(zpos,LoG.q05), color="red", alpha=.5) +
+  geom_point(aes(zpos,LoG.q50), color="green", alpha=.5) +
+  geom_point(aes(zpos,LoG.q95), color="blue", alpha=.5) +
+  geom_point(aes(zpos,LoG.mean), color="black", alpha=.5) +
+  # theme_minimal() + scale_color_distiller()
+  theme_minimal()
+```
+
+#### Erosion para agarrar lo de adentro
+
+```{r}
+interior.points <- cell.interior %>% 
+  left_join(select(cdata.filtered, pos, cellID, ucid), by = c("pos", "cellID")) %>% 
+  semi_join(cdata.filtered, by = c("pos", "cellID"))
+
+interior.points.list <- split(interior.points, ~ ucid)
+```
+
+```{r}
+interior.points.one <- interior.points.list[[1]]
+
+ggplot(interior.points.one) + 
+  geom_tile(aes(x,y)) +
+  geom_point(aes(x,y),data=boundary.points.list[[1]])
+```
+
+```{r}
+m <- img.data.matrix
+m[,] <- 0
+for(i in 1:nrow(interior.points.one)) {
+  x <- interior.points.one[i,"x",drop=T]
+  y <- interior.points.one[i,"y",drop=T]
+  m[y,x] <- 1
+}
+```
+
+
+```{r}
+k <- mmand::shapeKernel(width = rep(4,2), type="diamond")
+# k <- mmand::shapeKernel(width = 5, type="disc") 
+
+m.erode <- mmand::erode(m,k)
+m.erode2 <- mmand::erode(m.erode,k)
+
+m.inner_lining <- m.erode-m.erode2
+
+plot_matrix(m) + 
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+plot_matrix(m.erode - m.erode2) +
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+```
+
+```{r}
+m.inner_lining[m.inner_lining==0] <- NA
+m.inner_lining.itys <- m.inner_lining * img.data.matrix
+  
+df.outer <- matrix_to_df(m.inner_lining.itys) %>% filter(!is.na(pix_value))
+```
+
+```{r}
+outer.itys.list <- 
+  lapply(interior.points.list, function(interior.points.one){
+    pos.one <- interior.points.one$pos[1]
+    print(pos.one)
+    id.one <- interior.points.one$cellID[1]
+    frame.one <- interior.points.one$t.frame[1]
+  
+    file.one <- cell.data$images %>% 
+      filter(pos == pos.one, channel == "tfp") %>% with(file)
+    
+    img.data.matrix <- utiles::read_tif_to_matrix(file.one) # utiles::plot_matrix(img.data.matrix)
+    
+    m <- img.data.matrix
+    m[,] <- 0
+    for(i in 1:nrow(interior.points.one)) {
+      x <- interior.points.one[i,"x",drop=T]
+      y <- interior.points.one[i,"y",drop=T]
+      m[y,x] <- 1
+    }
+        
+    k <- mmand::shapeKernel(width = rep(4,2), type="diamond")
+    m.erode <- mmand::erode(m,k)
+    m.erode2 <- mmand::erode(m.erode,k)
+    m.inner_lining <- m.erode-m.erode2
+    m.inner_lining[m.inner_lining==0] <- NA
+    m.inner_lining.itys <- m.inner_lining * img.data.matrix
+      
+    df.outer <- matrix_to_df(m.inner_lining.itys) %>% 
+      filter(!is.na(pix_value)) %>% 
+      mutate(pos = pos.one, cellID = id.one, t.frame=frame.one)
+      
+    return(df.outer)
+  })
+
+outer.itys.df <- bind_rows(outer.itys.list, .id = "ucid") %>% 
+  left_join(pdata)
+
+outer.itys.df
+```
+
+```{r}
+outer.itys.df %>% 
+  group_by(pos, zpos) %>% 
+  summarise(LoG.q95 = boot::boot(data = pix_value, statistic = function(x, o, ...) quantile(x, 0.95), R=50)$t0,
+            LoG.q05 = boot::boot(data = pix_value, statistic = function(x, o, ...) quantile(x, 0.05), R=50)$t0,
+            LoG.q50 = boot::boot(data = pix_value, statistic = function(x, o, ...) quantile(x, 0.5), R=50)$t0,
+            LoG.mean = mean(pix_value)
+            ) %>% 
+  ggplot() +
+  # geom_point(aes(zpos,LoG.q05), color="red", alpha=.5) +
+  geom_point(aes(zpos,LoG.q50), color="green", alpha=.5) +
+  # geom_point(aes(zpos,LoG.q95), color="blue", alpha=.5) +
+  geom_point(aes(zpos,LoG.mean), color="black", alpha=.5) +
+  # theme_minimal() + scale_color_distiller()
+  theme_minimal()
+```
+
 
 ### `imager`'s Hessian
 
@@ -580,9 +748,268 @@ plot_matrix(m.smooth) +
 
 ¿Quizás si un DoG o LoG?
 
-```{r}
+### Edge kernels
 
+#### LoG
+
+El boundary no coincide con el coso negro alrededor, entonces el LoG no es máximo sobre la frontera.
+
+```{r}
+img.log <- img.data.matrix %>% 
+  smoothie::kernel2dsmooth(kernel.type = "gauss",
+                           nx=3, ny=3, sigma=1) %>%
+  smoothie::kernel2dsmooth(kernel.type = "LoG",
+                           nx=5, ny=5, sigma=3)
+
+dim(img.log)
+dim(img.data.matrix)
 ```
 
 
+```{r}
+plot_matrix(img.data.matrix) +
+  geom_point(aes(x,y), size=1, data=boundary.points.one) + 
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+
+plot_matrix(img.log) +
+  geom_point(aes(x,y), size=1, data=boundary.points.one) + 
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+```
+
+
+```{r}
+log.df <- matrix_to_df(img.log) %>% 
+  dplyr::rename(LoG=pix_value)
+
+boundary.points.one.dog <- 
+  left_join(boundary.points.one, log.df)
+```
+
+```{r}
+plot_matrix(img.data.matrix) +
+  geom_point(aes(x,y,color=dog), size=2, data=boundary.points.one.dog) + 
+  scale_color_viridis_c() +
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+```
+##### Aplicar a cada celula
+
+```{r}
+boundary.logs.list <- 
+  lapply(boundary.points.list, function(boundary.points.one){
+    pos.one <- boundary.points.one$pos[1]
+  
+    file.one <- cell.data$images %>% 
+      filter(pos == pos.one, channel == "tfp") %>% with(file)
+    
+    img.data.matrix <- utiles::read_tif_to_matrix(file.one) # utiles::plot_matrix(img.data.matrix)
+    
+    img.log <- img.data.matrix %>% 
+      smoothie::kernel2dsmooth(kernel.type = "gauss",
+                               nx=3, ny=3, sigma=1) %>%
+      smoothie::kernel2dsmooth(kernel.type = "LoG",
+                               nx=5, ny=5, sigma=3)
+    
+    log.df <- matrix_to_df(img.log) %>% 
+      dplyr::rename(LoG=pix_value)
+  
+    boundary.points.one.dog <- 
+      left_join(boundary.points.one, log.df)
+    
+    return(boundary.points.one.dog)
+  })
+
+boundary.logs.df <- bind_rows(boundary.logs.list, .id = "ucid") %>% 
+  left_join(pdata)
+
+boundary.logs.df
+```
+
+No es muuuuy útil... el pico no está centrado y el resto da valores ambiguos (no se sabe si es foco de más o de menos).
+
+```{r}
+boundary.logs.df %>% 
+  group_by(pos, zpos) %>% 
+  summarise(LoG.q95 = boot::boot(data = LoG, statistic = function(x, o, ...) quantile(x, 0.95), R=50)$t0,
+            LoG.q05 = boot::boot(data = LoG, statistic = function(x, o, ...) quantile(x, 0.05), R=50)$t0,
+            LoG.q50 = boot::boot(data = LoG, statistic = function(x, o, ...) quantile(x, 0.5), R=50)$t0,
+            ) %>% 
+  ggplot() +
+  geom_point(aes(zpos,LoG.q05), color="red") +
+  geom_point(aes(zpos,LoG.q50), color="green") +
+  geom_point(aes(zpos,LoG.q95), color="blue") +
+  # theme_minimal() + scale_color_distiller()
+  NULL
+```
+
+
+#### Dilation para expandir la frontera
+
+```{r}
+interior.points <- cell.interior %>% 
+  left_join(select(cdata.filtered, pos, cellID, ucid), by = c("pos", "cellID")) %>% 
+  semi_join(cdata.filtered, by = c("pos", "cellID"))
+
+interior.points.list <- split(interior.points, ~ ucid)
+```
+
+```{r}
+interior.points.one <- interior.points.list[[1]]
+
+ggplot(interior.points.one) + 
+  geom_tile(aes(x,y)) +
+  geom_point(aes(x,y),data=boundary.points.list[[1]])
+```
+
+```{r}
+img.log <- img.data.matrix %>% 
+  smoothie::kernel2dsmooth(kernel.type = "gauss",
+                           nx=3, ny=3, sigma=1) %>%
+  smoothie::kernel2dsmooth(kernel.type = "LoG",
+                           nx=5, ny=5, sigma=3)
+```
+
+
+```{r}
+m <- img.data.matrix
+m[,] <- 0
+for(i in 1:nrow(interior.points.one)) {
+  x <- interior.points.one[i,"x",drop=T]
+  y <- interior.points.one[i,"y",drop=T]
+  m[y,x] <- 1
+}
+```
+
+
+```{r}
+k <- mmand::shapeKernel(width = rep(4,2), type="diamond")
+# k <- mmand::shapeKernel(width = 5, type="disc") 
+
+plot_matrix(m) + 
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+plot_matrix(mmand::dilate(m,k) - m) +
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+```
+
+##### Aplicar a todas
+
+```{r}
+img.log <- img.data.matrix %>% 
+  smoothie::kernel2dsmooth(kernel.type = "gauss",
+                           nx=3, ny=3, sigma=1) %>%
+  smoothie::kernel2dsmooth(kernel.type = "LoG",
+                           nx=5, ny=5, sigma=3)
+
+m <- img.data.matrix
+m[,] <- 0
+for(i in 1:nrow(interior.points.one)) {
+  x <- interior.points.one[i,"x",drop=T]
+  y <- interior.points.one[i,"y",drop=T]
+  m[y,x] <- 1
+}
+
+k <- mmand::shapeKernel(width = rep(4,2), type="diamond")
+m.outer <- mmand::dilate(m,k) - m
+m.outer[m.outer==0] <- NA
+m.outer.log <- m.outer * img.log
+  
+df.outer <- matrix_to_df(m.outer.log) %>% filter(!is.na(pix_value))
+```
+
+```{r}
+outer.logs.list <- 
+  lapply(interior.points.list, function(interior.points.one){
+    pos.one <- interior.points.one$pos[1]
+    print(pos.one)
+    id.one <- interior.points.one$cellID[1]
+    frame.one <- interior.points.one$t.frame[1]
+  
+    file.one <- cell.data$images %>% 
+      filter(pos == pos.one, channel == "tfp") %>% with(file)
+    
+    img.data.matrix <- utiles::read_tif_to_matrix(file.one) # utiles::plot_matrix(img.data.matrix)
+    
+    img.log <- img.data.matrix %>% 
+      smoothie::kernel2dsmooth(kernel.type = "gauss",
+                               nx=3, ny=3, sigma=1) %>%
+      smoothie::kernel2dsmooth(kernel.type = "LoG",
+                               nx=5, ny=5, sigma=3)
+    
+    m <- img.data.matrix
+    m[,] <- 0
+    for(i in 1:nrow(interior.points.one)) {
+      x <- interior.points.one[i,"x",drop=T]
+      y <- interior.points.one[i,"y",drop=T]
+      m[y,x] <- 1
+    }
+    
+    k <- mmand::shapeKernel(width = rep(4,2), type="diamond")
+    m.outer <- mmand::dilate(m,k) - m
+    m.outer[m.outer==0] <- NA
+    m.outer.log <- m.outer * img.log
+      
+    log.df <- matrix_to_df(m.outer.log) %>% 
+      filter(!is.na(pix_value)) %>% 
+      dplyr::rename(LoG=pix_value) %>% 
+      mutate(pos = pos.one, cellID = id.one, t.frame=frame.one)
+    
+    return(log.df)
+  })
+
+outer.logs.df <- bind_rows(outer.logs.list, .id = "ucid") %>% 
+  left_join(pdata)
+
+outer.logs.df
+```
+
+```{r}
+outer.logs.df %>% 
+  group_by(pos, zpos) %>% 
+  summarise(LoG.q95 = boot::boot(data = LoG^2, statistic = function(x, o, ...) quantile(x, 0.95), R=50)$t0,
+            LoG.q05 = boot::boot(data = LoG^2, statistic = function(x, o, ...) quantile(x, 0.05), R=50)$t0,
+            LoG.q50 = boot::boot(data = LoG^2, statistic = function(x, o, ...) quantile(x, 0.5), R=50)$t0,
+            LoG.mean = mean(LoG^2)
+            ) %>% 
+  ggplot() +
+  geom_point(aes(zpos,LoG.q05), color="red", alpha=.5) +
+  geom_point(aes(zpos,LoG.q50), color="green", alpha=.5) +
+  geom_point(aes(zpos,LoG.q95), color="blue", alpha=.5) +
+  geom_point(aes(zpos,LoG.mean), color="black", alpha=.5) +
+  # theme_minimal() + scale_color_distiller()
+  theme_minimal()
+```
+
+```{r}
+cdata.filtered %>% filter(pos==19) %>% 
+  rcell2::cellMagick(cell.data$images) %>% 
+  magickForKnitr(.resize = "200x200") %>% knitr::include_graphics()
+```
+
+
+```{r}
+pos.one <- 19
+
+file.one <- cell.data$images %>% 
+  filter(pos == pos.one, channel == "tfp") %>% with(file)
+
+img.data.matrix <- utiles::read_tif_to_matrix(file.one)
+    
+plot_matrix(img.data.matrix) +
+  geom_point(aes(x,y,color=LoG), data=outer.logs.df %>% filter(zpos == 2)) + scale_color_viridis_c()+
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10)) +
+  facet_wrap(~pos)
+```
+
+```{r}
+pos.one <- 10
+
+file.one <- cell.data$images %>% 
+  filter(pos == pos.one, channel == "tfp") %>% with(file)
+
+img.data.matrix <- utiles::read_tif_to_matrix(file.one)
+
+plot_matrix(img.data.matrix) +
+  geom_point(aes(x,y,color=LoG), data=outer.logs.df %>% filter(zpos == 0)) + scale_color_viridis_c()+
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10)) +
+  facet_wrap(~pos)
+```
 
