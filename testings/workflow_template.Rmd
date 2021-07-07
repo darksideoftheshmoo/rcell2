@@ -10,60 +10,84 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library(magick)
+library(utiles)  # get this from: https://gitlab.com/naikymen/r_utils
+library(rcell2)  # this package
 library(tidyverse)
-library(rcell2)
-
-updateList <- function(l1, l2, only.common.names=T){
-  if(!is.list(l2) | !is.list(l1)) stop("Error: input must be two named lists.")
-  
-  if(only.common.names){
-    common.names <- names(l2)[names(l2) %in% names(l1)]
-    l1[common.names] <- l2[common.names]
-  } else{
-    l1[names(l2)] <- l2[names(l2)]
-  }
-  return(l1)
-}
 ```
 
 ## Friendly reminder
 
-**MIRA LAS FOTOS** CON IMAGEJ ANTES DE SEGUIR :D
+**READ THE README**.md at rcell2's GitHub repo.
+
+**MIRA LAS FOTOS** CON IMAGEJ ANTES DE EMPEZAR :D
+
+Te puede ahorrar mucho tiempo.
+
+## TL:DR FULL EXAMPLE
+
+Run cellid using the selected parameters.
+
+Otherwise you may omit `parameters = parameters.txt` in the `rcell2::arguments()` call,
+or set your own using `rcell2::parameters.default()` and `rcell2::parameters.write()`.
+
+```{r}
+# parameters.txt <- rcell2::parameters.write(rcell2::parameters.default())
+parameters.txt <- rcell2::parameters.write(parameters.list)
+
+cellid.args <- rcell2::arguments(path = new.dir,
+                                 parameters = parameters.txt,  # optional
+                                 file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
+cell2.out <- 
+  rcell2::cell2(arguments = cellid.args, 
+                output_coords_to_tsv = T,  # Optional
+                cell.command = "~/Software/cellID-linux/cell")
+
+cell.data <- rcell2::cell.load.alt(path = new.dir,
+                                   fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
+
+cell.boundaries <- 
+  rcell2::cell.load.boundaries(data.source = "masks.tsv",
+                               arguments = cellid.args,
+                               pixel.type = "b"
+                               )
+```
+
+### Guardar todo el output
+
+Puede ser conveniente guardar todo en una lista:
+
+```{r}
+data.dir <- "/home/sarasa/"
+
+saveRDS(
+  file = paste0(data.dir, "/", "cell2.objects.RDS"),
+  object = list(
+    parameters.df=parameters.df[2,],
+    cellid.args=cellid.args,
+    cell2.out=cell2.out,
+    cell.data=cell.data,
+    cell.boundaries=cell.boundaries
+  ))
+```
+
+### Restaurar output
+
+La listas se pueden cargar como objetos en el environment así: https://stackoverflow.com/a/13797968
+
+```{r}
+list2env(readRDS(paste0(data.dir, "/", "cell2.objects.RDS")),
+         globalenv())
+```
 
 ## CellID
 
-### Choose parameters
-
-```{r}
-parameters <- "parameters_test.txt"
-
-param_array <- c(
-  "max_split_over_minor 0.50",
-  "max_dist_over_waist 8.00",
-  "max_pixels_per_cell 2000",
-  "min_pixels_per_cell 75",
-  "background_reject_factor 0.5",  # must be float! use a decimal point always
-  "tracking_comparison 0.20",
-  # "align_individual_cells",  # tambien se puede deshabilitar con un "#" en el mismo parameters.txt
-  "align_fl_to_bf",
-  "image_type brightfield",
-  "bf_fl_mapping list")
-
-write(param_array, file = parameters)
-```
-
-Imprimir contenidos del parameters.txt que generamos arriba:
-
-```{r}
-writeLines(readLines(parameters))
-```
-
-### Test many parameters
+### Parameters
 
 A prototype parameter list, with defaults:
 
 ```{r}
-param_list.o <- list(
+parameters.list <- list(
   max_split_over_minor = 0.50,
   max_dist_over_waist = 8.00,
   max_pixels_per_cell = 2000,
@@ -77,127 +101,165 @@ param_list.o <- list(
   )
 ```
 
-Then, for each parameter variation, write a new parameters file.
+> Note: this list can be generated with `rcell2::parameters.default()`.
+
+Escribir el archivo `parameters.txt` para CellID:
+
+```{r}
+parameters.txt <- rcell2::parameters.write(parameters.list)
+```
+
+Imprimir contenidos del parameters.txt que generamos recién, solo para revisar:
+
+```{r}
+writeLines(readLines(parameters.txt))
+```
+
+#### Test many!
+
+A veces querés probar muchos parámetros antes de correr CellID en todas las fotos.
+
+For each parameter variation, we need a new parameters file.
 
 In this example, only `background_reject_factor` is changed:
 
 ```{r}
-bgrf.min <- 0
-bgrf.max <- 5
-bgrf.new <- seq(from=bgrf.min, to=bgrf.max, length.out=10)
+parameters.list <- rcell2::parameters.default()
 
-for (background_reject_factor.new in bgrf.new) {
-  
-  # Update prototype parameters
-  param_list <- updateList(param_list.o, 
-                           list(background_reject_factor = sprintf("%.3f", round(background_reject_factor.new,3)) ))
-  
-  # Process the list into a valid parameter list
-  # converting values to character type
-  param_array <- 
-    sapply(seq_along(param_list), function(i) {
-      # For each parameter, get its name and value
-      item_val <- param_list[[i]]
-      item_name <- names(param_list)[i]
+parameters.list$background_reject_factor <-
+  utiles::value.to.range(
+    parameters.list$background_reject_factor,
+    width = 0.75, by = 0.1)
+
+parameters.df <- expand.grid(parameters.list)
+
+test.params <- 1:nrow(parameters.df)
+
+parameters.df
+```
+
+> Note: You might want to select some rows from that table, in that case, simply filter it.
+
+> Note: `utiles::value.to.range` just converts a number to a vector centered on its value (see `base::seq`).
+
+Define working paths:
+
+* One with the images.
+* Another one for testing.
+
+```{r}
+data.dir <- "/tmp/images_directory/"
+test.dir <- "/tmp/images_directory/test.dir"
+dir.create(test.dir)
+```
+
+Now choose one *position* (image set) to use as test for each parameter set:
+
+```{r}
+test.pos = 1
+```
+
+Now comes the magic part, this code makes temporary directories to work on, 
+and avoids messing up the main data directory.
+
+> Note that `utiles::lapply_paralelo` paralelizes the tests, but they can be run sequentially with bare `lapply`.
+> Replace it if you want to try it out! The `foreach` package is nice too.
+
+```{r}
+# result <- 
+  # utiles::lapply_paralelo(lista = test.params, 
+  #                         par_packages = c("rcell2", "base", "dplyr"),
+  #                         # ...
+  #                         parameters.df=parameters.df, 
+  #                         data.dir=data.dir,
+  #                         test.dir=test.dir,
+  #                         # ...
+  #                         # https://stackoverflow.com/a/52674200
+  #                         funcion = function(test.param, test.pos=test.pos, ...) with(list(...), {
+result <-
+  lapply(test.params, function(test.param, test.pos=1){
+    
+    # Get one parameter set
+    parameters.list.one <- parameters.df[test.param,]
+    
+    # Save parameters
+    parameters.txt <- rcell2::parameters.write(parameters.list.one)
+    
+    # Create arguments
+    cellid.args <- rcell2::arguments(data.dir,
+                                     file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                     parameters = parameters.txt)
+    # Subset only one position
+    cellid.args.one <- cellid.args[test.pos,]
+    
+    # Prepare a temp dir for each cellid run
+    tmp.path <- tempfile(pattern = "dir", tmpdir = test.dir)
+    dir.create(tmp.path)
+    file.symlink(from = paste0(cellid.args.one$path, "/",
+                               c(cellid.args.one$image,
+                                 cellid.args.one$bf)),
+                 to = paste0(tmp.path, "/",
+                               c(cellid.args.one$image,
+                                 cellid.args.one$bf))
+                 )
+    
+    # Regenerate arguments for the new tmp path
+    cellid.args.tmp <- rcell2::arguments(tmp.path,
+                                     file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                     parameters = parameters.txt)
+    # Run cellid
+    rcell2::cell2(arguments = cellid.args.tmp, 
+                  cell.command = "~/Software/cellID-linux/cell")
+    
+    # Load output
+    cell.data <- cell.load.alt(tmp.path,
+                               fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
+    
+    # Keep only the image paths dataframe
+    new.images <- 
+      cell.data$images %>% filter(is.out)
+    
+    return(new.images)
+  })
+# )  # END lapply_paralelo #
+
+# Bind the result
+result <- result %>% 
+    bind_rows(.id = "id") %>%
+    mutate(id = as.integer(id))
+```
+
+Make TIFF stacks for each channel and cleanup:
+
+```{r}
+stack.paths <- result %>% 
+    arrange(channel, id) %>% split(~channel) %>% 
+    lapply(function(images){
+      stack.name <- paste0(
+          test.dir, "/", images$channel[1], "_stack-", basename(images$image[1])
+          )
       
-      # Boolean values are for "flag" type parameters
-      # Which enable a feature when present (eg. "align_fl_to_bf")
-      if(isTRUE(item_val))
-        r <- item_name
-      # And, if absent, indicate default behavior:
-      else if(isFALSE(item_val))
-        r <- NA
-      # Other parameters have values
-      # which must be separated from names by a space " "
-      else
-        r <- paste0(item_name, " ", item_val)
+      images$file %>% 
+        magick::image_read() %>% 
+        magick::image_write(path=stack.name)
       
-      return(r)
-      })
-  
-  # Filter any NAs (which come from FALSE flag-type parameters)
-  param_array <- param_array[!is.na(param_array)]
-  
-  # Pretty name for the new parameters file
-  parameters.mod <- paste0(format(round(background_reject_factor.new, 2), nsmall = 2), "_", parameters)
-  
-  # Write to the parameter file
-  write(param_array, file = paste0("tests/", parameters.mod))
-  print(parameters.mod)
-}
+      return(stack.name)
+    })
+
+unlink(dirname(result$file), recursive = T)
+
+stack.paths  # The stacks are saved to these paths
 ```
 
-Conseguir todos parameters.txt modificados:
+Review output in imagej and choose a parameter set:
 
 ```{r}
-path <- here::here("data/test_pics/")
-
-parameters.mod <- dir(here::here("tests/"), pattern = "\\d+.*parameters_test.txt", full.names = T)
-
-parameters.mod
+parameters.list <- parameters.df[2,]
 ```
 
-Preparar dataframe de argumentos:
+> TODO: nombrar los stacks por parameter modificado
 
-```{r}
-i = 1 # Elegir una foto sobre la que probar los diferentes parametros
-
-arguments <- rcell2::cellArgs2(path = path,
-                               # file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
-                               file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$",
-                               parameters = parameters.mod[i])
-
-arguments
-```
-
-Duplicar los archivos de BF con un nombre nuevo para cada parameters:
-
-> Mejora: nombrarlos por parameter modificado
-
-```{r}
-# Duplicate test BF.tiff files (YFP needs not be if thread == 1)
-test_bf <- arguments$bf
-new_pos <- stringr::str_pad(string = 1:length(parameters.mod), width = 3, side = "left", pad = "0")
-test_bf.new <- sapply(new_pos, function(a,b) sub(pattern = "\\d{3}", replacement = a, x = b), b = test_bf)
-# Do the copying...
-lapply(test_bf.new[-1], function(test_bf.n){
-  file.copy(from = normalizePath(paste(path, test_bf, sep = "/"), mustWork = T),
-            to = paste(path, test_bf.n, sep = "/"), overwrite = T
-            )
-})
-```
-
-Repetir la fila seleccionada del arguments dataframe, para crear nuevo dataframe con una fila por variación de parámeters.
-
-Actualizar la columna parameters para que use los nuevos.
-
-Actualizar la columna de bf para que usen un archivo diferente para cada BF.out.
-
-También la de "pos" para que sean todos diferentes.
-
-```{r}
-arguments.rep <- arguments[rep(1,length(parameters.mod)),]
-
-arguments.rep$bf <- test_bf.new
-arguments.rep$pos <- 1:length(parameters.mod)
-arguments.rep$parameters <- normalizePath(parameters.mod)
-
-arguments.rep
-```
-
-Correr CellID **con un solo thread**:
-
-```{r}
-commands <- 
-  rcell2::cell2(arguments.rep,
-                cell.command = "~/Software/cellID-linux/cell",
-                dry = F,
-                no_cores = 1)
-
-commands$commands
-```
-
-Leer fotitos:
+BONUS: Leer fotitos con magick!
 
 ```{r}
 bf.out.imgs.paths <- dir(path, pattern = "^BF.*.out.tif$", full.names = T)
@@ -208,9 +270,9 @@ bf.out.imgs <- magick::image_read(bf.out.imgs.paths) %>%
 magick::image_append(bf.out.imgs, stack = T)
 ```
 
-### Generar arguments
+### Arguments
 
-Es un dataframe con información para CellID.
+Es un dataframe con información para corerr CellID.
 
 La opción más importante es `file.pattern` que es una expresión regular para encontrar archivos de imágenes en el `path`.
 
@@ -235,18 +297,22 @@ Se puede "filtrar" posiciones y tiempos directo desde la regex, o posteriormente
 Noten el `0+?` enfrente del número, que indica que puede haber un cero o más frente al numerito de posición o tiempo en el nombre del archivo.
 
 ```{r}
-path <- "/home/nicomic/Software/cellID-linux/test_data_andy/"
+path <- "~/Software/cellID-linux/test_data/"
 
-arguments <- rcell2::arguments(path = path, 
-                               file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
-                               parameters = parameters)
-arguments
+cellid.args <- rcell2::arguments(path = path, 
+                                 file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
+                                 parameters = parameters)
+cellid.args
 ```
 
-Lo anterior sería lo mismo que filtrar con `dplyr`:
+Obs: su `file.pattern` regex puede variar, por ejemplo si no hay tiempo y solo hay BFs y TFPs, usarian:
+
+* `file.pattern = "^(BF|TFP)_Position(\\d+)().tif$"`
+
+Nota: pueden ver que pasa filtrando con `dplyr`:
 
 ```{r}
-arguments %>% filter(pos == 2, t.frame %in% c(4,2,3))
+cellid.args %>% filter(pos == 2, t.frame %in% c(4,2,3))
 ```
 
 
@@ -258,34 +324,61 @@ La opción `dry = T` indica a la función hacer "todo" menos ejecutar CellID, e 
 
 Para correr los comandos, usen `dry = F` (aunque tambien pueden copiarlos y pegarlos en una terminal, si están en Linux o Mac OS).
 
+El parámetro `cell.command` es el path al ejecutable. En ciertas versiones de `rcell2`,
+el binario se compila durante la instalación y se usa por defecto.
+
 ```{r}
-rcell2::cell2(arguments = arguments, 
+rcell2::cell2(arguments = cellid.args, 
               cell.command = "~/Software/cellID-linux/cell",
               dry = T, no_cores = 2)
 ```
 
-# Cargar CellID data
+## Cargar CellID data
 
 Esto se hace con la función `load_cell_data`:
 
 ```{r}
-# cell.data <- rcell2::cell.load.alt(path =  path)
 cell_data <- rcell2::load_cell_data(path = path)
 ```
 
-Si esa no funciona, pueden intentar con `cell.load.alt`, aunque esta función no está tan probada.
+Si esa no funciona, pueden intentar con `cell.load.alt`:
 
-# Datos de máscaras
+```{r}
+cell.data <- rcell2::cell.load.alt(path = path,
+                                   fluorescence.pattern = "^([GCYRT]FP)_Position\\d+.tif$")
+```
 
-## TIFF pixel ID
+Obs: su `fluorescence.pattern` regex puede variar.
+
+## Analizar datos
+
+### Tidy framework
+
+- [ ] TODO: ¿donde puso los ejemplos/viñetas Ger para su tidy framework?
+
+### Shiny-Magick framework
+
+Ver ejemplos en:
+
+* `testings/examples_celll_and_shiny.Rmd`
+* `testings/test_magickCell.Rmd`
+* `testings/test_shinyCell.Rmd`
+* `testings/test_tagCell.Rmd`
+
+- [ ] TODO: documentar esto bien.
+
+## Datos de máscaras
+
+### TIFF pixel ID
 
 Si especificaron la opción `encode_cellID_in_pixels` en `cell2`, el CellID está codificado en la intensidad de pixel de las fotos de `BF.out`, y se puede cargar usando la funcion `pic_df_from_tiff`.
 
 ```{r}
-rcell2:::pic_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", image_bits = 16)
+rcell2:::pic_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", 
+                          image_bits = 16)
 ```
 
-## TSV output
+### TSV output
 
 Si especificaron la opción `output_coords_to_tsv` en `cell2`, hay un archivo TSV por posición con las coordenadas de los bordes y del interior todas las células en esa posición.
 
@@ -307,7 +400,22 @@ p1
 p2
 ```
 
-## Usar datos de máscaras con Hu Moments
+#### Carga automatica
+
+Esta función requiere el objeto `cellid.args` generado antes:
+
+```{r}
+cell.boundaries <- 
+  rcell2::cell.load.boundaries(data.source = "masks.tsv",
+                               arguments = cellid.args,
+                               pixel.type = "b"
+                               )
+```
+
+
+### Hu Moments
+
+Usar datos de máscaras para calcular sus Hu Moments.
 
 Para usar los datos de los TIFF, solo hace falta correr lo siguiente:
 
@@ -319,8 +427,21 @@ cell_data <- rcell2::append_hues(cell_data = cell_data,
 rcell2:::check_tiff_mask(cell_data)
 ```
  
-Para usar los TFP:
+Para usar los TFP, ver `test_hu_moments.Rmd`.
 
-```{r}
-"test_hu_moments.Rmd"
-```
+### Other analysis (WIP)
+
+There are various mini-projects for analizyng boundary/mask/cellid data. See:
+
+* `testings/curvature_tests`
+* `testings/edge_kernels`
+* `testings/erosion_dilation`
+* `testings/focus_scores`
+* `testings/hu_moments`
+* `testings/ijtiff_masks`
+* `testings/kmeans_filtering_ac`
+* `testings/linear_classification`
+* `testings/noise_tests`
+* `testings/tree_classification`
+* `testings/yeast_vision`
+
