@@ -53,7 +53,7 @@ library(igraph)
 
 <!-- your code -->
 
-## Run cellid and load data
+## Run cellid and load data (old)
 
 Run cellid:
 
@@ -88,6 +88,8 @@ image.data.bf <-
 pdata <- read.csv("data/image_samples/pdata.csv")
 ```
 
+## Smooth sample pic
+
 Take one sample image and a cell to play with:
 
 ```{r}
@@ -103,8 +105,15 @@ dim(img.data.matrix)
 plot_matrix(img.data.matrix)
 ```
 
+```{r}
+m.smooth <- mmand::gaussianSmooth(x = img.data.matrix, sigma = c(0.5,0.5))
 
-## `lm` based Hessian function
+dim(img.data.matrix) == dim(m.smooth)
+```
+
+## Hessian calculation methods
+
+### `lm` based Hessian function
 
 Should iterate over boundary pixels only:
 
@@ -154,14 +163,6 @@ add_hessian_major_eigenvals <- function(boundary.points, img.data.matrix, w=4, n
 }
 ```
 
-Smooth pic:
-
-```{r}
-m.smooth <- mmand::gaussianSmooth(x = img.data.matrix, sigma = c(0.5,0.5))
-
-dim(img.data.matrix) == dim(m.smooth)
-```
-
 Add hessian using the `lm` method and plot the result:
 
 ```{r}
@@ -180,7 +181,7 @@ plot_matrix(m.smooth) +
   coord_cartesian(xlim = c(900,1200), ylim=c(0,250))
 ```
 
-## imager's imhessian function
+### `imager`'s imhessian function
 
 Prepare input:
 
@@ -289,4 +290,299 @@ cdata.h <-
 ```{r}
 shinyCell(cdata.h, pdata, cell.data$images, launch.browser = "firefox")
 ```
+
+## Load focus experiment
+
+```{r}
+new.dir <- "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/images_renamed"
+
+# https://stackoverflow.com/a/13797968
+list2env(readRDS(paste0(new.dir, "/", "cell2.objects.RDS")),
+         globalenv())
+```
+
+Recall the reference plane:
+
+```{r}
+image.paths <- dir("/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/", pattern = "^BF.*tif$",
+                   full.names = T)
+
+bf <- basename(image.paths[33])
+
+bf
+```
+
+Retrieve height data:
+
+```{r}
+z_positions.df <- 
+  read.csv("/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/zdata.csv")
+
+zdata <- z_positions.df %>% 
+  mutate(pos = str_replace(BF, pattern = "BF_Position(\\d+).tif", replacement = "\\1")) %>% 
+  mutate(reference = max((BF == bf) * zpos)) %>% 
+  mutate(zpos = zpos - reference,
+         pos = as.integer(pos)) %>% 
+  select(pos, zpos)
+
+zdata
+```
+
+### Fabricate pdata
+
+```{r}
+pdata <- zdata
+```
+
+```{r}
+cdata <- left_join(cell.data$data, pdata)
+```
+
+
+### Choose a cell
+
+```{r}
+cdata.shiny <- 
+  shinyCell(cdata, pdata, cell.data$images, initial_vars = c("xpos", "ypos"))
+
+cdata.filtered <- cdata.shiny$cdata %>% filter(filter)
+```
+
+### Moisaic pics
+
+```{r}
+magickCell(cdata.filtered, cell.data$images, return_single_imgs = T, n.cells = nrow(cdata.filtered),
+           ch = "BF.out", equalize_images = T) %>% 
+  image_annotate(text = signif(cdata.filtered$zpos,digits = 2), gravity = "north-east", color = "white", boxcolor = "purple",
+                 size = 10) %>% 
+  square_tile() %>% 
+  magickForKnitr() %>% knitr::include_graphics()
+
+magickCell(cdata.filtered, cell.data$images, return_single_imgs = T, n.cells = nrow(cdata.filtered),
+           ch = "tfp", equalize_images = T) %>% 
+  image_annotate(text = signif(cdata.filtered$zpos,digits = 2), gravity = "north-east", color = "white", boxcolor = "purple",
+                 size = 10) %>% 
+  square_tile() %>% 
+  magickForKnitr() %>% knitr::include_graphics()
+```
+
+### Plot variables against Z
+
+Es interesante que parece haber "histéresis" en el foco.
+
+Es razonable igual que haya algo de backslash.
+
+También es posible que el microscopio haya derivado con el tiempo.
+
+La mejor variable parece `f.tot.m1.tfp`, es más suave y tiene más pendiente cerca de zpos~0. 
+
+```{r}
+cell.data$variable_descriptions$f
+cell.data$variable_descriptions$f.tot.p1
+cell.data$variable_descriptions$f.tot.m1
+
+cdata.filtered %>% ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=f.tfp,y=zpos,color=pos)) +
+  theme_minimal() + scale_color_distiller()
+
+cdata.filtered %>% ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=f.tot.p1.tfp,y=zpos,color=pos)) +
+  theme_minimal() + scale_color_distiller()
+
+cdata.filtered %>% ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=f.tot.m1.tfp,y=zpos,color=pos)) +
+  theme_minimal() + scale_color_distiller()
+```
+
+
+```{r}
+cdata.filtered %>% 
+  # cell.data$variable_descriptions$f.tot.p1
+  mutate(f.tfp.p1 = f.tot.p1.tfp - a.tot.p1 * f.bg.tfp) %>% 
+  ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=f.tfp.p1,y=zpos)) +
+  ggtitle("Focus (um) vs f.tfp.p1", 
+          "f.tfp.p1 ~ fluo total corregida incluyendo 1 pixel más hacia afuera") +
+  theme_minimal()
+
+cdata.filtered %>% 
+  # cell.data$variable_descriptions$f.tot.m1
+  mutate(f.tfp.m1 = f.tot.m1.tfp - a.tot.m1 * f.bg.tfp) %>% 
+  ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=f.tfp.m1,y=zpos)) +
+  ggtitle("Focus (um) vs f.tfp.m1", 
+          "f.tfp.m1 ~ fluo corregida excluyendo los pixeles más externos") +
+  theme_minimal()
+```
+
+
+```{r}
+cdata.filtered %>% 
+  # cell.data$variable_descriptions$f.tot.p1
+  mutate(f.tfp.p1 = f.tot.p1.tfp - a.tot.p1 * f.bg.tfp) %>% 
+  ggplot() +
+  geom_vline(xintercept = 0) +
+  geom_point(aes(y=f.tfp-f.tfp.p1, x=zpos)) +
+  ggtitle("Focus (um) vs f.tfp.p1", 
+          "f.tfp-f.tfp.p1 ~ fluo corregida de la region 1 pixel más hacia afuera (la 'dilation')") +
+  theme_minimal()
+
+
+cdata.filtered %>% 
+  # cell.data$variable_descriptions$f.tot.m1
+  mutate(f.tfp.m1 = f.tot.m1.tfp - a.tot.m1 * f.bg.tfp) %>% 
+  ggplot() +
+  geom_vline(xintercept = 0) +
+  geom_point(aes(y=f.tfp-f.tfp.m1,x=zpos)) +
+  ggtitle("Focus (um) vs f.tfp.m1", 
+          "f.tfp-f.tfp.m1 ~ fluo corregida de los pixeles más externos (la frontera)") +
+  theme_minimal()
+
+# cell.data$variable_descriptions$f.tot.m1
+```
+
+```{r}
+cdata.filtered %>% 
+  mutate(f.tfp.m1 = f.tot.m1.tfp - a.tot.m1 * f.bg.tfp) %>% 
+  mutate(f.tfp.p1 = f.tot.p1.tfp - a.tot.p1 * f.bg.tfp) %>% 
+  ggplot() +
+  geom_vline(xintercept = 0) +
+  geom_point(aes(y=f.tfp.p1-f.tfp.m1,x=zpos)) +
+  ggtitle("Focus (um) vs f.tfp.m1", 
+          "f.tfp.p1 - f.tfp.m1 ~ fluo corregida de los pixeles más externos y un pixel más allá") +
+  theme_minimal()
+
+cdata.filtered %>% 
+  mutate(f.tfp.m1 = f.tot.m1.tfp - a.tot.m1 * f.bg.tfp) %>% 
+  mutate(f.tfp.p1 = f.tot.p1.tfp - a.tot.p1 * f.bg.tfp) %>% 
+  ggplot() +
+  geom_vline(xintercept = 0) +
+  geom_point(aes(y=f.tfp.p1+f.tfp.m1-2*f.tfp,x=zpos)) +
+  ggtitle("Focus (um) vs ???", 
+          "f.tfp.p1+f.tfp.m1-2*f.tfp") +
+  theme_minimal()
+```
+
+### `imager`'s Hessian
+
+Prepare input:
+
+```{r}
+boundary.points <- cell.boundaries %>% 
+  left_join(select(cdata.filtered, pos, cellID, ucid), by = c("pos", "cellID")) %>% 
+  semi_join(cdata.filtered, by = c("pos", "cellID"))
+
+boundary.points.list <- split(boundary.points, ~ ucid)
+```
+
+Compute eigenvalues for boundary pixels:, keep the largest (is that the major? or is the first he major?):
+
+```{r}
+add_hessian_major_eigenvals2 <- function(boundary.points, img.data.matrix, #neg_data=F,
+                                         only_boundary_eigenvalues=T, return_df=T){
+  
+  # Prepare input as 4D array:
+  m.a <- array(img.data.matrix, dim = c(dim(img.data.matrix),1,1))
+  
+  # Compute hessian
+  m.h <- imager::imhessian(m.a, axes = c("xx", "xy", "yy"))
+  
+  boundary.points$hessian <- NA_real_
+  
+  m.h.val <- function(k,j.row,i.col) m.h[[k]][j.row,i.col,1,1]
+  m.h.vals <- Vectorize(m.h.val, vectorize.args = "k")
+  
+  if(only_boundary_eigenvalues){
+    # Save boundary pixels eigenvalues only:
+    m.h.eigen <- img.data.matrix
+    m.h.eigen[,] <- NA
+  
+    for(i in 1:nrow(boundary.points)){
+      i.col <- boundary.points$x[i]
+      j.row <- boundary.points$y[i]
+      
+      hessian.mat <- matrix(data = m.h.vals(c(1,2,2,3),j.row,i.col),
+                            byrow = T, ncol = 2)
+      
+      # major_eigenvalue <- eigen(hessian.mat)$values[1]
+      major_eigenvalue <- max(eigen(hessian.mat)$values)
+      m.h.eigen[j.row,i.col] <- major_eigenvalue
+      
+      boundary.points[i, "hessian"] <- major_eigenvalue
+    }
+    
+    if(return_df)
+      return(boundary.points)
+    else
+      return(m.h.eigen)
+    
+  } else {
+    # Save all pixels eigenvalues:
+    for(i.col in 1:ncol(m)) {
+      for(j.row in 1:nrow(m)){
+
+        hessian.mat <- matrix(byrow = T, ncol = 2, c(
+          m.h[[1]][j.row,i.col], m.h[[2]][j.row,i.col],
+          m.h[[2]][j.row,i.col], m.h[[3]][j.row,i.col]
+        ))
+
+        major_eigenvalue <- eigen(hessian.mat)$values[1]
+        # major_eigenvalue <- max(eigen(hessian.mat)$values)
+
+        m.h.eigen[j.row,i.col] <- major_eigenvalue
+      }
+    }
+
+    if(return_df){
+      df.h.eigen <- utiles::matrix_to_df(m.h.eigen) %>%
+        dplyr::rename(hessian=pix_value)
+      return(df.h.eigen)
+    } else
+      return(m.h.eigen)
+  }
+  
+  stop("Si ves esto, algo anduvo mal en add_hessian_major_eigenvals2!")
+}
+```
+
+```{r}
+boundary.points.one <- boundary.points.list[[1]]
+
+pos.one <- boundary.points.one$pos[1]
+
+file.one <- cell.data$images %>% 
+  filter(pos == pos.one, channel == "tfp") %>% with(file)
+
+img.data.matrix <- utiles::read_tif_to_matrix(file.one) # utiles::plot_matrix(img.data.matrix)
+
+m.smooth <- mmand::gaussianSmooth(x = img.data.matrix, sigma = c(0.5,0.5))
+```
+
+
+```{r}
+m.h.eigen.df <- add_hessian_major_eigenvals2(boundary.points = boundary.points.one, 
+                                             img.data.matrix = -m.smooth)
+```
+
+Sobre la frontera no deberia ajustar bien el hessian:
+
+```{r}
+plot_matrix(m.smooth) +
+  geom_point(aes(x,y,color=hessian), size=2, data=m.h.eigen.df) + 
+  scale_color_viridis_c() +
+  coord_cartesian(xlim = c(653-10,674+10), ylim=c(392-10,410+10))
+```
+
+¿Quizás si un DoG o LoG?
+
+```{r}
+
+```
+
+
 
