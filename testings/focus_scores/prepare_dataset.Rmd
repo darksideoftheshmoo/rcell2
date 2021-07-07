@@ -374,6 +374,12 @@ cell.boundaries <-
                                arguments = cellid.args,
                                pixel.type = "b"
                                )
+
+cell.interior <- 
+  rcell2::cell.load.boundaries(data.source = "masks.tsv",
+                               arguments = cellid.args,
+                               pixel.type = "i"
+                               )
 ```
 
 #### Save cellid output
@@ -384,7 +390,8 @@ saveRDS(list(
   cellid.args=cellid.args,
   cell2.out=cell2.out,
   cell.data=cell.data,
-  cell.boundaries=cell.boundaries
+  cell.boundaries=cell.boundaries,
+  cell.interior=cell.interior
   ), file = paste0(new.dir, "/", "cell2.objects.RDS"))
 ```
 
