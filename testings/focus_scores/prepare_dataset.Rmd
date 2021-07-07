@@ -214,43 +214,181 @@ tfps <- sapply(positions, function(pos){
 
 ## Run segmentation
 
+### Test optimal parameters
+
+#### Choose parameter combinations
+
 ```{r}
 parameters.list <- rcell2::parameters.default()
 
 parameters.list$background_reject_factor <-
-  utiles::value.to.range(parameters.list$background_reject_factor, width = 0.5, by = 0.1)
+  utiles::value.to.range(parameters.list$background_reject_factor, width = 0.75, by = 0.1)
 
 parameters.df <- expand.grid(parameters.list)
 
-# lapply(1:nrow(parameters.df), function(i){
-#   parameters.list <- parameters.df[i,]
-# })
-
-parameters.list.one <- parameters.df[1,]
-
-parameters.txt <- rcell2::parameters.write(parameters.list.one)
+parameters.df
 ```
-
 
 ```{r}
 new.dir <- "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/images_renamed"
 
+test.dir <- "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/images_renamed/test.dir"
+dir.create(test.dir)
+
+test.params <- 1:nrow(parameters.df)
+```
+
+#### Semgent a test position
+
+```{r}
+test.pos = 1
+```
+
+```{r}
+result <- 
+  utiles::lapply_paralelo(lista = test.params, 
+                          par_packages = c("rcell2", "base", "dplyr"),
+                          # ...
+                          parameters.df=parameters.df, 
+                          new.dir=new.dir,
+                          test.dir=test.dir,
+                          # ...
+                          
+                          # https://stackoverflow.com/a/52674200
+                          funcion = function(test.param, test.pos=test.pos, ...) with(list(...), {
+  # lapply(test.params, function(test.param, test.pos=1){
+    # test.param <- 1
+    
+    parameters.list.one <- parameters.df[test.param,]
+    
+    parameters.txt <- rcell2::parameters.write(parameters.list.one)
+    
+    cellid.args <- rcell2::arguments(new.dir,
+                                     file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                     parameters = parameters.txt)
+    
+    cellid.args.one <- cellid.args[test.pos,]
+    
+    # Prepare a temp dir for each cellid run
+    tmp.path <- tempfile(pattern = "dir", tmpdir = test.dir)
+    # tmp.path <- "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/images_renamed/test.dir/dir18e6c2a44b37c/"
+    dir.create(tmp.path)
+    file.symlink(from = paste0(cellid.args.one$path, "/",
+                               c(cellid.args.one$image,
+                                 cellid.args.one$bf)),
+                 to = paste0(tmp.path, "/",
+                               c(cellid.args.one$image,
+                                 cellid.args.one$bf))
+                 )
+    
+    # Regenerate arguments for the new tmp path
+    cellid.args.tmp <- rcell2::arguments(tmp.path,
+                                     file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                     parameters = parameters.txt)
+    
+    rcell2::cell2(arguments = cellid.args.tmp, 
+                  cell.command = "~/Software/cellID-linux/cell")
+    
+    cell.data <- cell.load.alt(tmp.path,
+                               fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
+    
+    new.images <- 
+      cell.data$images %>% filter(is.out)# %>%
+    #     apply(MARGIN = 1, simplify = F, FUN = function(image){
+    #       
+    #       new.name <- paste0(test.dir, "/", test.param, "_", image["image"])
+    #       
+    #       file.rename(from = image["file"], 
+    #                   to = new.name)
+    #       
+    #       c(image, new.name=new.name)
+    #     })
+    # 
+    # bind_rows(new.images)
+    new.images
+  })
+  )
+```
+
+```{r}
+result <- result %>% 
+    bind_rows(.id = "id") %>%
+    mutate(id = as.integer(id))
+
+# length(unique(result$id))
+```
+
+#### Make stacks and cleanup
+
+```{r}
+stack.names <- result %>% 
+    arrange(channel, id) %>% split(~channel) %>% 
+    lapply(function(images){
+      stack.name <- paste0(
+          test.dir, "/", images$channel[1], "_stack-", basename(images$image[1])
+          )
+      
+      images$file %>% 
+        magick::image_read() %>% 
+        magick::image_write(path=stack.name)
+      
+      return(stack.name)
+    })
+
+unlink(dirname(result$file), recursive = T)
+
+stack.names
+```
+
+#### Review output in imagej
+
+Elijo en imagej la que me gustó:
+
+```{r}
+parameters.df[2,]
+```
+
+### Run cellid
+
+```{r}
+parameters.txt <- rcell2::parameters.write(parameters.df[2,])
+
 cellid.args <- rcell2::arguments(new.dir,
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
                                  parameters = parameters.txt)
+cell2.out <- 
+  rcell2::cell2(arguments = cellid.args, output_coords_to_tsv = T,
+                cell.command = "~/Software/cellID-linux/cell")
 
-cellid.args
+cell.data <- cell.load.alt(new.dir,
+                           fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
+
+cell.boundaries <- 
+  rcell2::cell.load.boundaries(data.source = "masks.tsv",
+                               arguments = cellid.args,
+                               pixel.type = "b"
+                               )
 ```
 
-```{r}
-cellid.args.one <- cellid.args[1,]
+#### Save cellid output
 
-cellid.args.one
+```{r}
+# saveRDS(list(
+#   parameters.df=parameters.df[2,],
+#   cellid.args=cellid.args,
+#   cell2.out=cell2.out,
+#   cell.data=cell.data,
+#   cell.boundaries=cell.boundaries
+#   ), file = paste0(new.dir, "/", "cell2.objects.RDS"))
 ```
 
+### Load segmentation result
+
 ```{r}
-rcell2::cell2(arguments = cellid.args.one, 
-              cell.command = "~/Software/cellID-linux/cell", 
-              output_coords_to_tsv = T)
+new.dir <- "/run/media/nicomic/ACLN1/ACL/Uscope/20210221_foco_calib_ACL379/images_renamed"
+
+# https://stackoverflow.com/a/13797968
+list2env(readRDS(paste0(new.dir, "/", "cell2.objects.RDS")),
+         globalenv())
 ```
 
