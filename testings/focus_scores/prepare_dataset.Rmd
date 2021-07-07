@@ -219,7 +219,8 @@ tfps <- sapply(positions, function(pos){
 #### Choose parameter combinations
 
 ```{r}
-parameters.list <- rcell2::parameters.default()
+parameters.list <- 
+  rcell2::parameters.default(align_fl_to_bf = F)
 
 parameters.list$background_reject_factor <-
   utiles::value.to.range(parameters.list$background_reject_factor, width = 0.75, by = 0.1)
@@ -351,7 +352,12 @@ parameters.df[2,]
 ### Run cellid
 
 ```{r}
-parameters.txt <- rcell2::parameters.write(parameters.df[2,])
+parameters.list <- 
+  rcell2::parameters.default(
+      background_reject_factor = 0.1,
+      align_fl_to_bf = F)
+
+parameters.txt <- rcell2::parameters.write(parameters.list)
 
 cellid.args <- rcell2::arguments(new.dir,
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
@@ -373,13 +379,13 @@ cell.boundaries <-
 #### Save cellid output
 
 ```{r}
-# saveRDS(list(
-#   parameters.df=parameters.df[2,],
-#   cellid.args=cellid.args,
-#   cell2.out=cell2.out,
-#   cell.data=cell.data,
-#   cell.boundaries=cell.boundaries
-#   ), file = paste0(new.dir, "/", "cell2.objects.RDS"))
+saveRDS(list(
+  parameters.df=parameters.list,
+  cellid.args=cellid.args,
+  cell2.out=cell2.out,
+  cell.data=cell.data,
+  cell.boundaries=cell.boundaries
+  ), file = paste0(new.dir, "/", "cell2.objects.RDS"))
 ```
 
 ### Load segmentation result
