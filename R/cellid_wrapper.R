@@ -270,7 +270,7 @@ arguments <- function(path,
   
   # Check for missing BFs
   if(any(is.na(arguments.df$bf))){
-    filter(arguments.df.pt, is.na(bf)) %>% print()
+    filter(arguments.df, is.na(bf)) %>% print()
     stop("arguments error: there are missing brightfield images")
   }
   
