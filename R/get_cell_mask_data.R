@@ -192,7 +192,16 @@ cell.load.boundaries <- function(data.source,
     cell.boundaries <- 
       rcell2::tsv_paths_from_args(arguments, ...) %>% 
       with(setNames(path, pos)) %>% 
-      lapply(readr::read_tsv) %>% 
+      lapply(readr::read_tsv,
+             # col_types = "iiiiif") %>%  # types: 5 int columns, 1 factor column 
+             col_types = readr::cols(
+               cellID=readr::col_integer(),
+               t.frame=readr::col_integer(),
+               flag=readr::col_integer(),
+               x=readr::col_integer(),
+               y=readr::col_integer(),
+               pixtype=readr::factor(levels = c("b", "i"))
+               )) %>%  # types: 5 int columns, 1 factor column 
       bind_rows(.id = "pos") %>% 
       mutate(pos = as.integer(pos),
              # CellID positions are zero-indexed, add 1 and enter the R inferno:
