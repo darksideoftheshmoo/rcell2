@@ -51,13 +51,14 @@ spline.poly <- function(xy, vertices, k=3, ...) {
 #'   'k' is the number of points to wrap around the ends to obtain
 #'       a smooth periodic spline.
 #'
-#' @return Returns a data.frame of points. 
+#' @return Returns a data.frame of smooth points. 
 #' @export
 #' @param xy A data.frame with ordered X/Y pairs representing the polygon
 #' @param k The amount of points used to "close" the path, and prevent discontinuous derivatives at the end-points.
 #' @param dof The degrees of freedom used by \code{stats::smooth.spline}
+#' @param length.out Set to an integer length for the smoothed output (defaults to input length).
 #'
-smooth.spline.poly <- function(xy, k=3, dof=5, ...) {
+smooth.spline.poly <- function(xy, k=3, dof=5, length.out=nrow(xy), ...) {
   # Assert: xy is an n by 2 matrix with n >= k.
   
   # Wrap k vertices around each end.
@@ -68,22 +69,47 @@ smooth.spline.poly <- function(xy, k=3, dof=5, ...) {
     data <- xy
   }
   
-  # Spline the x and y coordinates.
-  data.spline <- stats::smooth.spline(x=1:(n+2*k),
-                                      y=data[,1,drop=T], 
-                                      df=dof)
-  x <- data.spline$x
-  x1 <- data.spline$y
-  x2 <- stats::smooth.spline(
-    x=1:(n+2*k), 
-    y=data[,2,drop=T],
-    df=dof
-  )$y
+  # indices vector
+  x.idxs <- 1:(n+2*k)
   
-  # Retain only the middle part.
-  result <- cbind(x = x1, y = x2)[k < x & x <= n+k, ]
+  # Spline the x and y coordinates:
+  data.spline.1 <- stats::smooth.spline(x=x.idxs,
+                                        y=data[,1,drop=T], 
+                                        df=dof)
   
+  data.spline.2 <- stats::smooth.spline(x=x.idxs, 
+                                        y=data[,2,drop=T],
+                                        df=dof)
+  
+  # NEW: interpolate output to constant length ###
+  
+  # Get x value ranges for (unwraped) row indices
+  x.range <- range(x.idxs[unwrap.filter])
+  # Interpolate them to a new length
+  x.idxs.new <- seq(from=x.range[1], to=x.range[2], length.out=length.out)
+  
+  # Prepare re-sampled/re-interpolated results
+  # for constant length output == length(x.idxs.new)
+  x <- x.idxs.new
+  x1 <- predict(data.spline.1, x = x.idxs.new)$y
+  x2 <- predict(data.spline.2, x = x.idxs.new)$y
+  
+  # Prepare results
+  result <- cbind(x = x1, y = x2)
+  
+  # OLD: output has variable length; i.e. it depends on input length ###
+  
+  # Prepare results
+  # x <- data.spline.1$x
+  # x1 <- data.spline.1$y
+  # x2 <- data.spline.2$y
+  
+  # Retain only the middle part
+  # unwrap.filter <- (k < x) & (x <= n+k)
+  # result <- cbind(x = x1, y = x2)[unwrap.filter, ]
+  
+  # Convert to data.frame
   result <- as.data.frame(result)
   
-  result
+  return(result)
 }

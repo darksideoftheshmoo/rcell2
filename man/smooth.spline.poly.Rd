@@ -4,7 +4,7 @@
 \alias{smooth.spline.poly}
 \title{whuber's spline.poly adapted to stats::smooth.spline}
 \usage{
-smooth.spline.poly(xy, k = 3, dof = 5, ...)
+smooth.spline.poly(xy, k = 3, dof = 5, length.out = nrow(xy), ...)
 }
 \arguments{
 \item{xy}{A data.frame with ordered X/Y pairs representing the polygon}
@@ -12,9 +12,11 @@ smooth.spline.poly(xy, k = 3, dof = 5, ...)
 \item{k}{The amount of points used to "close" the path, and prevent discontinuous derivatives at the end-points.}
 
 \item{dof}{The degrees of freedom used by \code{stats::smooth.spline}}
+
+\item{length.out}{Set to an integer length for the smoothed output (defaults to input length).}
 }
 \value{
-Returns a data.frame of points.
+Returns a data.frame of smooth points.
 }
 \description{
 See: https://gis.stackexchange.com/a/24929
