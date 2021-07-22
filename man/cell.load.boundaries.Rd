@@ -9,6 +9,7 @@ cell.load.boundaries(
   ...,
   arguments = NULL,
   pixel.type = "b",
+  flags = NULL,
   close.paths = FALSE,
   cell.data = NULL,
   tiff.channel = "BF.out"
@@ -20,6 +21,8 @@ cell.load.boundaries(
 \item{arguments}{The arguments dataframe used to run cellid (prepared with \code{rcell2::arguments}).}
 
 \item{pixel.type}{When \code{data.source = "masks.tsv"}, you may choose the pixel "type". At least one of \code{c("i", "b")} for interior and/or boundary pixels ("b" by default).}
+
+\item{flags}{Used to subset the input files by CellID's "flag" field. Each flag corresponds to an imaging channel, according to a "mapping" found in \code{cell.data$mapping} (available when using cell.load.alt).}
 
 \item{close.paths}{When TRUE and \code{data.source = "masks.tsv"}, append the first row to the end of the data.frame (groping by cellID and pos). Useful for plotting of making closed polygons.}
 
