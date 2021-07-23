@@ -84,15 +84,15 @@ smooth.spline.poly <- function(xy, k=3, dof=5, length.out=nrow(xy), ...) {
   # NEW: interpolate output to constant length ###
   
   # Get x value ranges for (unwraped) row indices
+  unwrap.filter <- (k < x.idxs) & (x.idxs <= n+k)
   x.range <- range(x.idxs[unwrap.filter])
   # Interpolate them to a new length
   x.idxs.new <- seq(from=x.range[1], to=x.range[2], length.out=length.out)
   
   # Prepare re-sampled/re-interpolated results
   # for constant length output == length(x.idxs.new)
-  x <- x.idxs.new
-  x1 <- predict(data.spline.1, x = x.idxs.new)$y
-  x2 <- predict(data.spline.2, x = x.idxs.new)$y
+  x1 <- predict(data.spline.1, x=x.idxs.new)$y
+  x2 <- predict(data.spline.2, x=x.idxs.new)$y
   
   # Prepare results
   result <- cbind(x = x1, y = x2)
