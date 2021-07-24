@@ -6,7 +6,7 @@
 \usage{
 shinyCell(
   cdata,
-  pdata,
+  pdata = NULL,
   paths,
   filters = list(),
   filters.init_selected = T,

@@ -7,6 +7,18 @@
 # clientData$output_scatterplot_width changes 10 PIXELS for no reason and triggers a re-render.
 # Maybe its the scrollbar or something...
 
+#' Safe select column
+#' 
+#' Checks whether the column selection with \code{[[]]} is null before returning.
+#' 
+safe_select <- function(.df, .name){
+  column <- .df[[.name]]
+  
+  if(is.null(column)) stop(paste0("Error, selected column '", .name,  "' does not exist."))
+  
+  return(column)
+}
+
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
 #' @param cdata A Rcell "cdata" data.frame (not the object).
@@ -44,7 +56,7 @@
 #' @importFrom grDevices rgb
 #' @export
 shinyCell <- function(cdata,
-                      pdata,
+                      pdata=NULL,
                       paths,
                       filters = list(), filters.init_selected = T,
                       plotType = "Dots",
@@ -54,7 +66,9 @@ shinyCell <- function(cdata,
                       n_max = 100, boxSize = 80, filter_progress_file = NULL,
                       launch.browser = F,
                       ...){
-    
+  
+  if(is.null(pdata)) pdata <- data.frame(pos = safe_select(cdata, "pos"))
+  
   if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
   if(!is.character(facets_scale_free)) stop("Error: facets_scale_free must be a string accepted by ggplot's scales argument. See ?facet_wrap.")
   if(!is.null(initial_vars)) {
