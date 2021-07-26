@@ -568,7 +568,7 @@ tagCellServer <- function(input, output, session) {
       print("tagCellServer 11: no tag_ggplot object provided, rendering defult plot!")
       tag_ggplot <- ggplot() +
         geom_line(aes(x=t.frame, y=a.tot)) + 
-        geom_vline(xintercept = as.numeric(ith_t.frame), color = "black")
+        geom_vline(xintercept = as.numeric(ith_t.frame), color = "black", linetype=2)
       tag_ggplot_render <- tag_ggplot %+% ucid_data
     } else {
       # Add data
@@ -577,7 +577,7 @@ tagCellServer <- function(input, output, session) {
       # Add current t.frame
       if(debug_messages) print(paste("-- adding geom_vline to plot:"))
       tag_ggplot_render <- tag_ggplot_render + geom_vline(xintercept = as.numeric(ith_t.frame), 
-                                                          color = "black")
+                                                          color = "black", linetype=2)
       
       # Add annotations
       if(debug_messages) print(paste("-- generating selected_cell_tags"))

@@ -21,7 +21,7 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
                   shiny::tabsetPanel(
                     # tags$head(tags$style("#{height:100vh !important;}")),
                     shiny::tabPanel("Cell pics",
-                                    shiny::p("Tag the current cell to tag to the next one:"),
+                                    shiny::p("Tag the current cell using the left panels."),
                                     shiny::p(
                                       # Cell magick images
                                       shiny::plotOutput(outputId = "pics",
@@ -29,6 +29,7 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
                                                         width = "100%"
                                                         # height = "auto", width = "auto")
                                     )),
+                                    shiny::p(verbatimTextOutput("hover_info")),
                                     shiny::p(
                                       # User plot
                                       shiny::plotOutput(outputId = "plot", 
@@ -43,9 +44,6 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
                                                         # height = "100%",
                                                         # width = "100%"
                                       )
-                                    ),
-                                    shiny::p(
-                                      verbatimTextOutput("hover_info")
                                     )
                                     ),
                     shiny::tabPanel("Saved annotations",
@@ -56,13 +54,20 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
     shiny::column(width = 3, 
                   offset = 0,
                   shiny::p(
+                    "Current cell and frame info:",
                     shiny::verbatimTextOutput("cell_ith"),
-                    uiOutput("moreControls"),
-                    shiny::actionButton(inputId = "prev_cell", label = "Previous", icon = shiny::icon("step-backward")),
-                    shiny::actionButton(inputId = "next_cell", label = "Next", icon = shiny::icon("step-forward"))
+                    uiOutput("moreControls")
                     ),
+                  shiny::p(shiny::hr()),
+                  shiny::p("Change frames using these buttons:"),
                   shiny::p(
-                    shiny::hr(),
+                    shiny::actionButton(inputId = "prev_cell", label = "Previous", icon = shiny::icon("step-backward")),
+                    shiny::actionButton(inputId = "next_cell", label = "Next", icon = shiny::icon("step-forward")),
+                  ),
+                  shiny::p("Or click in the plot to jump between frames."),
+                  shiny::p(shiny::hr()),
+                  shiny::p("Jump to another cell using these:"),
+                  shiny::p(
                     # shiny::selectInput('image_channel','Channel:', sort(unique(paths$channel)), "BF.out"),
                     shiny::actionButton(inputId = "prev_ucid", label = "Unskip", icon = shiny::icon("fast-backward")),
                     shiny::actionButton(inputId = "next_ucid", label = "Skip", icon = shiny::icon("fast-forward")),
@@ -70,5 +75,6 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
                     shiny::p(shiny::actionButton(inputId = "save", label = "Write progress")),
                     shiny::hr(),
                     shiny::p(shiny::actionButton(inputId = "quit", label = "Save & Quit"))
-                  ))
+                  )
+    )
 )))}
