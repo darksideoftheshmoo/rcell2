@@ -1,5 +1,8 @@
 #' Cell-ID output descriptions
-cell2_output_descriptions <- function(){
+#' 
+#' @export
+#' 
+cellid_output_descriptions <- function(){
   descs <- read.csv(sep = "\t", file = system.file("output_descriptions2.txt", package = "rcell2"))
   descs <- descs[!(is.na(descs$Variable.Name) | descs$Variable.Name == ""), -1:-2]
   
@@ -7,6 +10,19 @@ cell2_output_descriptions <- function(){
   names(descs.list) <- descs$Variable.Name
   
   return(descs.list)
+}
+
+#' Cell-ID parameter descriptions
+#' 
+#' @export
+#' 
+cellid_parameter_descriptions <- function(){
+  descs <- read_tsv(file = system.file("inst/parameters_description.tsv", package = "rcell2"))
+  descs <- descs[!(is.na(descs[[1]]) | descs[[1]] == ""),]
+  
+  warning("Not all parameters are documented.")
+  
+  return(descs)
 }
 
 #' Correr Cell-ID desde R usando .C()
@@ -557,7 +573,7 @@ cell.load.alt <- function(path,
                     images = d.list$d.paths,
                     mapping = d.list$d.map,
                     channels = unique(d.list$flag.channel.mapping),
-                    variable_descriptions = cell2_output_descriptions())
+                    variable_descriptions = cellid_output_descriptions())
   
   cat("\rDone loading CellID data!                            \n")
   return(cell.data)
