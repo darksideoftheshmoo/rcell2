@@ -30,28 +30,27 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
                                                         # height = "auto", width = "auto")
                                     )),
                                     shiny::p(
-                                      # Cell strips
-                                      shiny::plotOutput(outputId = "pics2",
-                                      # shiny::plotOutput(outputId = "pics2",
-                                                        # height = "100%",
-                                                        # width = "100%"
-                                      ),
                                       # User plot
                                       shiny::plotOutput(outputId = "plot", 
                                                         # height = "100%", width = "100%"
                                                         # height = "auto", width = "auto"
                                                         height = "200px",
                                                         click = "plot_click",
-                                                        hover = "plot_hover",
-                                    )),
+                                                        hover = "plot_hover"),
+                                      # Cell strips
+                                      shiny::plotOutput(outputId = "pics2", 
+                                      # shiny::plotOutput(outputId = "pics2",
+                                                        # height = "100%",
+                                                        # width = "100%"
+                                      )
+                                    ),
                                     shiny::p(
                                       verbatimTextOutput("hover_info")
-                                    ),
-                                    shiny::p(
-                                      shiny::tableOutput("saved_annotations")
                                     )
                                     ),
-                    shiny::tabPanel("My ggplot")
+                    shiny::tabPanel("Saved annotations",
+                                    shiny::tableOutput("saved_annotations")
+                                    )
                     )
                   ),
     shiny::column(width = 3, 

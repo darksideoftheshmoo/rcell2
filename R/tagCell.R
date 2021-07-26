@@ -90,7 +90,9 @@ tagCell <- function(cdata,
                     equalize_images = F,
                     normalize_images = F,
                     debug_messages = F,
-                    max.frames=10){
+                    # prev.annot.df=NULL,  # TO-DO: implement resume annotations
+                    max.frames=10
+                    ){
   
   # To-do
   # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
