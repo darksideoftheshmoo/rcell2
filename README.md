@@ -1,6 +1,6 @@
 # rcell2
 
-Functions to analyze Cell-ID single-cell cytometry data in a tidy and shiny framework.
+Functions to analyze [Cell-ID](https://github.com/darksideoftheshmoo/cellID-linux)'s single-cell cytometry data in R, using a tidy and shiny framework.
 
 A CellID wrapper is also on the works. Checkout the `cellid_master` branch. The `testings` branch contains notebooks on several classification and analysis methods.
 
