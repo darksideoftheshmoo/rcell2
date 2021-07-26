@@ -362,6 +362,11 @@ Save it for later:
 ### Moisaic pics
 
 ```{r}
+cdata.filtered <- readRDS(paste0(new.dir, "/", "cdata.one.RDS"))
+```
+
+
+```{r}
 magickCell(cdata.filtered, cell.data$images, return_single_imgs = T, n.cells = nrow(cdata.filtered),
            ch = "BF.out", equalize_images = T) %>% 
   image_annotate(text = signif(cdata.filtered$zpos,digits = 2), gravity = "north-east", color = "white", boxcolor = "purple",
@@ -391,7 +396,10 @@ La mejor variable parece `f.tot.m1.tfp`, es más suave y tiene más pendiente ce
 cell.data$variable_descriptions$f
 cell.data$variable_descriptions$f.tot.p1
 cell.data$variable_descriptions$f.tot.m1
+```
 
+
+```{r}
 cdata.filtered %>% ggplot() +
   geom_hline(yintercept = 0) +
   geom_point(aes(x=f.tfp,y=zpos,color=pos)) +
@@ -478,6 +486,7 @@ cdata.filtered %>%
           "f.tfp.p1+f.tfp.m1-2*f.tfp") +
   theme_minimal()
 ```
+
 ## Try pixel focus metrics
 
 ### Plain intensity
