@@ -1,9 +1,22 @@
 # rcell2
-!['Automating' comes from the roots 'auto-' meaning 'self-', and 'mating', meaning 'screwing'.](https://imgs.xkcd.com/comics/automation.png)
 
 Functions to analyze Cell-ID single-cell cytometry data in a tidy and shiny framework.
 
-A CellID wrapper is also on the works. Checkout the `cellid_master` branch.
+A CellID wrapper is also on the works. Checkout the `cellid_master` branch. The `testings` branch contains notebooks on several classification and analysis methods.
+
+It is very well tested in baker's yeast.
+
+## Preview
+
+Input a defocused brightfield image, and _voila_:
+
+![input defocused brightfield image](doc/TFP.png)![segmented brightfield image](doc/TFP.out.png)
+
+Analize the results freely:
+
+![preview_tile](doc/preview_tile.png)
+
+![preview_trace](doc/preview_trace.png)
 
 # Installation
 
@@ -76,6 +89,8 @@ See: `?rcell2::kmeans_clustering`
 * ~~Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage).~~ Implemented in cellSpread, cellSpreadPlot, and "Pics" type plot in shinyCell.
 * ~~Generic shiny function for filtering points in a custom ggplot~~. Implemented in plotApp.
 * 1D / histogram filtering support in the filtering app.
+
+!['Automating' comes from the roots 'auto-' meaning 'self-', and 'mating', meaning 'screwing'.](https://imgs.xkcd.com/comics/automation.png)
 
 [1]:https://www.tidyverse.org/
 [2]:https://github.com/r-lib/devtools
