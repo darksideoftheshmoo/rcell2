@@ -1,0 +1,75 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+pic.path <- 
+  "~/Software/cellID-linux/samples/BF_Position02_time01.tif"
+```
+
+Path for the copy, to avoid overwritting the original:
+
+```{r}
+pic.path.copy <- 
+  "~/Projects/Programación/Rdevel/rcell2/testings/fft_filter/test/BF_Position02_time01.tif"
+```
+
+Preview for checking:
+
+```{r}
+magick::image_read(pic.path) %>% 
+  image_normalize() %>% image_resize(400) %>% 
+  rcell2::magickForKnitr() %>% 
+  knitr::include_graphics()
+```
+
+## Llamar a imagej
+
+https://imagej.net/scripting/headless
+
+```{r}
+# imagej.path <- "~/Software/Fiji.app/ImageJ-linux64"
+# script.path <- "~/Projects/Academia/Doctorado/gitlabs_acl/scripts_confocal_vic/FFT_filter_on_BFs_R.txt"
+```
+
+```{r}
+file.copy(pic.path, pic.path.copy, overwrite = T)
+```
+
+```{r}
+rcell2:::imagej.fft.filter(pic.path.copy)
+```
+
+
+```{r}
+magick::image_read(pic.path) %>% 
+  image_normalize() %>%
+  # image_resize(400) %>% 
+  rcell2::magickForKnitr() %>% 
+  knitr::include_graphics()
+
+magick::image_read(pic.path.copy) %>% 
+  image_normalize() %>% 
+  # image_resize(400) %>% 
+  rcell2::magickForKnitr() %>% 
+  knitr::include_graphics()
+```
+
+## Puro R
+
+No se como hacer :(
+
+```{r}
+pic.mat <- utiles::read_tif_to_matrix(pic.path)
+
+image(pic.mat)
+```
+
+```{r}
+pic.fft <- 
+  spectral::filter.fft(y = pic.mat, fc = (80-1)/2, BW = (80-1))
+```
+
