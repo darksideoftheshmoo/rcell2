@@ -453,7 +453,62 @@ tagCellServer <- function(input, output, session) {
     )
   })
   
-  # Reactive IMAGE 1: magickCell  ----------------
+  # Reactive IMAGE 2: cell strips  ----------------
+  output$pics2 <- shiny::renderImage({
+    print("tagCellServer 10: ith_cell reactive image observer 2")
+    if(debug_messages) print("- Rendering image 2")
+    
+    # Make the image match the plot's width
+    if(is.null(cell_resize)){
+      output_plot_width <- session$clientData$output_plot_width
+      cell_resize <- output_plot_width/length(tag_channels_select)
+    }
+    # session$clientData$output_plot_height
+    
+    if(nrow(d) > 0 & max.frames > 0) {
+      if(debug_messages) print("-- Selection not empty: magick strip!")
+      
+      # cdata.selected <- d[d$ucid == d$ucid[reactive_values$ith_cell],]
+      ucid.selected <- d[reactive_values$ith_cell,"ucid",drop=T]
+      frame.selected <- d[reactive_values$ith_cell,"t.frame",drop=T]
+      
+      avail.frames <- filter(d, ucid == ucid.selected) %>% with(t.frame) %>% sort()
+      frame.range <- seq.int(from = max(0, frame.selected - max.frames),
+                             to   = min(max(avail.frames), frame.selected + max.frames))
+      
+      plot_width <- session$clientData$output_plot_width
+      plot_height <- session$clientData$output_plot_height
+      
+      cell.strip <- 
+        cellStrips(cdata = cdata %>% filter(ucid == ucid.selected,
+                                            t.frame %in% frame.range),
+                   paths = images,
+                   # cell_resize=cell_resize,
+                   ch=tag_channels_select, 
+                   equalize_images = equalize_images,
+                   normalize_images = normalize_images,
+                   boxSize = tag_box_size, 
+                   ) %>% 
+        # Unlist the output
+        .[[1]] %>% .[[1]]
+      
+      tmpimage <- cell.strip %>% 
+        magick::image_resize(geometry = geometry_size_pixels(width = plot_width))
+      
+      if(debug_messages) print(paste("--", magick.cell$ucids))
+    } else {
+      # Output white if selection is empty
+      if(debug_messages) print("-- Selection is empty")
+      tmpimage <- magick::image_blank(150,10,color = "white") %>% image_annotate(text = "(cell strip placeholder)")
+    }
+    
+    tmpfile <- magick::image_write(tmpimage, tempfile(fileext='jpg'), format = 'jpg')
+    
+    list(src = tmpfile, 
+         contentType = "image/jpeg")
+  }, deleteFile=TRUE)
+  
+  # Reactive IMAGE 1: cell magick  ----------------
   output$pics <- shiny::renderImage({
     print("tagCellServer 10: ith_cell reactive image observer")
     if(debug_messages) print("- Rendering image 1")

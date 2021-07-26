@@ -19,7 +19,8 @@ tagCell(
   tag_ggplot = NULL,
   equalize_images = F,
   normalize_images = F,
-  debug_messages = F
+  debug_messages = F,
+  max.frames = 10
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ tagCell(
 \item{normalize_images}{Use magick's function to "normalize" the images.}
 
 \item{debug_messages}{print debug messages}
+
+\item{max.frames}{Max number of t.frames to render in the cell strip. Set to 0 to disable.}
 }
 \value{
 Lots of stuff.

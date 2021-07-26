@@ -24,6 +24,7 @@
 #' @param tmp_output_file File path into which tagging information will be dumped by user request. NULL by default, to automatically create and append to a tmp file.
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 #' @param debug_messages print debug messages
+#' @param max.frames Max number of t.frames to render in the cell strip. Set to 0 to disable.
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 #' @examples
@@ -88,7 +89,8 @@ tagCell <- function(cdata,
                     tag_ggplot = NULL,
                     equalize_images = F,
                     normalize_images = F,
-                    debug_messages = F){
+                    debug_messages = F,
+                    max.frames=10){
   
   # To-do
   # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.

@@ -23,15 +23,24 @@ tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyj
                     shiny::tabPanel("Cell pics",
                                     shiny::p("Tag the current cell to tag to the next one:"),
                                     shiny::p(
+                                      # Cell magick images
                                       shiny::plotOutput(outputId = "pics",
                                                         height = "100%",
                                                         width = "100%"
                                                         # height = "auto", width = "auto")
                                     )),
                                     shiny::p(
+                                      # Cell strips
+                                      shiny::plotOutput(outputId = "pics2",
+                                      # shiny::plotOutput(outputId = "pics2",
+                                                        # height = "100%",
+                                                        # width = "100%"
+                                      ),
+                                      # User plot
                                       shiny::plotOutput(outputId = "plot", 
                                                         # height = "100%", width = "100%"
                                                         # height = "auto", width = "auto"
+                                                        height = "200px",
                                                         click = "plot_click",
                                                         hover = "plot_hover",
                                     )),
