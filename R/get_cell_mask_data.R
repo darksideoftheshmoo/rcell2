@@ -202,7 +202,7 @@ cell.load.boundaries <- function(data.source,
                flag=readr::col_integer(),
                x=readr::col_integer(),
                y=readr::col_integer(),
-               pixtype=readr::factor(levels = c("b", "i"))
+               pixtype=readr::col_factor(levels = c("b", "i"))
                )) %>%  # types: 5 int columns, 1 factor column 
       bind_rows(.id = "pos") %>% 
       mutate(pos = as.integer(pos),
