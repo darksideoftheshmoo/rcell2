@@ -62,15 +62,18 @@ smooth.spline.poly <- function(xy, k=3, dof=5, length.out=nrow(xy), ...) {
   # Assert: xy is an n by 2 matrix with n >= k.
   
   # Wrap k vertices around each end.
-  n <- dim(xy)[1]
+  n_vertices <- dim(xy)[1]
   if (k >= 1) {
-    data <- rbind(xy[(n-k+1):n,], xy, xy[1:k, ])
+    data <- rbind(xy[(n_vertices-k+1):n_vertices,], # add k-last points to the beginning
+                  xy, 
+                  xy[1:k, ] # add k-first points to the end
+                  )
   } else {
     data <- xy
   }
   
-  # indices vector
-  x.idxs <- 1:(n+2*k)
+  # indices vector (for k-wraped data)
+  x.idxs <- 1:(n_vertices+2*k)
   
   # Spline the x and y coordinates:
   data.spline.1 <- stats::smooth.spline(x=x.idxs,
@@ -82,18 +85,18 @@ smooth.spline.poly <- function(xy, k=3, dof=5, length.out=nrow(xy), ...) {
                                         df=dof)
   
   # NEW: interpolate output to constant length ###
-  
-  # Interpolate them to a new length
-  x.idxs.new <- seq(from=1, to=max(x.idxs), 
-                    length.out=length.out+k*2)
-  
   # Prepare re-sampled/re-interpolated results
   # for constant length output == length(x.idxs.new)
+  # x.idxs.new <- seq(from=1, to=max(x.idxs), 
+  x.idxs.new <- seq(from=k, # this excludes indices < k
+                    # using "k" instead of "k+1" closes the path, leaving no gap
+                    to=length(x.idxs)-k, # excludes k-points added to the end
+                    length.out=length.out+1)
   x1 <- predict(data.spline.1, x=x.idxs.new)$y
   x2 <- predict(data.spline.2, x=x.idxs.new)$y
   
   # Get x value ranges for (unwraped) row indices
-  unwrap.filter <- (k < x.idxs.new) & (x.idxs.new <= n+k)
+  unwrap.filter <- (x.idxs.new > k) & (x.idxs.new <= n_vertices+k)
   
   # Prepare results, retaining only the middle part
   result <- cbind(x = x1, y = x2)[unwrap.filter,]
