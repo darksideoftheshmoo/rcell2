@@ -4,7 +4,10 @@
 \alias{cellid_parameter_descriptions}
 \title{Cell-ID parameter descriptions}
 \usage{
-cellid_parameter_descriptions()
+cellid_parameter_descriptions(list_format = T)
+}
+\arguments{
+\item{list_format}{If TRUE then format the dataframe into a named list}
 }
 \description{
 Cell-ID parameter descriptions

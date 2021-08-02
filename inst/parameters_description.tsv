@@ -1,51 +1,47 @@
 parameter	default_value	description
-
+		
 max_split_over_minor	0.5	For every combination of two pixels on the boundary, Cell-ID calculates the distance along the boundary path divided by the Euclidean distance between them. The maximum value of this ratio was larger for cells with a “figure-eight” shape that were pinched in some part than for circular cells. If the maximum value was above a user-defined threshold (which defaulted to 6),  then we  split the cell into two cells at the location of the pinch However, iff the Euclidean distance divided by the length of the minor axis was greater than a user-defined value (which defaulted to 0.5), for either of the new cells, then the two cells were re-grouped as a single cell. Thus, we  required that the two new cells had a generally circular shape and were  not too elongated, as would be the case if the previous split was not over two cell, but over a cell and its mating projection.
-
+		
 max_dist_over_waist	8	For every combination of two pixels on the boundary, Cell-ID calculates the distance along the boundary path divided by the Euclidean distance between them. The maximum value of this ratio was larger for cells with a “figure-eight” shape that were pinched in some part than for circular cells. If the maximum value was above a user-defined threshold (which defaulted to 6),  then we  split the cell into two cells at the location of the pinch However, iff the Euclidean distance divided by the length of the minor axis was greater than a user-defined value (which defaulted to 0.5), for either of the new cells, then the two cells were re-grouped as a single cell. Thus, we  required that the two new cells had a generally circular shape and were  not too elongated, as would be the case if the previous split was not over two cell, but over a cell and its mating projection.
-
+		
 max_pixels_per_cell	3000	Area limits per cell (upper bound)
-
+		
 min_pixels_per_cell	70	Area limits per cell (lower bound)
-
+		
 background_reject_factor	1.5	The code makes an initial decision about the graylevels of the boundary pixels. To do this it takes the mean position of all the graylevels in the images and subtracts Z standard deviations. It then starts by considering all gray levels below this value as being parts of the cell borders. This value Z is the parameter background_reject_factor. Brightfield images taken slightly out of focus may do better with with higher values (ie, higher values will better avoid spurious cells), but if the cell boundaries in the image are too narrow, a smaller value may be necessary--which might increase the level of background.
-
+		
 treat_brightfield_as_fluorescence_also	FALSE	Calculate all the fluorescence images variables on the bright field image as if it were a fluorescence image. This is potentially a good idea since it allows a good way to reject spurious cells. For example, the average value of the boundary pixels in good cells will be lower than the background level, but not so for spurious cells, etc.
-
+		
 image_type brightfield	FALSE	Image type of the image that is used to find the cells.
-
-bf_fl_mapping	list	Possible values: "list", "time". "bf_fl_mapping" option description (guessed from code, mask_mod branch). The mapping between brightfield and fluorescence images can be made by acquisition time, or derived from the order in the list of paths passed as command line options "-b" and "-f" to cell. If the order is by "list", then the paths must be grouped and ordered first by t.frame (ascending) and then by channel. If the order is by "time", cell derives the BF-FL mapping from the acquisition time in the TIFF metadata.
-
-fret	FALSE	Possible values: FALSE (omit), "bf_top_only", "bf_bottom_only", "bf_bottom_and_top". If we have a "fret" image or not (a "fret" image here means that the image is split into an upper and lower half, each with its own excitation filter in front of it). The three arguments (bf_top_only, bf_bottom_only, bf_bottom_and_top) indicate where in the bright field image to look for the cells--since it's assumed that the bright field image also had its output sent throught the two excitation filters.
-
-fret	FALSE	Possible values: FALSE (omit), "nuclear_top", "nuclear_bottom". More for the fret images. One of the fluorescence images will be used to identify the nucleus. Should it be the top or bottom image.
-
-third_image	FALSE	Possible values: FALSE (omit), "vacuole_label", "nuclear_label". If there is a third image type included, then this describes how to use it (nuclear_label means its a fluorescence tagged nucleus channel, vacuole_label means vacuole label)
-
-do_recombination	FALSE	Do recombination to try to connect cells using cuts on fluorescence "recombination_fl_per_a_nucleus F CUT" is cut below which we consider the cell has no nucleus. "F" is the "flag" given to the fluorescence type we're going to use for the cut. "recombination_is_a_cell_fl_per_a F CUT" is minimum fluorescence/area to consider the cell a real cell (a way to get rid of junk). This is only used for recombining cells. Ie, for recombining cells we only consider cells above CUT but we don't throw away those that fail. "F" is the flag for the fluorescence type to use.
-
-recombination_fl_per_a_nucleus	1 2500.0	Tuning parameter for "do_recombination". Note that the option requires two values. "do_recombination" to try to connect cells using cuts on fluorescence "recombination_fl_per_a_nucleus F CUT" is cut below which we consider the cell has no nucleus. "F" is the "flag" given to the fluorescence type we're going to use for the cut. "recombination_is_a_cell_fl_per_a F CUT" is minimum fluorescence/area to consider the cell a real cell (a way to get rid of junk). This is only used for recombining cells. Ie, for recombining cells we only consider cells above CUT but we don't throw away those that fail. "F" is the flag for the fluorescence type to use.
-
-recombination_is_a_cell_fl_per_a	3 500.0	Tuning parameter for "do_recombination". Note that the option requires two values. "do_recombination" to try to connect cells using cuts on fluorescence "recombination_fl_per_a_nucleus F CUT" is cut below which we consider the cell has no nucleus. "F" is the "flag" given to the fluorescence type we're going to use for the cut. "recombination_is_a_cell_fl_per_a F CUT" is minimum fluorescence/area to consider the cell a real cell (a way to get rid of junk). This is only used for recombining cells. Ie, for recombining cells we only consider cells above CUT but we don't throw away those that fail. "F" is the flag for the fluorescence type to use.
-
+		
+bf_fl_mapping	list	"Possible values: ""list"", ""time"". ""bf_fl_mapping"" option description (guessed from code, mask_mod branch). The mapping between brightfield and fluorescence images can be made by acquisition time, or derived from the order in the list of paths passed as command line options ""-b"" and ""-f"" to cell. If the order is by ""list"", then the paths must be grouped and ordered first by t.frame (ascending) and then by channel. If the order is by ""time"", cell derives the BF-FL mapping from the acquisition time in the TIFF metadata."
+		
+fret	FALSE	"Possible values: FALSE (omit), ""bf_top_only"", ""bf_bottom_only"", ""bf_bottom_and_top"". If we have a ""fret"" image or not (a ""fret"" image here means that the image is split into an upper and lower half, each with its own excitation filter in front of it). The three arguments (bf_top_only, bf_bottom_only, bf_bottom_and_top) indicate where in the bright field image to look for the cells--since it's assumed that the bright field image also had its output sent throught the two excitation filters."
+		
+fret	FALSE	"Possible values: FALSE (omit), ""nuclear_top"", ""nuclear_bottom"". More for the fret images. One of the fluorescence images will be used to identify the nucleus. Should it be the top or bottom image."
+		
+third_image	FALSE	"Possible values: FALSE (omit), ""vacuole_label"", ""nuclear_label"". If there is a third image type included, then this describes how to use it (nuclear_label means its a fluorescence tagged nucleus channel, vacuole_label means vacuole label)"
+		
+do_recombination	FALSE	"Do recombination to try to connect cells using cuts on fluorescence ""recombination_fl_per_a_nucleus F CUT"" is cut below which we consider the cell has no nucleus. ""F"" is the ""flag"" given to the fluorescence type we're going to use for the cut. ""recombination_is_a_cell_fl_per_a F CUT"" is minimum fluorescence/area to consider the cell a real cell (a way to get rid of junk). This is only used for recombining cells. Ie, for recombining cells we only consider cells above CUT but we don't throw away those that fail. ""F"" is the flag for the fluorescence type to use."
+		
+recombination_fl_per_a_nucleus	1 2500.0	"Tuning parameter for ""do_recombination"". Note that the option requires two values. ""do_recombination"" to try to connect cells using cuts on fluorescence ""recombination_fl_per_a_nucleus F CUT"" is cut below which we consider the cell has no nucleus. ""F"" is the ""flag"" given to the fluorescence type we're going to use for the cut. ""recombination_is_a_cell_fl_per_a F CUT"" is minimum fluorescence/area to consider the cell a real cell (a way to get rid of junk). This is only used for recombining cells. Ie, for recombining cells we only consider cells above CUT but we don't throw away those that fail. ""F"" is the flag for the fluorescence type to use."
+		
+recombination_is_a_cell_fl_per_a	3 500.0	"Tuning parameter for ""do_recombination"". Note that the option requires two values. ""do_recombination"" to try to connect cells using cuts on fluorescence ""recombination_fl_per_a_nucleus F CUT"" is cut below which we consider the cell has no nucleus. ""F"" is the ""flag"" given to the fluorescence type we're going to use for the cut. ""recombination_is_a_cell_fl_per_a F CUT"" is minimum fluorescence/area to consider the cell a real cell (a way to get rid of junk). This is only used for recombining cells. Ie, for recombining cells we only consider cells above CUT but we don't throw away those that fail. ""F"" is the flag for the fluorescence type to use."
+		
 align_individual_cells	FALSE	Allow wiggling between the brightfield and fluorescence images.
-
+		
 align_individual_cells_boundary		?
-
+		
 append_output	FALSE	Possible values: FALSE (omit), 1000 (any positive integer). append_output means that when we write out the output files we're going to _add_ to the end of the files instead of making new ones. the argument is the offset to add to the id numbers.
-
-tracking_comparison	0.2	Cell-ID attempts to track cells over time. The value of this parameter is the minimal fractional overlap between two cells in consecutive time points for them to be considered the same cell. The default value is 0.2. Also named "I_over_U_for_match" in CellID's cell.c and segment.c files.
-
+		
+tracking_comparison	0.2	"Cell-ID attempts to track cells over time. The value of this parameter is the minimal fractional overlap between two cells in consecutive time points for them to be considered the same cell. The default value is 0.2. Also named ""I_over_U_for_match"" in CellID's cell.c and segment.c files."
+		
 align_fl_to_bf	TRUE	Frame alignment. Cell-ID can perform image registrations, moving the the frame in XY to align it to a reference image. If “align FL to BF” is selected the bright field image is used as reference. If “align FL to first” is selected the first fluorescence image is used as reference. These options are especially useful when sampling different positions, as repositioning of the microscope stage might introduce some displacement between consecutive images.
-
+		
 align_fl_to_first	FALSE	Frame alignment. Cell-ID can perform image registrations, moving the the frame in XY to align it to a reference image. If “align FL to BF” is selected the bright field image is used as reference. If “align FL to first” is selected the first fluorescence image is used as reference. These options are especially useful when sampling different positions, as repositioning of the microscope stage might introduce some displacement between consecutive images.
-
-treat_brightfield_as_fluorescence_also		?
-
+		
 force_nucleus_in_center		?
-
-output_individual_cells		?
-
+		
+output_individual_cells		(not tested) Probably means that output images will contain one cell each, and many images sets will be generated.
+		
 image_type		?
-
-third_image		?
