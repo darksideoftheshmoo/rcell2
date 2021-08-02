@@ -1,5 +1,5 @@
 ---
-title: "Trabajo Final Clustering 2020: Intro"
+title: "Curvature tests on cell boundaries"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -22,15 +22,17 @@ urlcolor: blue
 ---
 
 ```{r setup}
-devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/utiles", reset = T)
-devtools::load_all("~/Projects/Academia/Colman/gitlabs_acl/rcell2", reset = T)
+library(rcell2)
+library(utiles)
+library(tidyverse)
+library(magick)
 ```
 
 ## Load cell data
 
 ```{r}
-# cell.data <- readRDS(here::here("data/output/cell.data_20201213_60834cca08e2.RDS"))
-# cell.boundaries <- readRDS(here::here("data/output/cell.boundaries_20201214_6083158baea5.RDS"))
+cell.data <- readRDS(here::here("testings/curvature_tests/cell.data_20201213_60834cca08e2.RDS"))
+cell.boundaries <- readRDS(here::here("testings/curvature_tests/cell.boundaries_20201214_6083158baea5.RDS"))
 ```
 
 ## Spline fit to boundary points
@@ -134,7 +136,15 @@ cell.perims <-
             lapply(cell.perims.list, 
                    function(cell.perim) cell.perim[c("p2p.diff", "p2p.ratio")])
             ) %>% 
-  separate(id.cell, into = c("pos", "cellID", "t.frame"), convert = T)
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), convert = T, remove = F)
+
+cell.perims.smooth <- 
+  bind_rows(.id = "id.cell", 
+            lapply(cell.perims.list, 
+                   function(cell.perim) bind_rows(xy.smooth = cell.perim[["xy.spline_nr"]],
+                                                  xy = cell.perim[["xy"]], .id = "type"))
+            ) %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), convert = T, remove = F)
 ```
 
 
@@ -153,10 +163,10 @@ cell.data$data2 <-
 ```
 
 ```{r, eval=F}
-pdata <- read.csv(here::here("data/pdata.csv"))
+pdata <- read.csv(here::here("testings/curvature_tests/pdata.csv"))
 
-rcell2::shinyCell(cdata = left_join(cell.data$data2, pdata), 
-                  pdata = pdata, paths = cell.data$images)
+# rcell2::shinyCell(cdata = left_join(cell.data$data2, pdata), 
+#                   pdata = pdata, paths = cell.data$images)
 ```
   
 ## Compute angles
@@ -241,12 +251,77 @@ cell.angles.sd <-
   separate(id.cell, into = c("pos", "cellID", "t.frame"), convert = T)
 ```
 
+## Save calculations
+
+```{r}
+# cell.boundaries.list %>% saveRDS("testings/curvature_tests/calculations/cell.boundaries.list.RDS")
+# cell.perims.list %>% saveRDS("testings/curvature_tests/calculations/cell.perims.list.RDS")
+# cell.perims %>% saveRDS("testings/curvature_tests/calculations/cell.perims.RDS")
+# cell.perims.smooth %>% saveRDS("testings/curvature_tests/calculations/cell.perims.smooth.RDS")
+# cell.perim.angles %>% saveRDS("testings/curvature_tests/calculations/cell.perim.angles.RDS")
+# cell.angles.sd %>% saveRDS("testings/curvature_tests/calculations/cell.angles.sd.RDS")
+```
+
+
 ## Finding patterns in angles
 
 ### Podria usar autocorrelacion
 
 ```{r}
+xy.spline_nr.angles2 <- cell.perim.angles %>% sample(1) %>% bind_rows(.id = "id.cell") %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), remove = F)
+xy.spline_nr.angles5 <- cell.perim.angles %>% sample(1) %>% bind_rows(.id = "id.cell") %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), remove = F)
+
+id2 <- xy.spline_nr.angles2$id.cell[1]
+id5 <- xy.spline_nr.angles5$id.cell[1]
+
+cell.perims.smooth %>% filter(id.cell %in% c(id2, id5)) %>% 
+  ggplot(aes(x=x,y=y, color=type, group=type)) + 
+  geom_path() + 
+  facet_wrap(~id.cell, scales = "free") + 
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+ids <- c("2_43_0", "2_47_0")
+
+xy.spline_nr.angles2 <- cell.perim.angles[ids[1]] %>% 
+  bind_rows(.id = "id.cell") %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), remove = F)
+
+xy.spline_nr.angles5 <- cell.perim.angles[ids[2]] %>%
+  bind_rows(.id = "id.cell") %>% 
+  separate(id.cell, into = c("pos", "cellID", "t.frame"), remove = F)
+
+id2 <- ids[1]
+id5 <- ids[2]
+
+cell.perims.smooth %>% filter(id.cell %in% c(id2, id5)) %>% 
+  ggplot(aes(x=x,y=y, color=type, group=type)) + 
+  geom_path() + 
+  facet_wrap(~id.cell, scales = "free") + 
+  theme(aspect.ratio = 1)
+```
+
+
+```{r}
+y2 <- xy.spline_nr.angles2$giro3
+y5 <- xy.spline_nr.angles5$giro3
+
+plot(y2, type="l", col = "black")
+lines(y5, type="l", col = "red")
+```
+
+Consigo misma:
+
+```{r}
 ccf(rep(y2, 2), rep(y5, 2))
+```
+
+Con la otra:
+
+```{r}
 ccf(y2, recenter.vector(y5,15))
 ```
 
@@ -270,9 +345,6 @@ Para usar DTW, primero hay que interpolar las curvas que son mas cortas.
 Un "problema" de esto es que la suma de los angulos ya no va a dar 360.
 
 ```{r}
-y5 <- xy.spline_nr.angles5$giro3
-y2 <- xy.spline_nr.angles2$giro3
-
 max(length(y2), length(y5))
 
 y2.ip <- approx(y2, n = 92)$y
@@ -366,4 +438,59 @@ heatmap(
   main = "DTW of angle series"
 )
 ```
+
+### pyWavelets
+
+> Wavelet Transforms in Python
+
+* https://pywavelets.readthedocs.io/en/latest/
+
+> Using custom wavelets
+
+* https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html#custom-wavelets
+
+> Examples
+
+* https://pywavelets.readthedocs.io/en/latest/regression/index.html
+* http://wavelets.pybytes.com/
+
+```{r}
+library(reticulate)
+
+# reticulate::py_install("PyWavelets")
+```
+
+
+```{python}
+frontera = r.y2
+
+print(frontera[:5])
+
+print(len(frontera))
+```
+
+```{python}
+import pywt
+```
+
+```{python}
+# Create a 'db3' wavelet object, from the 'db' family of wavelets.
+w = pywt.Wavelet('db3')
+
+print(w)
+```
+
+```{python}
+(phi, psi, x) = w.wavefun(level=5) # Orthogonal wavelets
+# (phi_d, psi_d, phi_r, psi_r, x) = w.wavefun(level=5) # bi-orthogonal (non-orthogonal) wavelets
+```
+
+```{r}
+py$phi %>% dim()
+py$psi %>% dim()
+py$x %>% dim()
+```
+
+
+
 

@@ -72,9 +72,9 @@ get_prop_values <- function(image.path, prop.id = "z-position"){
 
   description.list <- xml2::as_list(description.xml)
   
-  description.list$MetaData$PlaneInfo[3]
+  # description.list$MetaData$PlaneInfo[3]
   
-  description.list$MetaData$PlaneInfo[[3]] %>% attributes() %>% .[["id"]]
+  # description.list$MetaData$PlaneInfo[[3]] %>% attributes() %>% .[["id"]]
   
   which.z_info <- sapply(description.list$MetaData$PlaneInfo, function(plane.info){
     attributes(plane.info)[["id"]] == prop.id
