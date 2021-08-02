@@ -491,21 +491,27 @@ load_cell_data <-
             cat("f.y\ncf.y\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.y = f.tot.y - (a.tot * f.bg.y),
-                          cf.y = f.y / a.tot)
+                          cf.y = f.y / a.tot,
+                          f.y.loc = f.tot.y - (f.local.bg.y * a.tot),
+                          cf.y.loc = f.y.loc / a.tot)
         }
 
         if ("f.tot.c" %in% va) {
             cat("f.c\ncf.c\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.c = f.tot.c - (a.tot * f.bg.c),
-                          cf.c = f.c / a.tot)
+                          cf.c = f.c / a.tot,
+                          f.c.loc = f.tot.c - (f.local.bg.c * a.tot),
+                          cf.c.loc = f.c.loc / a.tot)
         }
 
         if ("f.tot.r" %in% va) {
             cat("f.r\ncf.r\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.r = f.tot.r - (a.tot * f.bg.r),
-                          cf.r = f.r / a.tot)
+                          cf.r = f.r / a.tot,
+                          f.r.loc = f.tot.r - (f.local.bg.r * a.tot),
+                          cf.r.loc = f.r.loc / a.tot)
         }
 
 
