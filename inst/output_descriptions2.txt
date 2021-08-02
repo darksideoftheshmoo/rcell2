@@ -101,3 +101,7 @@ category	index	Variable Name	Description
 		f	f.tot - (a.tot * f.bg) = Background corrected total fluorescence. Prefix type (prepended to channel name/posfix).
 
 		cf	f / a.tot = Background corrected fluorescence concentration. Prefix type (prepended to channel name/posfix).
+
+		f.loc	f.tot - (f.local.bg * a.tot) = Total fluorescence corrected by "local" background. Prefix type (prepended to channel name/posfix).
+
+		cf.loc	f.loc / a.tot = Fluorescence concentration corrected by "local" background. Prefix type (prepended to channel name/posfix).

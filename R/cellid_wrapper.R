@@ -3,7 +3,9 @@
 #' @export
 #' 
 cellid_output_descriptions <- function(){
-  descs <- read.csv(sep = "\t", file = system.file("output_descriptions2.txt", package = "rcell2"))
+  descs <- read.csv(sep = "\t", 
+                    file = system.file("output_descriptions2.txt", package = "rcell2"))
+  
   descs <- descs[!(is.na(descs$Variable.Name) | descs$Variable.Name == ""), -1:-2]
   
   descs.list <- as.list(descs$Description)
@@ -14,15 +16,24 @@ cellid_output_descriptions <- function(){
 
 #' Cell-ID parameter descriptions
 #' 
+#' @param list_format If TRUE then format the dataframe into a named list
 #' @export
 #' 
-cellid_parameter_descriptions <- function(){
-  descs <- read_tsv(file = system.file("inst/parameters_description.tsv", package = "rcell2"))
+cellid_parameter_descriptions <- function(list_format=T){
+  
+  warning("Warning: not all CellID input parameters are [well] documented.")
+  
+  descs <- read.csv(sep = "\t", 
+                    file = system.file("inst/parameters_description.tsv", package = "rcell2"))
+  
   descs <- descs[!(is.na(descs[[1]]) | descs[[1]] == ""),]
   
-  warning("Not all parameters are documented.")
+  if(!isTRUE(list_format)) return(descs)
   
-  return(descs)
+  descs.split <- split(descs, ~parameter)
+  descs.list <- lapply(descs.split, function(d) setNames(c(d), names(d)))
+  
+  return(descs.list)
 }
 
 #' Correr Cell-ID desde R usando .C()
@@ -676,7 +687,9 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
   # Add f.tot columns to data
   d.out.map <- mutate(d.out.map,
                       f = f.tot - (a.tot * f.bg),
-                      cf = f / a.tot)
+                      cf = f / a.tot,
+                      f.loc = f.tot - (f.local.bg * a.tot),
+                      cf.loc = f.loc / a.tot)
 
   # Right now the out_all is in a "long" format for the channel variable
   # Spread it to match expectations:
@@ -714,8 +727,10 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   sphere.vol),
 
       values_from = c(f.tot,
-                      f,
+                      f, 
                       cf,
+                      f.loc,
+                      cf.loc,
                       f.nucl,
                       a.nucl,
                       a.vacuole,
