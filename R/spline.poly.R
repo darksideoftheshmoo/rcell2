@@ -83,30 +83,20 @@ smooth.spline.poly <- function(xy, k=3, dof=5, length.out=nrow(xy), ...) {
   
   # NEW: interpolate output to constant length ###
   
-  # Get x value ranges for (unwraped) row indices
-  unwrap.filter <- (k < x.idxs) & (x.idxs <= n+k)
-  x.range <- range(x.idxs[unwrap.filter])
   # Interpolate them to a new length
-  x.idxs.new <- seq(from=x.range[1], to=x.range[2], length.out=length.out)
+  x.idxs.new <- seq(from=1, to=max(x.idxs), 
+                    length.out=length.out+k*2)
   
   # Prepare re-sampled/re-interpolated results
   # for constant length output == length(x.idxs.new)
   x1 <- predict(data.spline.1, x=x.idxs.new)$y
   x2 <- predict(data.spline.2, x=x.idxs.new)$y
   
-  # Prepare results
-  result <- cbind(x = x1, y = x2)
+  # Get x value ranges for (unwraped) row indices
+  unwrap.filter <- (k < x.idxs.new) & (x.idxs.new <= n+k)
   
-  # OLD: output has variable length; i.e. it depends on input length ###
-  
-  # Prepare results
-  # x <- data.spline.1$x
-  # x1 <- data.spline.1$y
-  # x2 <- data.spline.2$y
-  
-  # Retain only the middle part
-  # unwrap.filter <- (k < x) & (x <= n+k)
-  # result <- cbind(x = x1, y = x2)[unwrap.filter, ]
+  # Prepare results, retaining only the middle part
+  result <- cbind(x = x1, y = x2)[unwrap.filter,]
   
   # Convert to data.frame
   result <- as.data.frame(result)
