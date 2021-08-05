@@ -1,21 +1,51 @@
+#' Add a border to one side of the image
+#'
+#' image_border adds borders symmetrically.
+#'
+#' image_border_one is good for padding images to add captions later.
+#'
+#' @param image magick image.
+#' @param geometry magick geometry string.
+#' @param color color string for the border background.
+#'
+image_border_one <- function (image, geometry = "0x15", color = "white"){
+  image %>% image_border(color = color, geometry = geometry) %>% 
+    image_rotate(180) %>% image_chop(geometry = geometry) %>% 
+    image_rotate(180)
+}
+
 #' Armar mosaicos cuadrados a partir de un vector de imagenes en magick de cualquier longitud
 #' @param images A magick image vector, with images of the same size preferably.
+#' @param annot_labels A vector with the same lenght as images, holding annotation labels.
 #' @param nRow An integer indicating number of rows. If specified, nCol must be specified too.
 #' @param nCol An integer indicating number of rows. If specified, nRow must be specified too.
 #' @param annotate_images_with_index Annotate images with their index (default TRUE).
+#' @param debug.msgs Print indexes used at each row.
 #' @return A single magick image of the squared tile.
 # @examples
 # square_tile(images)
 #' @import magick dplyr
 #' @rawNamespace import(foreach, except = c("when", "accumulate"))
 #' @export
-square_tile <- function(images, nRow = NULL, nCol = NULL, annotate_images_with_index=T){
+square_tile <- function(images, annot_labels=NULL,
+                        nRow = NULL, nCol = NULL, 
+                        annotate_images_with_index=T,
+                        debug.msgs=F){
   
-  if(sum(is.null(nRow), is.null(nCol)) == 1) 
-    stop("square_tile error: if at least one of nRow or nCol is specified, both of them must.")
+  # if(sum(is.null(nRow), is.null(nCol)) == 1)
+  #   stop("square_tile error: if at least one of nRow or nCol is specified, both of them must.")
   
-  if(any(is.null(nRow), is.null(nCol))) nRow <- ceiling(sqrt(length(images)))
-  if(any(is.null(nRow), is.null(nCol))) nCol <- ceiling(length(images)/nRow)
+  if(all(is.null(nRow), is.null(nCol))){
+    nRow <- ceiling(sqrt(length(images)))
+    nCol <- ceiling(length(images)/nRow)
+  }
+  if(is.null(nRow)){
+    nRow <- ceiling(length(images)/nCol)
+  } 
+  
+  if(is.null(nCol)){
+    nCol <- ceiling(length(images)/nRow)
+  } 
   
   image.tile <- foreach::foreach(tile_row=0:(nRow-1), .combine=c) %do% {
     
@@ -24,17 +54,22 @@ square_tile <- function(images, nRow = NULL, nCol = NULL, annotate_images_with_i
     # Important for the last row
     if(nRow * nCol > length(images)){
       row_images_index <- row_images_index[row_images_index <= length(images)]
+      if(is.null(annot_labels)) 
+        annot_labels <- row_images_index
     }
-    print(row_images_index)
+    
+    if(debug.msgs) print(row_images_index)
+    
     images[row_images_index] %>% {
-      if(annotate_images_with_index)
-        magick::image_border(., color = "white", geometry = "20x20") %>% 
-         magick::image_annotate(text = row_images_index, size = 20, gravity = "north")
-      else .} %>% 
+      if(annotate_images_with_index){
+        image_border_one(., color = "white", geometry = "0x20") %>% 
+          magick::image_annotate(text = annot_labels,
+                                 size = 20, gravity = "north")
+      } else .} %>% 
       magick::image_append()
   }
   
-  image.tile <- magick::image_append(image.tile, stack = T)
+  image.tile <- magick::image_append(image = image.tile, stack = T, bg="black")
   
   if(length(images) > 50) message("square_tile says: you have more than 50 images in the input array ¿Are you sure that this is ok?")
   return(image.tile)

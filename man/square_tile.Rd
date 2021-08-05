@@ -4,16 +4,27 @@
 \alias{square_tile}
 \title{Armar mosaicos cuadrados a partir de un vector de imagenes en magick de cualquier longitud}
 \usage{
-square_tile(images, nRow = NULL, nCol = NULL, annotate_images_with_index = T)
+square_tile(
+  images,
+  annot_labels = NULL,
+  nRow = NULL,
+  nCol = NULL,
+  annotate_images_with_index = T,
+  debug.msgs = F
+)
 }
 \arguments{
 \item{images}{A magick image vector, with images of the same size preferably.}
+
+\item{annot_labels}{A vector with the same lenght as images, holding annotation labels.}
 
 \item{nRow}{An integer indicating number of rows. If specified, nCol must be specified too.}
 
 \item{nCol}{An integer indicating number of rows. If specified, nRow must be specified too.}
 
 \item{annotate_images_with_index}{Annotate images with their index (default TRUE).}
+
+\item{debug.msgs}{Print indexes used at each row.}
 }
 \value{
 A single magick image of the squared tile.
