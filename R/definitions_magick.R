@@ -55,7 +55,9 @@ square_tile <- function(images, annot_labels=NULL,
     if(nRow * nCol > length(images)){
       row_images_index <- row_images_index[row_images_index <= length(images)]
       if(is.null(annot_labels)) 
-        annot_labels <- row_images_index
+        annot_labels_row <- row_images_index
+      else
+        annot_labels_row <- annot_labels[row_images_index]
     }
     
     if(debug.msgs) print(row_images_index)
@@ -63,13 +65,13 @@ square_tile <- function(images, annot_labels=NULL,
     images[row_images_index] %>% {
       if(annotate_images_with_index){
         image_border_one(., color = "white", geometry = "0x20") %>% 
-          magick::image_annotate(text = annot_labels,
+          magick::image_annotate(text = annot_labels_row,
                                  size = 20, gravity = "north")
       } else .} %>% 
       magick::image_append()
   }
   
-  image.tile <- magick::image_append(image = image.tile, stack = T, bg="black")
+  image.tile <- magick::image_append(image = image.tile, stack = T)
   
   if(length(images) > 50) message("square_tile says: you have more than 50 images in the input array ¿Are you sure that this is ok?")
   return(image.tile)
