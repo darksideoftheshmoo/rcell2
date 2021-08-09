@@ -519,11 +519,11 @@ load_cell_data <-
         #################################################################
         # Removing duplicates
         #################################################################
-
-        if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
-            cat("\nremoving duplicate con.vol\n")
-            pos.data <- dplyr::select(pos.data, -con.vol_1)
-        }
+        # TODO: check and correct in timecourses. readr changes names differently for some reason
+        #if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
+        #    cat("\nremoving duplicate con.vol\n")
+        #    pos.data <- dplyr::select(pos.data, -con.vol_1)
+        #}
 
 
         #################################################################
