@@ -54,20 +54,26 @@ square_tile <- function(images, annot_labels=NULL,
     # Important for the last row
     if(nRow * nCol > length(images)){
       row_images_index <- row_images_index[row_images_index <= length(images)]
-      if(is.null(annot_labels)) 
-        annot_labels_row <- row_images_index
-      else
-        annot_labels_row <- annot_labels[row_images_index]
     }
+    
+    if(is.null(annot_labels)) {
+      annot_labels_row <- row_images_index
+    } else {
+      annot_labels_row <- annot_labels[row_images_index]
+    }
+    
+    if(debug.msgs) print(annot_labels_row)
     
     if(debug.msgs) print(row_images_index)
     
-    images[row_images_index] %>% {
-      if(annotate_images_with_index){
-        image_border_one(., color = "white", geometry = "0x20") %>% 
-          magick::image_annotate(text = annot_labels_row,
-                                 size = 20, gravity = "north")
-      } else .} %>% 
+    images[row_images_index] %>% 
+      {
+        if(annotate_images_with_index){
+          image_border_one(., color = "white", geometry = "0x20") %>% 
+            magick::image_annotate(text = annot_labels_row,
+                                   size = 20, gravity = "north")
+        } else {.}
+      } %>% 
       magick::image_append()
   }
   
@@ -168,7 +174,7 @@ cellStrip <- function(cdata,
 #' 
 #' @inheritParams cellStrip
 #' @param n_ucids will select the first `n_ucids`
-#' @param cut_strips Use `cut` to split the image series.
+#' @param cut_strips Use `cut` to split the image series (by index; preserves sortVar order).
 #' 
 cellStrips <- function(cdata,
                        paths,
@@ -195,25 +201,27 @@ cellStrips <- function(cdata,
                    stack_vertical_first = T,
                    ...)
       
-      if(cut_breaks > 1)
-        ucid_images.list <- split(ucid_images, 
-                                   cut(1:length(ucid_images),
-                                       breaks = min(length(ucid_images),
-                                                    cut_breaks)
-                                   ))
-      else
-        ucid_images.list <- list(ucid_images)
+      if(cut_breaks > 1){
+        result <- split(ucid_images, 
+                        cut(1:length(ucid_images),
+                            breaks = min(length(ucid_images),
+                                         cut_breaks)
+                        )) %>% 
+          lapply(list, magick::image_append)
+        
+      } else {
+        result <- magick::image_append(ucid_images)
+      }
       
-      return(ucid_images.list)
-    }
-    )
+      return(result)
+    })
   
   
-  images <- lapply(images, 
-                   function(images.split)
-                     lapply(images.split, magick::image_append)
-  )
-  
+  # images <- lapply(images, 
+  #                  function(images.split)
+  #                    lapply(images.split, magick::image_append)
+  # )
+
   return(images)
 }
 
@@ -245,21 +253,35 @@ updateList <- function(l1, l2, only.common.names=T){
 #' @param xvar,yvar Strings indicating names for the variables to plot in the horizontal (x) and vertical (y) axis.
 #' @param x.cuts,y.cuts Integers indicating the number of cuts for each variable.
 #' @param for_plotting Return value changes to list of elements important for plotting.
+#' @param cut.by.content Use quantile to generate cuts of "roughly equal content (rather than length)."
 #' @param ... Arguments passed on to magickCell.
 #' 
 cellSpread <- function(cdata, paths,
                        ch = "BF.out", boxSize = 80,
                        xvar = "a.tot", yvar="fft.stat",
                        x.cuts = 7, y.cuts = 7,
-                       for_plotting = F, ...){
+                       for_plotting = T,
+                       cut.by.content = F,
+                       ...){
   
-  cdata.binned <- cdata
+  cdata.binned <- cdata[,unique(c("xpos", "ypos", "ucid", "t.frame", "pos", xvar, yvar))]
+  # cdata.binned <- d %>% filter(ucid == tagged.ucids[10]) %>% .[,unique(c("xpos", "ypos", "ucid", "t.frame", "pos", xvar, yvar))]
   
   x_data <- cdata.binned[,xvar, drop =T]
   y_data <- cdata.binned[,yvar, drop =T]
   
-  cdata.binned$x_bins <- cut(x_data, breaks = x.cuts, ordered_result=T, dig.lab = 2)  #, labels = 1:x.cuts)  # labels = FALSE
-  cdata.binned$y_bins <- cut(y_data, breaks = y.cuts, ordered_result=T, dig.lab = 2)  #, labels = 1:y.cuts)  # labels = FALSE
+  if(!cut.by.content){
+    x.breaks <- seq(from = min(x_data), to=max(x_data), length.out=x.cuts+1)
+    y.breaks <- seq(from = min(y_data)*0.99, to=max(y_data)*1.01, length.out=y.cuts+1)
+  } else {
+    x.breaks <- unname(quantile(x_data, seq(from=0, to=1, length.out=x.cuts+1)))
+    y.breaks <- unname(quantile(y_data, seq(from=0, to=1, length.out=y.cuts+1)))
+  }
+  
+  cdata.binned$x_bins <- cut(x_data, breaks = x.breaks, 
+                             ordered_result=T, dig.lab = 2, include.lowest = T)  #, labels = 1:x.cuts)  # labels = FALSE
+  cdata.binned$y_bins <- cut(y_data, breaks = y.breaks, 
+                             ordered_result=T, dig.lab = 2, include.lowest = T)  #, labels = 1:y.cuts)  # labels = FALSE
   
   # cdata.binned %>% group_by(x_bins,
   #                           y_bins) %>% 
@@ -269,6 +291,7 @@ cellSpread <- function(cdata, paths,
   blank_image <- magick::image_blank(boxSize,boxSize,color = "black") %>% 
     magick::image_annotate(text = "NA", gravity = "Center", color = "white") %>% 
     magick::image_border("green","1x1")
+  
   cell_tile_array <- blank_image  # initialize
   
   n_pics <- y.cuts*x.cuts
@@ -354,7 +377,9 @@ cellSpread <- function(cdata, paths,
                 xvar = xvar,
                 yvar = yvar,
                 x.cuts = x.cuts,
-                y.cuts = y.cuts))
+                y.cuts = y.cuts,
+                x.breaks=x.breaks,
+                y.breaks=y.breaks))
   else 
     return(cell_tile_array[-1])
 }
@@ -373,34 +398,34 @@ cellSpreadPlot <- function(cdata, paths,
                            draw_contour_breaks = NULL,
                            x.cuts = 7, y.cuts = 7, ...){
   
+  # cdata.spread <- d %>% filter(ucid == tagged.ucids[10])
+  
   plot_list <- list()
   
   xvar_sym <- as.symbol(xvar)
   yvar_sym <- as.symbol(yvar)
   
   for(channel in ch){
-    cell_tile <- cellSpread(cdata = cdata, paths = paths, ch = channel, boxSize = boxSize, 
+    cell_tile <- cellSpread(cdata = cdata.spread, paths = paths, ch = channel, boxSize = boxSize, 
                             xvar, yvar, x.cuts = x.cuts, y.cuts = y.cuts, for_plotting = T, ...)
     
-    raster <- as.raster(cell_tile$cell_tiles[1])
+    cell.raster <- as.raster(cell_tile$cell_tiles[1])
     
-    p <- ggplot(cdata,
-                aes(x = !!xvar_sym, 
-                    y = !!yvar_sym)) + 
+    p <- ggplot(cdata.spread,
+                aes(x = !!xvar_sym, y = !!yvar_sym)) + 
       {if(underlay_points) geom_point() else NULL} +
-      # annotation_raster(raster=raster, -Inf, Inf, -Inf, Inf) +
-      annotation_raster(raster=raster,
-                        xmin = min(cdata[, xvar, drop = T]),
-                        xmax = max(cdata[, xvar, drop = T]),
-                        ymin = min(cdata[, yvar, drop = T]),
-                        ymax = max(cdata[, yvar, drop = T])) +
+      # annotation_raster(raster=cell.raster, -Inf, Inf, -Inf, Inf) +
+      annotation_raster(raster=cell.raster,
+                        xmin = min(cell_tile$x.breaks),
+                        xmax = max(cell_tile$x.breaks),
+                        ymin = min(cell_tile$y.breaks),
+                        ymax = max(cell_tile$y.breaks)) +
       {if(overlay_points) geom_point(shape = 21, colour = alpha("black", 0.3), 
-                                     fill = alpha("white", 0.1), stroke = 1.25) else NULL} +
+                                     fill = alpha("white", 0.1), stroke = 1.25) 
+        else NULL} +
       geom_blank() +
-      scale_x_continuous(limits = range(cdata[, xvar, drop = T]),
-                         expand = expansion(1/100)) +
-      scale_y_continuous(limits = range(cdata[, yvar, drop = T]),
-                         expand = expansion(1/100)) +
+      scale_x_continuous(limits = range(cell_tile$x.breaks), expand = expansion()) +
+      scale_y_continuous(limits = range(cell_tile$y.breaks), expand = expansion()) +
       theme_minimal() +
       theme(legend.position = "none")  #, plot.margin = unit(rep(0,4), "mm"))
     

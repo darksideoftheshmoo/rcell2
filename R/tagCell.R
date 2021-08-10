@@ -60,15 +60,14 @@
 #'                                                         "not_a_cell")
 #'                          ),
 #'                          tag_channels_select = tag_channels_select,
-#'                          .equalize = T,
-#'                          .normalize = F,
+#'                          equalize_images = T,
+#'                          normalize_images = F,
 #'                          n_max = 50,
 #'                          tag_box_size = 75,
 #'                          cell_resize = 300,
 #'                          tag_ggplot = p,
 #'                          tmp_output_file = "../output/annotations/progress.csv", 
-#'                          debug_messages = F,
-#'                          annotation_params = c(color = "none", background = "none")
+#'                          debug_messages = F
 #'                          )
 #'                          
 #' @import shiny ggplot2 magick
@@ -82,7 +81,7 @@ tagCell <- function(cdata,
                     randomize_ucids = FALSE,
                     tag_box_size = 50,
                     cell_resize=NULL,
-                    tag_channels_select=c("BF"),
+                    tag_channels_select=c("BF", "BF.out"),
                     n_max=10,
                     seed = 1,
                     tmp_output_file=NULL,
@@ -119,9 +118,9 @@ tagCell <- function(cdata,
   if(is.null(tmp_output_file)){
     tmp_output_file <- tempfile(tmpdir = tempdir(), fileext = ".txt", pattern = "tagCell_progress")
   } else {
-    dir.create(dirname(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
+    dir.create(basename(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
   }
-  if(debug_messages) print(paste("Appending tagging progress to tempfile:", tmp_output_file))
+  if(debug_messages) print(paste("Will append tagging progress to file:", tmp_output_file))
   
   # Setup environments for the shiny app, from this environment
   environment(tagCellServer) <- environment()

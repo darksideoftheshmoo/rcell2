@@ -362,7 +362,7 @@ tagCellServer <- function(input, output, session) {
           mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
           left_join(unique(select(d, ucid, pos, cellID)))
         
-        table_output %>% readr::write_csv(path = tmp_output_file)
+        readr::write_csv(table_output, path = tmp_output_file)
         
       } else {
         
@@ -468,7 +468,15 @@ tagCellServer <- function(input, output, session) {
     if(nrow(d) > 0 & max.frames > 0) {
       if(debug_messages) print("-- Selection not empty: magick strip!")
       
-      # cdata.selected <- d[d$ucid == d$ucid[reactive_values$ith_cell],]
+      # d <- cdata.continuous
+      # reactive_values <- list(ith_cell = 2)
+      # plot_width <- 300
+      # plot_height <- 200
+      # tag_box_size = 50
+      # equalize_images = F
+      # normalize_images = F
+      # tag_channels_select=c("BF", "BF.out")
+      
       ucid.selected <- d[reactive_values$ith_cell,"ucid",drop=T]
       frame.selected <- d[reactive_values$ith_cell,"t.frame",drop=T]
       
@@ -484,13 +492,14 @@ tagCellServer <- function(input, output, session) {
                                             t.frame %in% frame.range),
                    paths = images,
                    # cell_resize=cell_resize,
+                   n.cells = n_max,
                    ch=tag_channels_select, 
                    equalize_images = equalize_images,
                    normalize_images = normalize_images,
                    boxSize = tag_box_size, 
                    ) %>% 
         # Unlist the output
-        .[[1]] %>% .[[1]]
+        .[[1]]
       
       tmpimage <- cell.strip %>% 
         magick::image_resize(geometry = geometry_size_pixels(width = plot_width))
@@ -530,7 +539,7 @@ tagCellServer <- function(input, output, session) {
                                  # cell_resize=cell_resize,
                                  cell_resize=cell_resize,
                                  ch=tag_channels_select, 
-                                 n = n_max, 
+                                 # n.cells = n_max,
                                  equalize_images = equalize_images,
                                  normalize_images = normalize_images,
                                  boxSize = tag_box_size, 
