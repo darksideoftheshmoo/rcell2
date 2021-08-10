@@ -13,7 +13,8 @@ cellSpread(
   yvar = "fft.stat",
   x.cuts = 7,
   y.cuts = 7,
-  for_plotting = F,
+  for_plotting = T,
+  cut.by.content = F,
   ...
 )
 }
@@ -31,6 +32,8 @@ cellSpread(
 \item{x.cuts, y.cuts}{Integers indicating the number of cuts for each variable.}
 
 \item{for_plotting}{Return value changes to list of elements important for plotting.}
+
+\item{cut.by.content}{Use quantile to generate cuts of "roughly equal content (rather than length)."}
 
 \item{...}{Arguments passed on to magickCell.}
 }

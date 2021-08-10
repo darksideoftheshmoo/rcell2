@@ -7,6 +7,7 @@
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   print("tagCellServer 1: start")
+  
   d <- cdata %>% 
     dplyr::arrange(ucid, t.frame) %>% 
     {if(randomize_ucids) 
@@ -19,11 +20,14 @@ tagCellServer <- function(input, output, session) {
       ucid = as.integer(ucid),
       t.frame = as.integer(t.frame)
     )
+  
   p <- paths
   
   ucid.unique <- unique(d$ucid)
   ucid.viewed <- setNames(rep(F, length(ucid.unique)), ucid.unique)
-  if(!all.unique(d$ucid_t.frame)) stop("tagCellServer error: the ucid-t.frame combination is not a primary key! check your data.")
+  
+  if(!all.unique(d$ucid_t.frame)) 
+    stop("tagCellServer error: the ucid-t.frame combination is not a primary key! (i.e it is not unique, check your data).")
   
   reactive_values <- shiny::reactiveValues(ith_cell = 1, # row index used to order dataframe rows
                                            ith_ucid = numeric(),
@@ -32,6 +36,9 @@ tagCellServer <- function(input, output, session) {
                                            selected_cell_tags = list(),
                                            click_vars = list(),
                                            ucid.viewed=ucid.viewed)
+  
+  # Restore previous tagging list
+  if(!is.null(tags.df)) reactive_values$selected_cell_tags <- previous.tags.list
   
   ### UI OBSERVERS   ----------------
   output$moreControls <- renderUI({

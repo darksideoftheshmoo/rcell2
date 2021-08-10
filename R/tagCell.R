@@ -25,6 +25,7 @@
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 #' @param debug_messages print debug messages
 #' @param max.frames Max number of t.frames to render in the cell strip. Set to 0 to disable.
+#' @param tags.df Previous tag dataframe.
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 #' @examples
@@ -90,7 +91,8 @@ tagCell <- function(cdata,
                     normalize_images = F,
                     debug_messages = F,
                     # prev.annot.df=NULL,  # TO-DO: implement resume annotations
-                    max.frames=10
+                    max.frames=10,
+                    tags.df=NULL
                     ){
   
   # To-do
@@ -121,6 +123,27 @@ tagCell <- function(cdata,
     dir.create(basename(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
   }
   if(debug_messages) print(paste("Will append tagging progress to file:", tmp_output_file))
+  
+  # Restores selected tags list
+  if(!is.null(tags.df)){
+    previous.tags.list <- tags.df %>% 
+      # remove entries with no t.frame info (i.e. viewed but not tagged cells)
+      filter(!is.na(t.frame)) %>% 
+      # reform the unique id colum
+      unite("ucid_t.frame", ucid, t.frame, sep = "_") %>% 
+      # cleanup columns, select those only on the cell_tags list
+      .[c("ucid_t.frame", names(cell_tags))] %>% 
+      # reform the tags list
+      split(~ucid_t.frame) %>% 
+      # reform list structure, removing NA entries
+      lapply(function(.tags){
+        .tags <- as.list(.tags[1,-1])
+        .tags <- .tags[!sapply(.tags, is.na)]
+        return(.tags)
+      }) %>% 
+      # ensure no empty list items
+      {.[lapply(., length) > 0]}
+  }
   
   # Setup environments for the shiny app, from this environment
   environment(tagCellServer) <- environment()

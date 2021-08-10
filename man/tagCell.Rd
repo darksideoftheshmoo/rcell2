@@ -12,7 +12,7 @@ tagCell(
   randomize_ucids = FALSE,
   tag_box_size = 50,
   cell_resize = NULL,
-  tag_channels_select = c("BF"),
+  tag_channels_select = c("BF", "BF.out"),
   n_max = 10,
   seed = 1,
   tmp_output_file = NULL,
@@ -20,7 +20,8 @@ tagCell(
   equalize_images = F,
   normalize_images = F,
   debug_messages = F,
-  max.frames = 10
+  max.frames = 10,
+  tags.df = NULL
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ tagCell(
 \item{debug_messages}{print debug messages}
 
 \item{max.frames}{Max number of t.frames to render in the cell strip. Set to 0 to disable.}
+
+\item{tags.df}{Previous tag dataframe.}
 }
 \value{
 Lots of stuff.
@@ -95,15 +98,14 @@ saved <- rcell2::tagCell(cdata,
                                                         "not_a_cell")
                          ),
                          tag_channels_select = tag_channels_select,
-                         .equalize = T,
-                         .normalize = F,
+                         equalize_images = T,
+                         normalize_images = F,
                          n_max = 50,
                          tag_box_size = 75,
                          cell_resize = 300,
                          tag_ggplot = p,
                          tmp_output_file = "../output/annotations/progress.csv", 
-                         debug_messages = F,
-                         annotation_params = c(color = "none", background = "none")
+                         debug_messages = F
                          )
                          
 }

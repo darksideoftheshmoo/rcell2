@@ -24,7 +24,7 @@ cellStrips(
 
 \item{...}{Arguments passed on to magickCell.}
 
-\item{cut_strips}{Use `cut` to split the image series.}
+\item{cut_strips}{Use `cut` to split the image series (by index; preserves sortVar order).}
 }
 \description{
 `cdata` is split by `split_col` and then images are generated.
