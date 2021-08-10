@@ -10,21 +10,19 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(magick)
-library(utiles)  # get this from: https://gitlab.com/naikymen/r_utils
-library(rcell2)  # this package
-library(tidyverse)
+library(magick)  # if you need it
+library(utiles)  # if you need it, get this from: https://gitlab.com/naikymen/r_utils
+library(rcell2)  # this package you are checking out :)
+library(tidyverse)  # import numpy as np (?)
 ```
 
-## Friendly reminder
+## Friendly reminders
 
 **READ THE README**.md at rcell2's GitHub repo.
 
-**MIRA LAS FOTOS** CON IMAGEJ ANTES DE EMPEZAR :D
+**MIRAR LAS FOTOS** CON IMAGEJ ANTES DE EMPEZAR. Te puede ahorrar mucho tiempo :D
 
-Te puede ahorrar mucho tiempo.
-
-## TL:DR FULL EXAMPLE
+## FULL EXAMPLE (TL;DR)
 
 Run cellid using the selected parameters.
 
@@ -32,10 +30,11 @@ Otherwise you may omit `parameters = parameters.txt` in the `rcell2::arguments()
 or set your own using `rcell2::parameters.default()` and `rcell2::parameters.write()`.
 
 ```{r}
-# parameters.txt <- rcell2::parameters.write(rcell2::parameters.default())
-parameters.txt <- rcell2::parameters.write(parameters.list)
+data.dir <- "path/donde/estan/las/fotos/"
 
-cellid.args <- rcell2::arguments(path = new.dir,
+parameters.txt <- rcell2::parameters.write(rcell2::parameters.default())
+
+cellid.args <- rcell2::arguments(path = data.dir,
                                  parameters = parameters.txt,  # optional
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
 cell2.out <- 
@@ -43,7 +42,7 @@ cell2.out <-
                 output_coords_to_tsv = T,  # Optional
                 cell.command = "~/Software/cellID-linux/cell")
 
-cell.data <- rcell2::cell.load.alt(path = new.dir,
+cell.data <- rcell2::cell.load.alt(path = data.dir,
                                    fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
 
 cell.boundaries <- 
@@ -58,8 +57,6 @@ cell.boundaries <-
 Puede ser conveniente guardar todo en una lista:
 
 ```{r}
-data.dir <- "/home/sarasa/"
-
 saveRDS(
   file = paste0(data.dir, "/", "cell2.objects.RDS"),
   object = list(
@@ -80,9 +77,9 @@ list2env(readRDS(paste0(data.dir, "/", "cell2.objects.RDS")),
          globalenv())
 ```
 
-## CellID
+## CellID Examples
 
-### Parameters
+### Parameters for CellID
 
 A prototype parameter list, with defaults:
 
@@ -270,7 +267,7 @@ bf.out.imgs <- magick::image_read(bf.out.imgs.paths) %>%
 magick::image_append(bf.out.imgs, stack = T)
 ```
 
-### Arguments
+### Arguments for CellID
 
 Es un dataframe con información para corerr CellID.
 
@@ -316,7 +313,7 @@ cellid.args %>% filter(pos == 2, t.frame %in% c(4,2,3))
 ```
 
 
-### Correr CellID
+### Run CellID
 
 La función `cell2` genera comandos para llamar a CellID por línea de comandos y los ejecuta en paralelo.
 
@@ -333,7 +330,7 @@ rcell2::cell2(arguments = cellid.args,
               dry = T, no_cores = 2)
 ```
 
-## Cargar CellID data
+## Load CellID data
 
 Esto se hace con la función `load_cell_data`:
 
@@ -367,15 +364,26 @@ Ver ejemplos en:
 
 - [ ] TODO: documentar esto bien.
 
+### Supervised classification
+
+- [ ] TODO: agregar ejemplos de funciones de los clasificadores entrenados (LR y SVM).
+
+### Unsupervised classification
+
+- [ ] TODO: agregar ejemplos de funciones de k-means.
+
 ## Datos de máscaras
+
+Hay dos formas de cargar los datos de las mascaras, segun las opciones con las que corriste `cell2`.
 
 ### TIFF pixel ID
 
 Si especificaron la opción `encode_cellID_in_pixels` en `cell2`, el CellID está codificado en la intensidad de pixel de las fotos de `BF.out`, y se puede cargar usando la funcion `pic_df_from_tiff`.
 
 ```{r}
-rcell2:::pic_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", 
-                          image_bits = 16)
+mask <- 
+  rcell2:::pic_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", 
+                            image_bits = 16)
 ```
 
 ### TSV output
@@ -413,7 +421,14 @@ cell.boundaries <-
 ```
 
 
-### Hu Moments
+### Analisis de máscaras
+
+#### Boundary angles
+
+- [ ] TODO: agregar ejemplos de funciones de suavizado y parametrizacion.
+- [ ] TODO: agregar ejemplos de funciones de DTW para alineamiento.
+
+#### Hu Moments
 
 Usar datos de máscaras para calcular sus Hu Moments.
 
@@ -429,7 +444,7 @@ rcell2:::check_tiff_mask(cell_data)
  
 Para usar los TFP, ver `test_hu_moments.Rmd`.
 
-### Other analysis (WIP)
+#### Other analysis (WIP)
 
 There are various mini-projects for analizyng boundary/mask/cellid data. See:
 
