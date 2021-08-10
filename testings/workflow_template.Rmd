@@ -423,11 +423,6 @@ cell.boundaries <-
 
 ### Analisis de máscaras
 
-#### Boundary angles
-
-- [ ] TODO: agregar ejemplos de funciones de suavizado y parametrizacion.
-- [ ] TODO: agregar ejemplos de funciones de DTW para alineamiento.
-
 #### Hu Moments
 
 Usar datos de máscaras para calcular sus Hu Moments.
@@ -444,11 +439,10 @@ rcell2:::check_tiff_mask(cell_data)
  
 Para usar los TFP, ver `test_hu_moments.Rmd`.
 
-#### Other analysis (WIP)
+## Other tools (WIP)
 
 There are various mini-projects for analizyng boundary/mask/cellid data. See:
 
-* `testings/curvature_tests`
 * `testings/edge_kernels`
 * `testings/erosion_dilation`
 * `testings/focus_scores`
@@ -460,3 +454,17 @@ There are various mini-projects for analizyng boundary/mask/cellid data. See:
 * `testings/tree_classification`
 * `testings/yeast_vision`
 
+### ImageJ FFT filter on BF images
+
+* `testings/fft_filter`
+
+### Cell shapes / Boundary angles
+
+* `testings/curvature_tests`
+
+- [ ] TODO: agregar ejemplos de funciones de suavizado y parametrizacion.
+- [ ] TODO: agregar ejemplos de funciones de DTW para alineamiento.
+
+### Signal localization
+
+- [ ] TODO: agregar las cosas de SNR del curso de Luciana.
