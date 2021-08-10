@@ -22,6 +22,7 @@ tagCellServer <- function(input, output, session) {
   p <- paths
   
   ucid.unique <- unique(d$ucid)
+  ucid.viewed <- setNames(rep(F, length(ucid.unique)), ucid.unique)
   if(!all.unique(d$ucid_t.frame)) stop("tagCellServer error: the ucid-t.frame combination is not a primary key! check your data.")
   
   reactive_values <- shiny::reactiveValues(ith_cell = 1, # row index used to order dataframe rows
@@ -29,7 +30,8 @@ tagCellServer <- function(input, output, session) {
                                            i_line = 1,
                                            other_reactive_values = c(),
                                            selected_cell_tags = list(),
-                                           click_vars = list())
+                                           click_vars = list(),
+                                           ucid.viewed=ucid.viewed)
   
   ### UI OBSERVERS   ----------------
   output$moreControls <- renderUI({
@@ -128,6 +130,10 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid for that cell
       
+      # Mark current ucid as viewed
+      ith_ucid2 <- as.character(d$ucid[reactive_values$ith_cell])  # Get ucid for that cell
+      reactive_values$ucid.viewed[names(ucid.viewed) == ith_ucid2] <- TRUE
+      
       if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
@@ -168,6 +174,10 @@ tagCellServer <- function(input, output, session) {
       
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
+      
+      # Mark current ucid as viewed
+      ith_ucid2 <- as.character(d$ucid[reactive_values$ith_cell])  # Get ucid for that cell
+      reactive_values$ucid.viewed[names(ucid.viewed) == ith_ucid2] <- TRUE
       
       if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
@@ -211,19 +221,23 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
       
+      # Mark current ucid as viewed
+      ith_ucid2 <- as.character(d$ucid[reactive_values$ith_cell])  # Get ucid for that cell
+      reactive_values$ucid.viewed[names(ucid.viewed) == ith_ucid2] <- TRUE
+      
       if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
         input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
-        ith_cell_tags[[names(cell_tags)[tag_group]]]  # Store it in a list element appropriately named 
+          ith_cell_tags[[names(cell_tags)[tag_group]]]  # Store it in a list element appropriately named 
       
       reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags  # Save the tag list to a UCID name element in a reactive values list.
       
       # Skip to the next UCID
       ucid.oi <- as.character(d$ucid[reactive_values$ith_cell])   # Get bare ucid for the current cell
-      ucid.oi.index <- match(ucid.oi, ucid.unique)
-      ucid.next <- ucid.unique[ucid.oi.index + 1]                 # Get the next ucid
-      ucid.next.index <- match(ucid.next, d$ucid)                 # Get the next ucid's row index
+      ucid.oi.index <- match(ucid.oi, ucid.unique)                # Get it's index in the unique ucids array
+      ucid.next <- ucid.unique[ucid.oi.index + 1]                 # Get the next ucid in that array
+      ucid.next.index <- match(ucid.next, d$ucid)                 # And get the next ucid's row index
       if(debug_messages) print(paste("-- Next cell row index:", ucid.next.index))
       
       # Handle next > total
@@ -257,6 +271,10 @@ tagCellServer <- function(input, output, session) {
       ith_cell <- reactive_values$ith_cell                               # Get the current reactive cell number
       ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell]) # Get ucid for that cell
       if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
+      
+      # Mark current ucid as viewed
+      ith_ucid2 <- as.character(d$ucid[reactive_values$ith_cell])  # Get ucid for that cell
+      reactive_values$ucid.viewed[names(ucid.viewed) == ith_ucid2] <- TRUE
       
       ith_cell_tags <- list()
       for(tag_group in 1:length(names(cell_tags)))      # For each tag group
@@ -354,20 +372,24 @@ tagCellServer <- function(input, output, session) {
 
       if(debug_messages) print(paste("-- Saving progress to file:", tmp_output_file))
       
+      viewed_ucids <- data.frame(ucid = as.integer(names(ucid.viewed)),
+                                 viewed = unname(ucid.viewed))
+      
       table_output <- reactive_values$selected_cell_tags %>% bind_rows(.id = "ucid_t.frame")
       
       if(nrow(table_output) > 0){
         
-        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
+        table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame"), convert = T) %>% 
           mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
-          left_join(unique(select(d, ucid, pos, cellID)))
+          left
         
-        readr::write_csv(table_output, path = tmp_output_file)
+        # table_output %>% 
+        #   left_join(unique(select(d, ucid, pos, cellID))) %>% 
+        viewed_ucids %>% left_join(table_output) %>% 
+          readr::write_csv(path = tmp_output_file)
         
       } else {
-        
-        table_output <- data.frame()
-        
+        table_output <- viewed_ucids
       }
       
       if(debug_messages) print("-- Returning progress to output:")
@@ -382,21 +404,44 @@ tagCellServer <- function(input, output, session) {
     handlerExpr = {
       writeLines("\n- Save event fired")
       
+      # Save current annotations
+      ith_cell <- reactive_values$ith_cell                                 # Get the current reactive cell number
+      ith_ucid <- as.character(d$ucid_t.frame[reactive_values$ith_cell])   # Get ucid_t.frame for that cell
+      
+      if(debug_messages) print(paste("-- Saving tag selection for current cell with row index:", ith_cell))
+      ith_cell_tags <- list()
+      for(tag_group in 1:length(names(cell_tags)))      # For each tag group
+        input[[names(cell_tags)[tag_group]]] ->         # Get the currently selected values array
+        ith_cell_tags[[names(cell_tags)[tag_group]]]  # Store it in a list element appropriately named 
+      
+      reactive_values$selected_cell_tags[[ith_ucid]] <- ith_cell_tags             # Save the tag list to a UCID name element in a reactive values list.
+      
+      # Mark current ucid as viewed
+      ith_ucid2 <- as.character(d$ucid[reactive_values$ith_cell])  # Get ucid for that cell
+      reactive_values$ucid.viewed[names(ucid.viewed) == ith_ucid2] <- TRUE
+      # Generate viewed ucids DF
+      viewed_ucids <- data.frame(ucid = as.integer(names(reactive_values$ucid.viewed)),
+                                 viewed = unname(reactive_values$ucid.viewed))
+      
+      # Prepare output
       table_output <- reactive_values$selected_cell_tags %>% 
         bind_rows(.id = "ucid_t.frame")  #%>% mutate(ucid = as.numeric(ucid_t.frame))
       
       if(nrow(table_output) > 0){
         table_output <- separate(table_output, ucid_t.frame, c("ucid", "t.frame")) %>% 
           mutate(ucid = as.integer(ucid), t.frame = as.integer(t.frame)) %>% 
-          left_join(select(d, ucid, pos, cellID))
+          # left_join(unique(select(d, ucid, pos, cellID)))
+          right_join(viewed_ucids)
+        
         showNotification(paste("-- Saving progress to file:", tmp_output_file), duration = 4, type = "message")
+        
       } else {
-        table_output <- data.frame(message = "No annotations yet...")
+        table_output <- viewed_ucids
         showNotification(paste("-- No annotations yet, nothing was saved."), duration = 4, type = "message")
       }
       
-      readr::write_csv(table_output, path = tmp_output_file)
-      
+        # Write output
+        readr::write_csv(table_output, path = tmp_output_file, append = F)
     }
   )
   
