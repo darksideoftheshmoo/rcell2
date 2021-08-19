@@ -37,9 +37,9 @@ magickCell(
 
 \item{n.cells}{maximum number of cells to display.}
 
-\item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default).}
+\item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
 
-\item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default).}
+\item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
 
 \item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
 

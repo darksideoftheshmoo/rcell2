@@ -22,9 +22,9 @@ cellGif(
 
 \item{paths}{A paths dataframe with file path, t.frame, position and channel information of each picture.}
 
-\item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default).}
+\item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
 
-\item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default).}
+\item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
 
 \item{channels}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
 
@@ -32,7 +32,23 @@ cellGif(
 
 \item{stack_channels_horizontally}{Time increases from left to right (TRUE) or from up to down (FALSE).}
 
-\item{...}{Arguments passed on to magickCell.}
+\item{...}{
+  Arguments passed on to \code{\link[=magickCell]{magickCell}}
+  \describe{
+    \item{\code{max_composite_size}}{Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.}
+    \item{\code{cell_resize}}{Resize string for the individual cell images (\code{NULL} translates to \code{boxSize}x\code{boxSize} by default).}
+    \item{\code{boxSize}}{Size of the box containing the individual cell images. 50 by default.}
+    \item{\code{n.cells}}{maximum number of cells to display.}
+    \item{\code{ch}}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
+    \item{\code{sortVar}}{Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.}
+    \item{\code{seed}}{Seed value for sampling of cell images. NULL by default, to disable sampling.}
+    \item{\code{.debug}}{Print more messages if TRUE.}
+    \item{\code{return_single_imgs}}{If TRUE, return a vector of images instead of a tile.}
+    \item{\code{return_ucid_df}}{If TRUE, return is a list of magick images and ucid dataframes.}
+    \item{\code{annotation_params}}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
+    \item{\code{stack_vertical_first}}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
+    \item{\code{return_raw}}{Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).}
+  }}
 }
 \description{
 cellMagick configured for prodicing a ucid's gif

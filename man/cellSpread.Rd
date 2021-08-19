@@ -35,7 +35,23 @@ cellSpread(
 
 \item{cut.by.content}{Use quantile to generate cuts of "roughly equal content (rather than length)."}
 
-\item{...}{Arguments passed on to magickCell.}
+\item{...}{
+  Arguments passed on to \code{\link[=magickCell]{magickCell}}
+  \describe{
+    \item{\code{max_composite_size}}{Maximum size of the final composite image (this resize is applied last) in pixels. 1000 by default.}
+    \item{\code{cell_resize}}{Resize string for the individual cell images (\code{NULL} translates to \code{boxSize}x\code{boxSize} by default).}
+    \item{\code{n.cells}}{maximum number of cells to display.}
+    \item{\code{equalize_images}}{Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
+    \item{\code{normalize_images}}{Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
+    \item{\code{sortVar}}{Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.}
+    \item{\code{seed}}{Seed value for sampling of cell images. NULL by default, to disable sampling.}
+    \item{\code{.debug}}{Print more messages if TRUE.}
+    \item{\code{return_single_imgs}}{If TRUE, return a vector of images instead of a tile.}
+    \item{\code{return_ucid_df}}{If TRUE, return is a list of magick images and ucid dataframes.}
+    \item{\code{annotation_params}}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
+    \item{\code{stack_vertical_first}}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
+    \item{\code{return_raw}}{Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).}
+  }}
 }
 \description{
 2D binning of data and tiling of cell pictures

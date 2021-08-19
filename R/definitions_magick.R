@@ -94,6 +94,7 @@ all.unique <- function(test_vector){
 #' cellMagick configured for prodicing a ucid's gif
 #' 
 #' @inheritParams magickCell
+#' @inheritDotParams  magickCell
 #' @param animation_delay Delay between animation frames in seconds.
 #' @param stack_channels_horizontally Time increases from left to right (TRUE) or from up to down (FALSE).
 #' @param channels Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
@@ -131,6 +132,7 @@ cellGif <- function(cdata,
 #' cellMagick configured for prodicing a ucid's strip
 #' 
 #' @inheritParams magickCell
+#' @inheritDotParams  magickCell
 #' @param stack_time_horizontally Time increases from left to right (TRUE) or from up to down (FALSE).
 #' @param channels Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
 #' @param ... Arguments passed on to magickCell.
@@ -173,8 +175,10 @@ cellStrip <- function(cdata,
 #' `images` are split with `cut`, useful wen strips are too long.
 #' 
 #' @inheritParams cellStrip
+#' @inheritDotParams  cellStrip
 #' @param n_ucids will select the first `n_ucids`
 #' @param cut_strips Use `cut` to split the image series (by index; preserves sortVar order).
+#' @param ... Arguments passed on to magickCell.
 #' 
 cellStrips <- function(cdata,
                        paths,
@@ -250,6 +254,7 @@ updateList <- function(l1, l2, only.common.names=T){
 #' 2D binning of data and tiling of cell pictures
 #' 
 #' @inheritParams magickCell
+#' @inheritDotParams magickCell
 #' @param xvar,yvar Strings indicating names for the variables to plot in the horizontal (x) and vertical (y) axis.
 #' @param x.cuts,y.cuts Integers indicating the number of cuts for each variable.
 #' @param for_plotting Return value changes to list of elements important for plotting.
@@ -387,9 +392,11 @@ cellSpread <- function(cdata, paths,
 #' Plot for 2D binning of data and tiling of cell pictures
 #' 
 #' @inheritParams cellSpread
+#' @inheritDotParams cellSpread
 #' @param overlay_points Overlay data points to the image plot.
 #' @param underlay_points Underlay data points to the image plot.
 #' @param draw_contour_breaks Overlay a ggplot2::stat_density2d layer. If TRUE, use the default breaks. Otherwise NULL for none, or a numeric vector for the density breaks.
+#' @param ... Extra arguments passed on to cellSpread.
 #' 
 cellSpreadPlot <- function(cdata, paths,
                            ch = "BF.out", boxSize = 80,
@@ -499,8 +506,8 @@ getCellGeom <- function(xpos, ypos, boxSize = 50){
 #' @param cell_resize Resize string for the individual cell images (\code{NULL} translates to \code{boxSize}x\code{boxSize} by default).
 #' @param boxSize Size of the box containing the individual cell images. 50 by default.
 #' @param n.cells maximum number of cells to display.
-#' @param equalize_images Use magick's function to "equalize" the image when TRUE (FALSE by default).
-#' @param normalize_images Use magick's function to "normalize" the image when TRUE (FALSE by default).
+#' @param equalize_images Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
+#' @param normalize_images Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
 #' @param ch Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
 #' @param sortVar Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.
 #' @param seed Seed value for sampling of cell images. NULL by default, to disable sampling.
@@ -543,7 +550,7 @@ magickCell <- function(cdata, paths,
     warning("rcell2::magickCell warning: the 'paths' data.frame is empty, returning NULL.")
     return(NULL)
   }
-
+  
   # "100x100" pixels
   if(is.null(cell_resize)) cell_resize <- boxSize
   cell_resize_string <- paste0(cell_resize, "x", cell_resize)
@@ -630,12 +637,42 @@ magickCell <- function(cdata, paths,
                                          boxSize))
       
       if(return_raw){
-        # Return
-        imgs.raw
+        
+        return(imgs.raw)  # Return
+        
       } else {
-        imgs.proceesed <- imgs.raw %>%
-          {if (equalize_images) magick::image_normalize(.) else .} %>%
-          {if (normalize_images) magick::image_equalize(.) else .} %>%
+        imgs.proceesed <- imgs.raw %>% 
+          {
+            # Deal with the dot mystery
+            .imgs <- .
+
+            # Recycle-repeat normalize/equalize arguments to ch length
+            equalize_images_rep <- rep(equalize_images, length.out = length(ch))
+            normalize_images_rep <- rep(normalize_images, length.out = length(ch))
+
+            # Equalize images jointly or separately
+            if(length(equalize_images) == 1){
+              if(equalize_images[1]) .imgs <- image_equalize(.imgs)
+            } else {
+              .imgs[which(equalize_images_rep)] <- image_equalize(.imgs[which(equalize_images_rep)])
+            }
+
+            # Normalize images jointly or separately
+            if(length(normalize_images) == 1) {
+              if(normalize_images[1]) .imgs <- image_normalize(.imgs)
+            } else {
+              .imgs[which(normalize_images_rep)] <- image_equalize(.imgs[which(normalize_images_rep)])
+            }
+
+            # Return
+            .imgs
+          } %>%
+          # {
+          #   if(normalize_images[1]) image_normalize(.) else .
+          # } %>% 
+          # {
+          #   if(equalize_images[1]) image_equalize(.) else .
+          # } %>% 
           # Add square black box
           {magick::image_composite(
             magick::image_blank(boxSize, boxSize, "black"),
@@ -672,6 +709,8 @@ magickCell <- function(cdata, paths,
       }
     }
 
+  if(return_raw) return(imga)
+  
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
   
   if(return_single_imgs) {
@@ -717,7 +756,9 @@ magickCell <- function(cdata, paths,
 
 #' magickCell alias
 #' 
+#' @inherit magickCell
 #' @inheritParams magickCell
+#' @inheritDotParams magickCell
 #' 
 cellMagick <- function(...){
   magickCell(...)

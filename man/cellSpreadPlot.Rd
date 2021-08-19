@@ -42,7 +42,12 @@ cellSpreadPlot(
 
 \item{y.cuts}{Integers indicating the number of cuts for each variable.}
 
-\item{...}{Arguments passed on to magickCell.}
+\item{...}{
+  Arguments passed on to \code{\link[=cellSpread]{cellSpread}}
+  \describe{
+    \item{\code{for_plotting}}{Return value changes to list of elements important for plotting.}
+    \item{\code{cut.by.content}}{Use quantile to generate cuts of "roughly equal content (rather than length)."}
+  }}
 }
 \description{
 Plot for 2D binning of data and tiling of cell pictures

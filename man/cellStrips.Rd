@@ -22,7 +22,14 @@ cellStrips(
 
 \item{n_ucids}{will select the first `n_ucids`}
 
-\item{...}{Arguments passed on to magickCell.}
+\item{...}{
+  Arguments passed on to \code{\link[=cellStrip]{cellStrip}}
+  \describe{
+    \item{\code{stack_time_horizontally}}{Time increases from left to right (TRUE) or from up to down (FALSE).}
+    \item{\code{channels}}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
+    \item{\code{equalize_images}}{Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
+    \item{\code{normalize_images}}{Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
+  }}
 
 \item{cut_strips}{Use `cut` to split the image series (by index; preserves sortVar order).}
 }
