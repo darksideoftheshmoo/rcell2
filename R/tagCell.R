@@ -25,7 +25,7 @@
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
 #' @param debug_messages print debug messages
 #' @param max.frames Max number of t.frames to render in the cell strip. Set to 0 to disable.
-#' @param tags.df Previous tag dataframe.
+#' @param tags.df Previous tag dataframe, used to restore or view previous tags in the app (restores tags that are named in the cell_tags list).
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 #' @examples
@@ -106,12 +106,13 @@ tagCell <- function(cdata,
   # Check ucid type and convert to integer
   ucid_class_check <- class(cdata[["ucid"]])
   if(ucid_class_check != "integer"){
-    warning(paste("\ntagCell: cohercing", ucid_class_check, "ucid to integer type"))
     
     if(ucid_class_check == "factor"){
+      warning(paste("\ntagCell: cohercing factor ucid to integer type"))
       cdata <- dplyr::mutate(cdata, ucid = as.integer(as.character.factor(ucid)))
       
     } else {
+      warning(paste("\ntagCell: cohercing", ucid_class_check, "ucid to integer type"))
       cdata <- mutate(cdata, ucid = as.integer(ucid))
     }
   }
@@ -123,28 +124,8 @@ tagCell <- function(cdata,
     dir.create(basename(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
   }
   if(debug_messages) print(paste("Will append tagging progress to file:", tmp_output_file))
-  
-  # Restores selected tags list
-  if(!is.null(tags.df)){
-    previous.tags.list <- tags.df %>% 
-      # remove entries with no t.frame info (i.e. viewed but not tagged cells)
-      filter(!is.na(t.frame)) %>% 
-      # reform the unique id colum
-      unite("ucid_t.frame", ucid, t.frame, sep = "_") %>% 
-      # cleanup columns, select those only on the cell_tags list
-      .[c("ucid_t.frame", names(cell_tags))] %>% 
-      # reform the tags list
-      split(~ucid_t.frame) %>% 
-      # reform list structure, removing NA entries
-      lapply(function(.tags){
-        .tags <- as.list(.tags[1,-1])
-        .tags <- .tags[!sapply(.tags, is.na)]
-        return(.tags)
-      }) %>% 
-      # ensure no empty list items
-      {.[lapply(., length) > 0]}
-  }
-  
+
+    
   # Setup environments for the shiny app, from this environment
   environment(tagCellServer) <- environment()
   environment(tagCellUi) <- environment()

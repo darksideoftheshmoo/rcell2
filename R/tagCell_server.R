@@ -8,12 +8,16 @@
 tagCellServer <- function(input, output, session) {
   print("tagCellServer 1: start")
   
+  p <- paths
   d <- cdata %>% 
     dplyr::arrange(ucid, t.frame) %>% 
-    {if(randomize_ucids) 
-      sample(x = split(., .$ucid), 
-             size = length(unique(cdata$ucid))) %>% 
-        bind_rows() else .} %>% 
+    {
+      if(randomize_ucids){
+        sample(x = split(., .$ucid), 
+               size = length(unique(cdata$ucid))) %>% 
+          bind_rows()
+      } else {.}
+    } %>% 
     mutate(ucid_t.frame = paste(ucid, t.frame, sep = "_")) %>% 
     mutate(
       cellID = as.integer(cellID),
@@ -21,7 +25,6 @@ tagCellServer <- function(input, output, session) {
       t.frame = as.integer(t.frame)
     )
   
-  p <- paths
   
   ucid.unique <- unique(d$ucid)
   ucid.viewed <- setNames(rep(F, length(ucid.unique)), ucid.unique)
@@ -37,8 +40,30 @@ tagCellServer <- function(input, output, session) {
                                            click_vars = list(),
                                            ucid.viewed=ucid.viewed)
   
-  # Restore previous tagging list
-  if(!is.null(tags.df)) reactive_values$selected_cell_tags <- previous.tags.list
+  # Restores selected tags list
+  if(!is.null(tags.df)){
+    previous.tags.list <- tags.df %>% 
+      # remove entries with no t.frame info (i.e. viewed but not tagged cells)
+      filter(!is.na(t.frame)) %>% 
+      # reform the unique id colum
+      unite("ucid_t.frame", ucid, t.frame, sep = "_") %>% 
+      # cleanup columns, select only those on the cell_tags list
+      .[c("ucid_t.frame", names(cell_tags))] %>% 
+      # reform the tags list
+      split(~ucid_t.frame) %>% 
+      # reform list structure, removing NA entries
+      lapply(function(.tags){
+        .tags <- as.list(.tags[1,-1])
+        .tags <- .tags[!sapply(.tags, is.na)]
+        return(.tags)
+      }) %>% 
+      # ensure no empty list items
+      {.[lapply(., length) > 0]}
+  } else {
+    previous.tags.list <- NULL
+  }
+  # Restore previous tagging reactive list
+  if(!is.null(previous.tags.list)) reactive_values$selected_cell_tags <- previous.tags.list
   
   ### UI OBSERVERS   ----------------
   output$moreControls <- renderUI({

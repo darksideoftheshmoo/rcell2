@@ -57,7 +57,7 @@ tagCell(
 
 \item{max.frames}{Max number of t.frames to render in the cell strip. Set to 0 to disable.}
 
-\item{tags.df}{Previous tag dataframe.}
+\item{tags.df}{Previous tag dataframe, used to restore or view previous tags in the app (restores tags that are named in the cell_tags list).}
 }
 \value{
 Lots of stuff.
