@@ -37,7 +37,7 @@ BiocManager::install("EBImage")
 
 Also install `imagemagick` on your system; this is required by R's `magick` package. All the major operating systems are supported by ImageMagick: https://imagemagick.org/script/download.php
 
-For Ubuntu, Arch and Brew (macOS) these commands may come in handy:
+For Ubuntu, Arch and macOS (use [homebrew](https://brew.sh/)!!!)  these commands may come in handy:
 
 ```
 # Aptitude
@@ -45,6 +45,9 @@ sudo apt install imagemagick
 
 # Pacman
 sudo pacman -S imagemagick
+
+# macOS homebrew (preferred)
+brew install imagemagick
 
 # macOS .dmg
 # https://imagemagick.org/script/download.php
