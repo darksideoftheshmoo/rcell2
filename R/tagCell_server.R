@@ -572,18 +572,20 @@ tagCellServer <- function(input, output, session) {
       frame.selected <- d[reactive_values$ith_cell,"t.frame",drop=T]
       
       avail.frames <- filter(d, ucid == ucid.selected) %>% with(t.frame) %>% sort()
-      frame.range <- seq.int(from = max(0, frame.selected - max.frames),
-                             to   = min(max(avail.frames), frame.selected + max.frames))
       
-      plot_width <- session$clientData$output_plot_width
-      plot_height <- session$clientData$output_plot_height
+      # Reorder available frames by distance to current frame
+      closest.frames <- avail.frames[order(abs(avail.frames - frame.selected))]
+      # Truncate the array to max.frames length (or total length)
+      closest.frames <- closest.frames[1:(min(length(closest.frames), max.frames))]
+      # Sort the frames, just 'cause:
+      frame.range <- sort(closest.frames)
       
       cell.strip <- 
         cellStrips(cdata = cdata %>% filter(ucid == ucid.selected,
                                             t.frame %in% frame.range),
                    paths = images,
                    # cell_resize=cell_resize,
-                   n.cells = n_max,
+                   n.cells = max.frames,
                    ch=tag_channels_select, 
                    equalize_images = equalize_images,
                    normalize_images = normalize_images,
@@ -591,6 +593,10 @@ tagCellServer <- function(input, output, session) {
                    ) %>% 
         # Unlist the output
         .[[1]]
+      
+      
+      plot_width <- session$clientData$output_plot_width
+      plot_height <- session$clientData$output_plot_height
       
       tmpimage <- cell.strip %>% 
         magick::image_resize(geometry = geometry_size_pixels(width = plot_width))
@@ -630,7 +636,6 @@ tagCellServer <- function(input, output, session) {
                                  # cell_resize=cell_resize,
                                  cell_resize=cell_resize,
                                  ch=tag_channels_select, 
-                                 # n.cells = n_max,
                                  equalize_images = equalize_images,
                                  normalize_images = normalize_images,
                                  boxSize = tag_box_size, 

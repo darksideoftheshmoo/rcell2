@@ -9,23 +9,23 @@
 
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
-#' @param cdata dataframe of "cell data"
-#' @param pdata dataframe "position data"
-#' @param paths dataframe of image paths 
-#' @param cell_tags list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...)
+#' @param cdata dataframe of "cell data".
+#' @param pdata dataframe "position data".
+#' @param paths dataframe of image paths.
+#' @param cell_tags list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...).
 #' @param randomize_ucids Randomize ucid order.
-#' @param tag_box_size size of the image crop in pixels (integer)
-#' @param cell_resize resize of the image crop in pixels (integer)
-#' @param tag_channels_select a vector giving names for the image channels: c("BF", "YFP.out", etc....)
+#' @param tag_box_size size of the image crop in pixels (integer).
+#' @param cell_resize resize of the image crop in pixels (integer).
+#' @param tag_channels_select a vector giving names for the image channels: c("BF", "YFP.out", etc....).
 #' @param equalize_images Use magick's function to "equalize" the images.
 #' @param normalize_images Use magick's function to "normalize" the images.
-#' @param n_max max number of boxes in the image
-#' @param seed seed for random sampling of images
+#' @param seed seed for random sampling of images.
 #' @param tmp_output_file File path into which tagging information will be dumped by user request. NULL by default, to automatically create and append to a tmp file.
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
-#' @param debug_messages print debug messages
+#' @param debug_messages print debug messages.
 #' @param max.frames Max number of t.frames to render in the cell strip. Set to 0 to disable.
 #' @param tags.df Previous tag dataframe, used to restore or view previous tags in the app (restores tags that are named in the cell_tags list).
+# @param n_max max number of boxes in the image.
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
 #' @examples
@@ -83,7 +83,7 @@ tagCell <- function(cdata,
                     tag_box_size = 50,
                     cell_resize=NULL,
                     tag_channels_select=c("BF", "BF.out"),
-                    n_max=10,
+                    # n_max=10,
                     seed = 1,
                     tmp_output_file=NULL,
                     tag_ggplot = NULL,
@@ -121,7 +121,7 @@ tagCell <- function(cdata,
   if(is.null(tmp_output_file)){
     tmp_output_file <- tempfile(tmpdir = tempdir(), fileext = ".txt", pattern = "tagCell_progress")
   } else {
-    dir.create(basename(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
+    dir.create(dirname(normalizePath(tmp_output_file)), recursive = T, showWarnings = F)
   }
   if(debug_messages) print(paste("Will append tagging progress to file:", tmp_output_file))
 

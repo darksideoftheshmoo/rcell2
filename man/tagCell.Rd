@@ -13,7 +13,6 @@ tagCell(
   tag_box_size = 50,
   cell_resize = NULL,
   tag_channels_select = c("BF", "BF.out"),
-  n_max = 10,
   seed = 1,
   tmp_output_file = NULL,
   tag_ggplot = NULL,
@@ -25,25 +24,23 @@ tagCell(
 )
 }
 \arguments{
-\item{cdata}{dataframe of "cell data"}
+\item{cdata}{dataframe of "cell data".}
 
-\item{pdata}{dataframe "position data"}
+\item{pdata}{dataframe "position data".}
 
-\item{paths}{dataframe of image paths}
+\item{paths}{dataframe of image paths.}
 
-\item{cell_tags}{list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...)}
+\item{cell_tags}{list of named vectors corresponding to tag groups and tags: list(named_item1 = c(option1, option2, ...), named_item2 ...).}
 
 \item{randomize_ucids}{Randomize ucid order.}
 
-\item{tag_box_size}{size of the image crop in pixels (integer)}
+\item{tag_box_size}{size of the image crop in pixels (integer).}
 
-\item{cell_resize}{resize of the image crop in pixels (integer)}
+\item{cell_resize}{resize of the image crop in pixels (integer).}
 
-\item{tag_channels_select}{a vector giving names for the image channels: c("BF", "YFP.out", etc....)}
+\item{tag_channels_select}{a vector giving names for the image channels: c("BF", "YFP.out", etc....).}
 
-\item{n_max}{max number of boxes in the image}
-
-\item{seed}{seed for random sampling of images}
+\item{seed}{seed for random sampling of images.}
 
 \item{tmp_output_file}{File path into which tagging information will be dumped by user request. NULL by default, to automatically create and append to a tmp file.}
 
@@ -53,7 +50,7 @@ tagCell(
 
 \item{normalize_images}{Use magick's function to "normalize" the images.}
 
-\item{debug_messages}{print debug messages}
+\item{debug_messages}{print debug messages.}
 
 \item{max.frames}{Max number of t.frames to render in the cell strip. Set to 0 to disable.}
 
