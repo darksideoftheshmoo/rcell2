@@ -20,10 +20,12 @@ imagej.fft.filter <- function(
     stop("The provided 'pic.path' is not a directory.")
   }
   
-  system(paste(
+  command <- paste(
     normalizePath(imagej.path),
     "--headless -macro",
     normalizePath(script.path),
-    paste0(dirname(pic.path), "/")
-  ))
+    pic.path
+  )
+  
+  system(command)
 }
