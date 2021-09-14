@@ -67,6 +67,19 @@ shinyCell <- function(cdata,
                       launch.browser = F,
                       ...){
   
+  has.na_nan_inf <- function (df, print.which = F) {
+    r <- lapply(df, function(x) is.nan(x) | is.infinite(x) | 
+                  is.na(x))
+    r.cols <- unlist(lapply(r, any))
+    if (print.which) 
+      print(r.cols[r.cols])
+    return(any(unlist(r)))
+  }
+  
+  if(has.na_nan_inf(cdata)) stop("Error: your 'cdata' dataframe has NaN, NA and/or Inf values.")
+  if(has.na_nan_inf(pdata)) stop("Error: your 'pdata' dataframe has NaN, NA and/or Inf values.")
+  if(has.na_nan_inf(paths)) stop("Error: your 'paths' dataframe has NaN, NA and/or Inf values.")
+  
   if(is.null(pdata)) pdata <- data.frame(pos = safe_select(cdata, "pos"))
   
   if(!all(names(pdata) %in% names(cdata))) stop("Error: cdata does not contain names in pdata, join them first :)")
