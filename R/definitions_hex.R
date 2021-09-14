@@ -55,9 +55,14 @@ hexPlotDf<- function(cdata, facetVars = c("pos", "treatment"), varx = "a.tot", v
 }
 
 #' Función hexbin
-#' Esencialmente hexbin() pero un poco más a mi gusto
+#'
+#' Esencialmente hexbin() pero un poco más a mi gusto.
+#' 
+#' La función puede fallar de forma medio oscura cuando el input tiene problemas
+#' (i.e. si está vacío, o si es todo NAs, etc.)
+#' 
 myhexbin <- function(bindata, varx , vary, xbins = 25){
-  print("F10")
+  print("F10.1")
 
   # Ranges are single valued if drawing only one polygon, fixed here:
   bindata <- as.data.frame(bindata)
@@ -66,15 +71,29 @@ myhexbin <- function(bindata, varx , vary, xbins = 25){
     } else {
       xbnds <- bindata[,varx]
     }
-
+  
+  print("F10.2")
   if(nrow(bindata) == 1) {
       ybnds <- c(bindata[,vary]*0.99, bindata[,vary]*1.01)
     } else {
       ybnds <- bindata[,vary]
     }
-
-  h <- hexbin::hexbin(bindata[,varx], bindata[,vary], xbins = xbins, IDs = TRUE,
-                      xbnds = range (xbnds),
-                      ybnds = range (ybnds))
+  
+  # saveRDS(object = list(
+  #   x = bindata[,varx],
+  #   y = bindata[,vary],
+  #   xbins = xbins,
+  #   IDs = TRUE,
+  #   xbnds = range(xbnds),
+  #   ybnds = range(ybnds)
+  # ), file = "trace.RDS")
+  
+  print("F10.3")
+  h <- hexbin::hexbin(x = bindata[,varx], 
+                      y = bindata[,vary], 
+                      xbins = xbins,
+                      IDs = TRUE,
+                      xbnds = range(xbnds),
+                      ybnds = range(ybnds))
   return(h)
 }

@@ -312,7 +312,8 @@ cellSpread <- function(cdata, paths,
         row_level <- rev(levels(cdata.binned$y_bins))[row_i]
         col_level <- levels(cdata.binned$x_bins)[col_i]
         
-        cdata.bin <- cdata.binned[cdata.binned$x_bins == col_level & cdata.binned$y_bins == row_level,]
+        # cdata.bin <- cdata.binned[cdata.binned$x_bins == col_level & cdata.binned$y_bins == row_level,]
+        cdata.bin <- subset(cdata.binned, x_bins == col_level & y_bins == row_level)
         cdata.bin_n <- nrow(cdata.bin)
         
         if(cdata.bin_n >= 1){
@@ -406,6 +407,7 @@ cellSpreadPlot <- function(cdata, paths,
                            x.cuts = 7, y.cuts = 7, ...){
   
   # cdata.spread <- d %>% filter(ucid == tagged.ucids[10])
+  cdata.spread <- cdata
   
   plot_list <- list()
   

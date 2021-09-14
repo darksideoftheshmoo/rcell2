@@ -2,12 +2,14 @@
 % Please edit documentation in R/definitions_hex.R
 \name{myhexbin}
 \alias{myhexbin}
-\title{Función hexbin
-Esencialmente hexbin() pero un poco más a mi gusto}
+\title{Función hexbin}
 \usage{
 myhexbin(bindata, varx, vary, xbins = 25)
 }
 \description{
-Función hexbin
-Esencialmente hexbin() pero un poco más a mi gusto
+Esencialmente hexbin() pero un poco más a mi gusto.
+}
+\details{
+La función puede fallar de forma medio oscura cuando el input tiene problemas
+(i.e. si está vacío, o si es todo NAs, etc.)
 }
