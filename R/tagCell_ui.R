@@ -1,12 +1,14 @@
 #' Shiny app UI object for tagCell
 #'
-#' @import shiny shinyjs formattable shinydashboard
+#' @import shiny shinyjs formattable shinydashboard keys
 #'
 tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyjs
                                          tags$head(
                                            tags$style(HTML('#quit{background-color:orange}'))
                                          ),
-  fluidPage(shiny::fluidRow(
+  fluidPage(keys::useKeys(),
+            keys::keysInput("keys", hotkeys),
+            shiny::fluidRow(
     # shiny::column(
     #   width = 3,
     #   # shiny::p("A rough app to tag cells from CellID data"),

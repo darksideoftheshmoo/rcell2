@@ -71,7 +71,7 @@
 #'                          debug_messages = F
 #'                          )
 #'                          
-#' @import shiny ggplot2 magick
+#' @import shiny ggplot2 magick keys
 #' @importFrom grDevices rgb
 #' @importFrom utils head
 #' @export
@@ -99,6 +99,14 @@ tagCell <- function(cdata,
   # Invalid input$facet generates warnings and errors, this should be handled. Also, only "~", "." and "+" are handled in forumlas.
   # Implement more-than-2 variable faceting. The third and ith faceting variables of the brush are stored in "panelvar3" and so on (?)
   # Integrate polygon filter functionality, currently the drawn polygons do nothing (except show up).
+  
+  # Hotkeys (for the keys package)
+  hotkeys <- c(
+    "left", 
+    "right",
+    "shift+left", 
+    "shift+right"
+  )
   
   # Check NAs in ucid variable
   if(any(is.na(cdata[["ucid"]]))) stop("\ntagCell: ucid variable contains NA values")

@@ -3,7 +3,7 @@
 #' @param input provided by shiny
 #' @param output provided by shiny
 #' @param session provided by shiny
-#' @import shiny shinyjs formattable dplyr tidyr hexbin magick
+#' @import shiny shinyjs formattable dplyr tidyr hexbin magick keys
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
   print("tagCellServer 1: start")
@@ -38,7 +38,12 @@ tagCellServer <- function(input, output, session) {
                                            other_reactive_values = c(),
                                            selected_cell_tags = list(),
                                            click_vars = list(),
-                                           ucid.viewed=ucid.viewed)
+                                           ucid.viewed=ucid.viewed,
+                                           next_key=FALSE,
+                                           prev_key=FALSE,
+                                           skip_key=FALSE,
+                                           unskip_key=FALSE
+                                           )
   
   # Restores selected tags list
   if(!is.null(tags.df)){
@@ -64,6 +69,29 @@ tagCellServer <- function(input, output, session) {
   }
   # Restore previous tagging reactive list
   if(!is.null(previous.tags.list)) reactive_values$selected_cell_tags <- previous.tags.list
+  
+  ### KEYS OBSERVER   ----------------
+  observeEvent(input$keys, {
+    print(input$keys)
+    
+    # reactive_values$pressed_key <- input$keys
+    pressed_key <- input$keys
+    
+    switch (pressed_key,
+            `left` = {
+              reactive_values$prev_key <- !reactive_values$prev_key
+            },
+            `right` = {
+              reactive_values$next_key <- !reactive_values$next_key
+            },
+            `shift+left` = {
+              reactive_values$unskip_key <- !reactive_values$unskip_key
+            },
+            `shift+right` = {
+              reactive_values$skip_key <- !reactive_values$skip_key
+            }
+    )
+  })
   
   ### UI OBSERVERS   ----------------
   output$moreControls <- renderUI({
@@ -148,8 +176,12 @@ tagCellServer <- function(input, output, session) {
   # BUTTON 1.1: NEXT  ----------------
   ## Input: input$next_cell
   ## Output reactive_values: $selected_cell_tags $ith_cell
+  toListen.next <- reactive({
+    list(input$next_cell,
+         reactive_values$next_key)
+  })
   shiny::observeEvent(
-    eventExpr = input$next_cell,
+    eventExpr = toListen.next(),
     handlerExpr = {
       print("tagCellServer 4: next_cell event observer")
       if(debug_messages) print("- Next cell requested, saving current tags...")
@@ -193,8 +225,13 @@ tagCellServer <- function(input, output, session) {
     })
   
   # BUTTON 1.2: PREVIOUS  ----------------
+  toListen.prev <- reactive({
+    list(input$prev_cell,
+         reactive_values$prev_key)
+  })
   shiny::observeEvent(
-    eventExpr = input$prev_cell,
+    # eventExpr = input$prev_cell,
+    eventExpr = toListen.prev(),
     handlerExpr = {
       print("tagCellServer 5: prev_cell event observer")
       if(debug_messages) print("- Previous cell requested...")
@@ -239,8 +276,13 @@ tagCellServer <- function(input, output, session) {
     })
   
   # BUTTON 2.1: NEXT UCID  ----------------
+  toListen.skip <- reactive({
+    list(input$next_ucid,
+         reactive_values$skip_key)
+  })
   shiny::observeEvent(
-    eventExpr = input$next_ucid,
+    # eventExpr = input$next_ucid,
+    eventExpr = toListen.skip(),
     handlerExpr = {
       print("tagCellServer 6: next_ucid event observer")
       if(debug_messages) print("- Next ucid requested, saving current tags...")
@@ -289,8 +331,13 @@ tagCellServer <- function(input, output, session) {
     })
   
   # BUTTON 2.2: PREVIOUS UCID ----------------
+  toListen.unskip <- reactive({
+    list(input$prev_ucid,
+         reactive_values$unskip_key)
+  })
   shiny::observeEvent(
-    eventExpr = input$prev_ucid,
+    # eventExpr = input$prev_ucid,
+    eventExpr = toListen.unskip(),
     handlerExpr = {
       print("tagCellServer 7: prev_ucid event observer")
       if(debug_messages) print("- Previous ucid requested...")
