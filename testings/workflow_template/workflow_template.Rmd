@@ -173,8 +173,8 @@ Define working paths for parameter testing:
 * Another one for testing.
 
 ```{r}
-data.dir <- "/tmp/images_directory/"
 test.dir <- "/tmp/images_directory/test.dir"
+unlink(test.dir, recursive = T)
 dir.create(test.dir, recursive = T)
 ```
 
