@@ -193,7 +193,7 @@ cellid.args <- rcell2::arguments(data.dir,
 cellid.args
 ```
 
-Now choose one *position* (image set) to use as test for each parameter set:
+Now choose some *positions* (image sets) and times to use as test for each parameter set:
 
 ```{r}
 test.pos = 1:2
@@ -203,8 +203,24 @@ subset(cellid.args,
        pos %in% test.pos & t.frame %in% test.frames)
 ```
 
-Now comes the magic part, this code makes temporary directories to work on, 
+Now comes the magic part. Ut uses temporary directories to work on, 
 and avoids messing up the main data directory.
+
+Remember to adjust file patterns in `rcell2::arguments` and `rcell2::cell.load.alt`:
+
+```{r}
+arguments.file.pattern <- "^(BF|TFP)_Position(\\d+)().tif$"
+load.cell.file.pattern <- "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$"
+
+# arguments.file.pattern <- "^(BF|TFP)_Position(\\d+)_time(\\d+).tif$"
+# load.cell.file.pattern <- "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$"
+```
+
+And the CellID path:
+
+```{r}
+cell.command.path = "~/Software/cellID-linux/cell"
+```
 
 Create a parallel backend:
 
@@ -238,7 +254,7 @@ result <-
             
             # Create arguments
             cellid.args <- rcell2::arguments(data.dir,
-                                             file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                             file.pattern = arguments.file.pattern,
                                              parameters = parameters.txt)
             # Subset only one position
             # cellid.args.one <- cellid.args[cellid.args$pos %in% test.pos, ]
@@ -261,17 +277,16 @@ result <-
             
             # Regenerate arguments for the new tmp path
             cellid.args.tmp <- rcell2::arguments(tmp.path,
-                                                 file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                                 file.pattern = arguments.file.pattern,
                                                  parameters = parameters.txt)
             # Run cellid
             rcell2::cell2(arguments = cellid.args.tmp, 
-                          cell.command = "~/Software/cellID-linux/cell")
+                          cell.command = cell.command.path)
             
             # Load output
             cell.data <- rcell2::cell.load.alt(
               tmp.path,
-              # fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$"
-              fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$"
+              fluorescence.pattern = load.cell.file.pattern
               )
             
             # Keep only the image paths dataframe
