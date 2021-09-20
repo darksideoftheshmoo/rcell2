@@ -42,7 +42,7 @@ sudo pacman -S imagemagick
 Install using `devtools`, directly from github repo:
 
 ```
-devtools::install_github("darksideoftheshmoo/rcell2")
+devtools::install_github("darksideoftheshmoo/rcell2", ref = "testings")
 
 ```
 
