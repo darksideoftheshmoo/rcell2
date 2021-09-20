@@ -30,7 +30,7 @@ Otherwise you may omit `parameters = parameters.txt` in the `rcell2::arguments()
 or set your own using `rcell2::parameters.default()` and `rcell2::parameters.write()`.
 
 ```{r}
-data.dir <- "path/donde/estan/las/fotos/"
+data.dir <- "data/image_samples/"
 
 parameters.txt <- rcell2::parameters.write(rcell2::parameters.default())
 
@@ -98,15 +98,27 @@ parameters.list <- list(
   )
 ```
 
-> Note: this list can be generated with `rcell2::parameters.default()`.
+There is a helper function to make one more easily:
 
-Escribir el archivo `parameters.txt` para CellID:
+```{r}
+parameters.list <- rcell2::parameters.default()
+
+parameters.list$max_split_over_minor
+```
+
+Hay que guardar los parámetros en un archivo `parameters.txt`,
+para que más adelante CellID lo pueda usar.
+
+Para eso está la siguiente función, 
+que devuelve el path donde se guardó el archivo:
 
 ```{r}
 parameters.txt <- rcell2::parameters.write(parameters.list)
+
+parameters.txt
 ```
 
-Imprimir contenidos del parameters.txt que generamos recién, solo para revisar:
+Revisemos el contenido del `parameters.txt` que generamos recién:
 
 ```{r}
 writeLines(readLines(parameters.txt))
@@ -121,6 +133,16 @@ For each parameter variation, we need a new parameters file.
 In this example, only `background_reject_factor` is changed:
 
 ```{r}
+parameters.list <- rcell2::parameters.default(
+  background_reject_factor = seq(from=0, to=1.5, by = 0.6)
+)
+
+parameters.list$background_reject_factor
+```
+
+If tou have my `utiles` package, this may be useful too:
+
+```{r}
 parameters.list <- rcell2::parameters.default()
 
 parameters.list$background_reject_factor <-
@@ -128,9 +150,15 @@ parameters.list$background_reject_factor <-
     parameters.list$background_reject_factor,
     width = 0.75, by = 0.1)
 
+parameters.list$background_reject_factor
+```
+
+The list must now be expanded into a data.frame:
+
+```{r}
 parameters.df <- expand.grid(parameters.list)
 
-test.params <- 1:nrow(parameters.df)
+test.params <- 1:nrow(parameters.df)  # Record the amount of combinations
 
 parameters.df
 ```
@@ -139,7 +167,7 @@ parameters.df
 
 > Note: `utiles::value.to.range` just converts a number to a vector centered on its value (see `base::seq`).
 
-Define working paths:
+Define working paths for parameter testing:
 
 * One with the images.
 * Another one for testing.
@@ -147,103 +175,147 @@ Define working paths:
 ```{r}
 data.dir <- "/tmp/images_directory/"
 test.dir <- "/tmp/images_directory/test.dir"
-dir.create(test.dir)
+dir.create(test.dir, recursive = T)
+```
+
+Define the path of the original images:
+
+```{r}
+data.dir <- "data/image_samples/"
+```
+
+Check that their file names are properly recognized:
+
+```{r}
+cellid.args <- rcell2::arguments(data.dir,
+                                 file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
+
+cellid.args
 ```
 
 Now choose one *position* (image set) to use as test for each parameter set:
 
 ```{r}
-test.pos = 1
+test.pos = 1:2
+test.frames = 1
+
+subset(cellid.args,
+       pos %in% test.pos & t.frame %in% test.frames)
 ```
 
 Now comes the magic part, this code makes temporary directories to work on, 
 and avoids messing up the main data directory.
 
-> Note that `utiles::lapply_paralelo` paralelizes the tests, but they can be run sequentially with bare `lapply`.
-> Replace it if you want to try it out! The `foreach` package is nice too.
+Create a parallel backend:
 
 ```{r}
-# result <- 
-  # utiles::lapply_paralelo(lista = test.params, 
-  #                         par_packages = c("rcell2", "base", "dplyr"),
-  #                         # ...
-  #                         parameters.df=parameters.df, 
-  #                         data.dir=data.dir,
-  #                         test.dir=test.dir,
-  #                         # ...
-  #                         # https://stackoverflow.com/a/52674200
-  #                         funcion = function(test.param, test.pos=test.pos, ...) with(list(...), {
-result <-
-  lapply(test.params, function(test.param, test.pos=1){
-    
-    # Get one parameter set
-    parameters.list.one <- parameters.df[test.param,]
-    
-    # Save parameters
-    parameters.txt <- rcell2::parameters.write(parameters.list.one)
-    
-    # Create arguments
-    cellid.args <- rcell2::arguments(data.dir,
-                                     file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
-                                     parameters = parameters.txt)
-    # Subset only one position
-    cellid.args.one <- cellid.args[test.pos,]
-    
-    # Prepare a temp dir for each cellid run
-    tmp.path <- tempfile(pattern = "dir", tmpdir = test.dir)
-    dir.create(tmp.path)
-    file.symlink(from = paste0(cellid.args.one$path, "/",
-                               c(cellid.args.one$image,
-                                 cellid.args.one$bf)),
-                 to = paste0(tmp.path, "/",
-                               c(cellid.args.one$image,
-                                 cellid.args.one$bf))
-                 )
-    
-    # Regenerate arguments for the new tmp path
-    cellid.args.tmp <- rcell2::arguments(tmp.path,
-                                     file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
-                                     parameters = parameters.txt)
-    # Run cellid
-    rcell2::cell2(arguments = cellid.args.tmp, 
-                  cell.command = "~/Software/cellID-linux/cell")
-    
-    # Load output
-    cell.data <- cell.load.alt(tmp.path,
-                               fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
-    
-    # Keep only the image paths dataframe
-    new.images <- 
-      cell.data$images %>% filter(is.out)
-    
-    return(new.images)
-  })
-# )  # END lapply_paralelo #
+ncores <- parallel::detectCores() - 1
+cl <- parallel::makeCluster(ncores, setup_strategy = "sequential")
+# doParallel::registerDoParallel(cl)
+doSNOW::registerDoSNOW(cl)
+```
 
-# Bind the result
-result <- result %>% 
+Setup a progressbar and run CellID:
+
+```{r}
+ntasks <- length(test.params)
+pb <- txtProgressBar(max = ntasks, style = 3)
+progress <- function(n) setTxtProgressBar(pb, n)
+opts <- list(progress=progress)
+
+library(foreach)
+
+result <- 
+  foreach(test.param=test.params, #.export = c(".parameters.df",)
+          .options.snow=opts,
+          .packages = c("rcell2", "base", "dplyr")) %dopar% {
+    
+            # Get one parameter set
+            parameters.list.one <- parameters.df[test.param,]
+            
+            # Save parameters
+            parameters.txt <- rcell2::parameters.write(parameters.list.one)
+            
+            # Create arguments
+            cellid.args <- rcell2::arguments(data.dir,
+                                             file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                             parameters = parameters.txt)
+            # Subset only one position
+            # cellid.args.one <- cellid.args[cellid.args$pos %in% test.pos, ]
+            cellid.args.one <- subset(cellid.args, 
+                                      pos %in% test.pos & t.frame %in% test.frames)
+            
+            # Prepare a temp dir for each cellid run
+            tmp.path <- tempfile(pattern = "dir", tmpdir = test.dir)
+            dir.create(tmp.path)
+            
+            # Create shortcuts to the original images
+            apply(cellid.args.one, 1, function(i){
+              file.symlink(from = paste0(i["path"], "/",
+                                         c(i["image"],i["bf"])),
+                           to = paste0(tmp.path, "/", 
+                                       c(i["image"], i["bf"]))
+                     )
+            })
+        
+            
+            # Regenerate arguments for the new tmp path
+            cellid.args.tmp <- rcell2::arguments(tmp.path,
+                                                 file.pattern = "^(BF|TFP)_Position(\\d+)().tif$",
+                                                 parameters = parameters.txt)
+            # Run cellid
+            rcell2::cell2(arguments = cellid.args.tmp, 
+                          cell.command = "~/Software/cellID-linux/cell")
+            
+            # Load output
+            cell.data <- rcell2::cell.load.alt(
+              tmp.path,
+              # fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$"
+              fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$"
+              )
+            
+            # Keep only the image paths dataframe
+            new.images <- 
+              cell.data$images %>% filter(is.out)
+            
+            return(new.images)
+  }
+
+close(pb)
+parallel::stopCluster(cl)
+```
+
+Bind the result:
+
+```{r}
+results.bound <- result %>% 
     bind_rows(.id = "id") %>%
     mutate(id = as.integer(id))
+
+results.bound
+# saveRDS(results.bound, tempfile(pattern = "results", tmpdir = test.dir, fileext = ".RDS"))
 ```
 
 Make TIFF stacks for each channel and cleanup:
 
 ```{r}
-stack.paths <- result %>% 
-    arrange(channel, id) %>% split(~channel) %>% 
+stack.paths <- results.bound %>% 
+    arrange(channel, id, t.frame, pos) %>% split(~channel+pos) %>% 
     lapply(function(images){
+      # images <- stack.paths[[1]]
       stack.name <- paste0(
-          test.dir, "/", images$channel[1], "_stack-", basename(images$image[1])
+          test.dir, "/", images$channel[1], "_stack-pos_", images$pos[1], #"-time", images$t.frame[1],
+          ".tif"
           )
       
-      images$file %>% 
+      images %>% 
+        dplyr::arrange(channel, t.frame, pos, id) %>% 
+        with(file) %>% 
         magick::image_read() %>% 
         magick::image_write(path=stack.name)
       
       return(stack.name)
     })
-
-unlink(dirname(result$file), recursive = T)
 
 stack.paths  # The stacks are saved to these paths
 ```
