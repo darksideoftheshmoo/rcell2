@@ -7,7 +7,7 @@ A CellID wrapper is also on the works. Checkout the `cellid_master` branch.
 
 # Installation
 
-## Dependencies
+## R Dependencies
 
 Most of the dependencies are listed in the `DESCRIPTION` file, and should install automatically.
 
@@ -36,6 +36,14 @@ sudo pacman -S imagemagick
 # macOS .dmg
 # https://imagemagick.org/script/download.php
 ```
+
+## CellID dependency (optional)
+
+The `cell2` function can be used to run CellID directly from R.
+
+It supports newer CellID functions, available at the repo's `mask_mod` branch: https://github.com/darksideoftheshmoo/cellID-linux/tree/mask_mod
+
+Older CellID versions may work, as long as the new options are not enabled.
 
 ## Installing the package
 
