@@ -72,10 +72,12 @@ tagCellServer <- function(input, output, session) {
   
   ### KEYS OBSERVER   ----------------
   observeEvent(input$keys, {
-    print(input$keys)
+    print("tagCellServer 12: keys observer fired")
     
     # reactive_values$pressed_key <- input$keys
     pressed_key <- input$keys
+    
+    print(paste("tagCellServer 12: Pressed keys:", pressed_key, collapse = " "))
     
     switch (pressed_key,
             `left` = {
@@ -181,6 +183,7 @@ tagCellServer <- function(input, output, session) {
          reactive_values$next_key)
   })
   shiny::observeEvent(
+    ignoreInit = T,
     eventExpr = toListen.next(),
     handlerExpr = {
       print("tagCellServer 4: next_cell event observer")
@@ -230,6 +233,7 @@ tagCellServer <- function(input, output, session) {
          reactive_values$prev_key)
   })
   shiny::observeEvent(
+    ignoreInit = T,
     # eventExpr = input$prev_cell,
     eventExpr = toListen.prev(),
     handlerExpr = {
@@ -281,6 +285,7 @@ tagCellServer <- function(input, output, session) {
          reactive_values$skip_key)
   })
   shiny::observeEvent(
+    ignoreInit = T,
     # eventExpr = input$next_ucid,
     eventExpr = toListen.skip(),
     handlerExpr = {
@@ -336,6 +341,7 @@ tagCellServer <- function(input, output, session) {
          reactive_values$unskip_key)
   })
   shiny::observeEvent(
+    ignoreInit = T,
     # eventExpr = input$prev_ucid,
     eventExpr = toListen.unskip(),
     handlerExpr = {
