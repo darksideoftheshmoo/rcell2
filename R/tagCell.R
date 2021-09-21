@@ -22,9 +22,9 @@
 #' @param seed seed for random sampling of images.
 #' @param tmp_output_file File path into which tagging information will be dumped by user request. NULL by default, to automatically create and append to a tmp file.
 #' @param tag_ggplot a ggplot object to display in the second tab, may be used for something someday.
-#' @param debug_messages print debug messages.
 #' @param max.frames Max number of t.frames to render in the cell strip. Set to 0 to disable.
 #' @param tags.df Previous tag dataframe, used to restore or view previous tags in the app (restores tags that are named in the cell_tags list).
+#' @param verbose Print debugging messages (with levels at either 0, 1 or 2).
 # @param n_max max number of boxes in the image.
 # @param ... extra arguments, not used.
 #' @return Lots of stuff.
@@ -89,10 +89,10 @@ tagCell <- function(cdata,
                     tag_ggplot = NULL,
                     equalize_images = F,
                     normalize_images = F,
-                    debug_messages = F,
                     # prev.annot.df=NULL,  # TO-DO: implement resume annotations
                     max.frames=10,
-                    tags.df=NULL
+                    tags.df=NULL,
+                    verbose=0
                     ){
   
   # To-do
@@ -106,6 +106,23 @@ tagCell <- function(cdata,
     "right",
     "shift+left", 
     "shift+right"
+  )
+  
+  # Debug message level
+  stopifnot(verbose %in% 0:2)
+  switch (verbose+1,
+          {
+            runtime_messages <- F
+            debug_messages <- F
+          },
+          {
+            runtime_messages <- T
+            debug_messages <- F
+          },
+          {
+            runtime_messages <- T
+            debug_messages <- T
+          }
   )
   
   # Check NAs in ucid variable

@@ -18,9 +18,9 @@ tagCell(
   tag_ggplot = NULL,
   equalize_images = F,
   normalize_images = F,
-  debug_messages = F,
   max.frames = 10,
-  tags.df = NULL
+  tags.df = NULL,
+  verbose = 0
 )
 }
 \arguments{
@@ -50,11 +50,11 @@ tagCell(
 
 \item{normalize_images}{Use magick's function to "normalize" the images.}
 
-\item{debug_messages}{print debug messages.}
-
 \item{max.frames}{Max number of t.frames to render in the cell strip. Set to 0 to disable.}
 
 \item{tags.df}{Previous tag dataframe, used to restore or view previous tags in the app (restores tags that are named in the cell_tags list).}
+
+\item{verbose}{Print debugging messages (with levels at either 0, 1 or 2).}
 }
 \value{
 Lots of stuff.

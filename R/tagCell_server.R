@@ -6,7 +6,7 @@
 #' @import shiny shinyjs formattable dplyr tidyr hexbin magick keys
 #' @importFrom graphics polygon
 tagCellServer <- function(input, output, session) {
-  print("tagCellServer 1: start")
+  if(runtime_messages) print("tagCellServer 1: start")
   
   p <- paths
   d <- cdata %>% 
@@ -72,12 +72,12 @@ tagCellServer <- function(input, output, session) {
   
   ### KEYS OBSERVER   ----------------
   observeEvent(input$keys, {
-    print("tagCellServer 12: keys observer fired")
+    if(runtime_messages) print("tagCellServer 12: keys observer fired")
     
     # reactive_values$pressed_key <- input$keys
     pressed_key <- input$keys
     
-    print(paste("tagCellServer 12: Pressed keys:", pressed_key, collapse = " "))
+    if(runtime_messages) print(paste("tagCellServer 12: Pressed keys:", pressed_key, collapse = " "))
     
     switch (pressed_key,
             `left` = {
@@ -108,7 +108,7 @@ tagCellServer <- function(input, output, session) {
     # print("- Generating seelctInput fields...")
     # print(ith_cell)
     # print(selected_cell_tags[ith_cell])
-    print("tagCellServer 2: renderUI update")
+    if(runtime_messages) print("tagCellServer 2: renderUI update")
     lapply(1:length(names(cell_tags)), function(tag_group){
       # shiny::selectInput(inputId = names(cell_tags)[tag_group], 
       #                    label = names(cell_tags)[tag_group],
@@ -128,7 +128,7 @@ tagCellServer <- function(input, output, session) {
   ### INPUT OBSERVERS   ----------------
   # PLOT CLICK OBSERVER   ----------------
   observeEvent(input$plot_click, handlerExpr = {
-    print("tagCellServer 3: plot_click event observer")
+    if(runtime_messages) print("tagCellServer 3: plot_click event observer")
     if(debug_messages) print("- Plot clicked")
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_cell")
@@ -186,7 +186,7 @@ tagCellServer <- function(input, output, session) {
     ignoreInit = T,
     eventExpr = toListen.next(),
     handlerExpr = {
-      print("tagCellServer 4: next_cell event observer")
+      if(runtime_messages) print("tagCellServer 4: next_cell event observer")
       if(debug_messages) print("- Next cell requested, saving current tags...")
       shinyjs::disable("next_cell")
       shinyjs::disable("prev_cell")
@@ -237,7 +237,7 @@ tagCellServer <- function(input, output, session) {
     # eventExpr = input$prev_cell,
     eventExpr = toListen.prev(),
     handlerExpr = {
-      print("tagCellServer 5: prev_cell event observer")
+      if(runtime_messages) print("tagCellServer 5: prev_cell event observer")
       if(debug_messages) print("- Previous cell requested...")
       shinyjs::disable("prev_cell")
       shinyjs::disable("next_cell")
@@ -289,7 +289,7 @@ tagCellServer <- function(input, output, session) {
     # eventExpr = input$next_ucid,
     eventExpr = toListen.skip(),
     handlerExpr = {
-      print("tagCellServer 6: next_ucid event observer")
+      if(runtime_messages) print("tagCellServer 6: next_ucid event observer")
       if(debug_messages) print("- Next ucid requested, saving current tags...")
       shinyjs::disable("next_ucid")
       shinyjs::disable("prev_ucid")
@@ -345,7 +345,7 @@ tagCellServer <- function(input, output, session) {
     # eventExpr = input$prev_ucid,
     eventExpr = toListen.unskip(),
     handlerExpr = {
-      print("tagCellServer 7: prev_ucid event observer")
+      if(runtime_messages) print("tagCellServer 7: prev_ucid event observer")
       if(debug_messages) print("- Previous ucid requested...")
       shinyjs::disable("prev_ucid")
       shinyjs::disable("next_ucid")
@@ -396,7 +396,7 @@ tagCellServer <- function(input, output, session) {
   ## Output reactive_values: 
   ## Isolated reactive_values: $selected_cell_tags
   shiny::observe({
-    print("tagCellServer 8: ith_cell reactive value observer")
+    if(runtime_messages) print("tagCellServer 8: ith_cell reactive value observer")
     shinyjs::disable("prev_cell")
     shinyjs::disable("next_cell")
     shinyjs::disable("prev_ucid")
@@ -550,7 +550,7 @@ tagCellServer <- function(input, output, session) {
   ## Output reactive_values: 
   ## Isolated reactive_values: $selected_cell_tags
   output$saved_annotations <- shiny::renderTable({
-    print("tagCellServer 9: selected_cell_tags reactive table observer")
+    if(runtime_messages) print("tagCellServer 9: selected_cell_tags reactive table observer")
     if(debug_messages) print("- Rendering table 1")
     
     table_output <- reactive_values$selected_cell_tags %>% 
@@ -599,7 +599,7 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive IMAGE 2: cell strips  ----------------
   output$pics2 <- shiny::renderImage({
-    print("tagCellServer 10: ith_cell reactive image observer 2")
+    if(runtime_messages) print("tagCellServer 10: ith_cell reactive image observer 2")
     if(debug_messages) print("- Rendering image 2")
     
     # Make the image match the plot's width
@@ -669,7 +669,7 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive IMAGE 1: cell magick  ----------------
   output$pics <- shiny::renderImage({
-    print("tagCellServer 10: ith_cell reactive image observer")
+    if(runtime_messages) print("tagCellServer 10: ith_cell reactive image observer")
     if(debug_messages) print("- Rendering image 1")
     
     # Make the image match the plot's width
@@ -711,7 +711,7 @@ tagCellServer <- function(input, output, session) {
   
   # Reactive PLOT: user plot  ----------------
   output$plot <- shiny::renderPlot({
-    print("tagCellServer 11: ith_cell reactive user plot observer")
+    if(runtime_messages) print("tagCellServer 11: ith_cell reactive user plot observer")
     if(debug_messages) print("- Rendering plot 1")
     
     ith_ucid <- as.character(d$ucid[reactive_values$ith_cell])
@@ -723,7 +723,7 @@ tagCellServer <- function(input, output, session) {
     ucid_data <- filter(cdata, ucid %in% ith_ucid)
     
     if(is.null(tag_ggplot)){
-      print("tagCellServer 11: no tag_ggplot object provided, rendering defult plot!")
+      if(runtime_messages) print("tagCellServer 11: no tag_ggplot object provided, rendering defult plot!")
       tag_ggplot <- ggplot() +
         geom_line(aes(x=t.frame, y=a.tot)) + 
         geom_vline(xintercept = as.numeric(ith_t.frame), color = "black", linetype=2)
