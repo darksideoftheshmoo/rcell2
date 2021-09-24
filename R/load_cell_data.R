@@ -122,7 +122,7 @@ if(getRversion() >= "2.15.1") {
 #' @examples
 load_cell_data <-
     function(path = getwd(),
-             pattern = ".*Position(\\d+).*",
+             pattern = ".*Position(\\d+)$",
 #            pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
              basename = "out",
              select = NULL,
