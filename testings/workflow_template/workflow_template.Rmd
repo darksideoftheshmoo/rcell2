@@ -442,7 +442,27 @@ Obs: su `fluorescence.pattern` regex puede variar.
 
 ### Shiny-Magick framework
 
-Ver ejemplos en:
+Inputs importantes:
+
+```{r}
+cdata <- cell.data$data
+images <- cell.data$images
+pdata <- read.csv("data/pdata.csv")
+```
+
+Uso mínimo:
+
+```{r}
+shiny.filter <- shinyCell(cdata, pdata, images)
+```
+
+Si hay muchas celulas, conviene iniciar con `plotType = "Hex"` u otro plot aglomerativo.
+
+```{r}
+plot_filters(shiny.filter, print_plots = F)
+```
+
+Ver ejemplos (un poco viejos) en:
 
 * `testings/examples_celll_and_shiny.Rmd`
 * `testings/test_magickCell.Rmd`
