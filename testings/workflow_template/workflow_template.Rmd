@@ -99,6 +99,12 @@ list2env(readRDS(paste0(data.dir, "/", "cell2.objects.RDS")),
 
 ### Parameters for CellID
 
+Description for parameters:
+
+```{r}
+rcell2::cellid_parameter_descriptions(list_format = F)
+```
+
 A prototype parameter list, with defaults:
 
 ```{r}
@@ -452,6 +458,14 @@ cell.data <- rcell2::cell.load.alt(path = path,
 
 Obs: su `fluorescence.pattern` regex puede variar.
 
+### CellID variables help
+
+Descriptions of the variables in `cdata`:
+
+```{r}
+rcell2::cellid_output_descriptions()
+```
+
 ## Analizar datos
 
 ### Tidy framework
@@ -495,9 +509,14 @@ Ver ejemplos (un poco viejos) en:
 
 - [ ] TODO: agregar ejemplos de funciones de los clasificadores entrenados (LR y SVM).
 
+* `testings/linear_classification`
+* `testings/tree_classification`
+
 ### Unsupervised classification
 
 - [ ] TODO: agregar ejemplos de funciones de k-means.
+
+* `testings/kmeans_filtering_ac`
 
 ## Datos de máscaras
 
@@ -564,7 +583,7 @@ cell_data <- rcell2::append_hues(cell_data = cell_data,
 rcell2:::check_tiff_mask(cell_data)
 ```
  
-Para usar los TFP, ver `test_hu_moments.Rmd`.
+Para usar los TFP, ver `testings/test_hu_moments.Rmd`.
 
 ## Other tools (WIP)
 
