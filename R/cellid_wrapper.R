@@ -24,7 +24,7 @@ cellid_parameter_descriptions <- function(list_format=T){
   warning("Warning: not all CellID input parameters are [well] documented.")
   
   descs <- read.csv(sep = "\t", 
-                    file = system.file("inst/parameters_description.tsv", package = "rcell2"))
+                    file = system.file("parameters_description.tsv", package = "rcell2"))
   
   descs <- descs[!(is.na(descs[[1]]) | descs[[1]] == ""),]
   
