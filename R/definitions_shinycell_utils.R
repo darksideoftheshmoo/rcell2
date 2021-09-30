@@ -1,3 +1,29 @@
+#' Check dataframes for NA, NaN or Inf values.
+#' 
+#' @param df The data.frame to check.
+#' @param print.which Print which columns have bad values to the console.
+#' @return Logical value: TRUE (chekc passed) or FALSE (check failed; nasty values found).
+#' 
+has.na_nan_inf <- function (df, print.which = F) {
+  r <- lapply(df, function(x) is.nan(x) | is.infinite(x) | 
+                is.na(x))
+  result <- any(unlist(r))
+  
+  if(print.which & result){
+    r.cols <- unlist(lapply(r, any))
+    
+    if(result){
+      print("Found either NA, NaN or Inf values in the following columns:")
+    } else {
+      print("Did not find either NA, NaN or Inf values in the input's colums.")
+    }
+    
+    print(r.cols[r.cols])
+  }
+  
+  return(result)
+}
+
 #' Plot shinyCell polygon filters
 #' 
 #' Useful to check out what areas the filters are covering.

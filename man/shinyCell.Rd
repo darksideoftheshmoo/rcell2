@@ -46,11 +46,13 @@ shinyCell(
 
 \item{boxSize}{Size in pixels for individual cells' images.}
 
-\item{filter_progress_file}{Path to an RDS file, used ofr saving filtering progress. Using FALSE (the default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.}
+\item{filter_progress_file}{Path to an RDS file, used for saving filtering progress (in case something goes wrong). Using FALSE disables this feature. Set to NULL (the default) to let tempfile() choose a path for the RDS, or set to a valid path of your choice.}
 
 \item{launch.browser}{Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.}
 
 \item{...}{Further arguments passed to \code{magickCell()}.}
+
+\item{skip_input_check}{If FALSE (default)}
 }
 \value{
 A named list with the original cdata and a list of filters. The cdata includes an extra "filter" column, indicating if a row is to be kept (TRUE) or filtered out (FALSE). The list of filters can be passed as a filter argument, and can be plotted with \code{plot_filters}.
@@ -72,8 +74,13 @@ images <- cell.data$images  # Image paths
 
 pdata <- read.csv("data/pdata.csv")  # "Position" metadata
 
-rcell2::shinyCell(cdata = cdata, 
-                  pdata = pdata, 
-                  paths = images)
+filter.output <- 
+  rcell2::shinyCell(cdata = cdata, 
+                    pdata = pdata, 
+                    paths = images)
+                    
+plot_filter(filter.output)
 
+cdata.filtered <- dplyr::filter(filter.output, filter)
+  
 }

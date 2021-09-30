@@ -12,6 +12,12 @@
 #' Checks whether the column selection with \code{[[]]} is null before returning.
 #' 
 safe_select <- function(.df, .name){
+  
+  if(!all(.name %in% names(.df))){
+    .name_missing <- .name[!.name %in% names(.df)]
+    stop(paste("Error, selected columns'", .name_missing,  "'does not exist.", collapse = " "))
+  }
+  
   column <- .df[[.name]]
   
   if(is.null(column)) stop(paste0("Error, selected column '", .name,  "' does not exist."))
@@ -32,8 +38,9 @@ safe_select <- function(.df, .name){
 #' @param facet_grid_option Use ggplot's facet_grid (TRUE, default) or facet_wrap (FALSE).
 #' @param facets_scale_free Use ggplot's facets with fixed scales (NULL, default) or free scales ("free").
 #' @param boxSize Size in pixels for individual cells' images.
-#' @param filter_progress_file Path to an RDS file, used ofr saving filtering progress. Using FALSE (the default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.
+#' @param filter_progress_file Path to an RDS file, used for saving filtering progress (in case something goes wrong). Using FALSE disables this feature. Set to NULL (the default) to let tempfile() choose a path for the RDS, or set to a valid path of your choice.
 #' @param launch.browser Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.
+#' @param skip_input_check If FALSE (default)
 #' @param ... Further arguments passed to \code{magickCell()}.
 #' @return A named list with the original cdata and a list of filters. The cdata includes an extra "filter" column, indicating if a row is to be kept (TRUE) or filtered out (FALSE). The list of filters can be passed as a filter argument, and can be plotted with \code{plot_filters}.
 #' @examples
@@ -50,10 +57,15 @@ safe_select <- function(.df, .name){
 #' 
 #' pdata <- read.csv("data/pdata.csv")  # "Position" metadata
 #' 
-#' rcell2::shinyCell(cdata = cdata, 
-#'                   pdata = pdata, 
-#'                   paths = images)
+#' filter.output <- 
+#'   rcell2::shinyCell(cdata = cdata, 
+#'                     pdata = pdata, 
+#'                     paths = images)
+#'                     
+#' plot_filter(filter.output)
 #' 
+#' cdata.filtered <- dplyr::filter(filter.output, filter)
+#'   
 #' @import shiny ggplot2 magick formattable shinydashboard
 #' @importFrom grDevices rgb
 #' @export
@@ -73,18 +85,11 @@ shinyCell <- function(cdata,
                       launch.browser = F,
                       ...){
   
-  has.na_nan_inf <- function (df, print.which = F) {
-    r <- lapply(df, function(x) is.nan(x) | is.infinite(x) | 
-                  is.na(x))
-    r.cols <- unlist(lapply(r, any))
-    if (print.which) 
-      print(r.cols[r.cols])
-    return(any(unlist(r)))
+  if(!skip_input_check){
+    if(has.na_nan_inf(cdata)) stop("Error: your 'cdata' dataframe has NaN, NA and/or Inf values. Try using 'rcell2:::has.na_nan_inf() to find problematic columns.'")
+    if(has.na_nan_inf(pdata)) stop("Error: your 'pdata' dataframe has NaN, NA and/or Inf values. Try using 'rcell2:::has.na_nan_inf() to find problematic columns.'")
+    if(has.na_nan_inf(paths)) stop("Error: your 'paths' dataframe has NaN, NA and/or Inf values. Try using 'rcell2:::has.na_nan_inf() to find problematic columns.'")
   }
-  
-  if(has.na_nan_inf(cdata)) stop("Error: your 'cdata' dataframe has NaN, NA and/or Inf values.")
-  if(has.na_nan_inf(pdata)) stop("Error: your 'pdata' dataframe has NaN, NA and/or Inf values.")
-  if(has.na_nan_inf(paths)) stop("Error: your 'paths' dataframe has NaN, NA and/or Inf values.")
   
   if(is.null(pdata)) pdata <- data.frame(pos = safe_select(cdata, "pos"))
   
@@ -98,6 +103,7 @@ shinyCell <- function(cdata,
   
   if(is.null(filter_progress_file)) {
     filter_progress_file <- tempfile(pattern = "shinyCell_progress", fileext = ".RDS")
+    print(paste("-- Saving filter progress to temporary file:", filter_progress_file))
   }
     
   # To-do

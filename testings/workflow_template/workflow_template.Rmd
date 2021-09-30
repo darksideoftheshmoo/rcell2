@@ -458,6 +458,8 @@ shiny.filter <- shinyCell(cdata, pdata, images)
 
 Si hay muchas celulas, conviene iniciar con `plotType = "Hex"` u otro plot aglomerativo.
 
+Para ver las regiones filtradas, hay una función que grafica los filtros:
+
 ```{r}
 plot_filters(shiny.filter, print_plots = F)
 ```
