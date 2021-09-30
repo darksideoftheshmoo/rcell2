@@ -1,11 +1,29 @@
 ---
-title: "CellID Wrapper Test 3"
+title: "Rcell2 Workflow Template"
 author: "Nicolás Méndez"
-date: "05/05/2021"
-output: html_document
+date: "30/09/2021"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 4
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+  pdf_document:
+    toc: true
+    toc_depth: 4
+    number_sections: true
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+urlcolor: blue
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
+bibliography: references.bib
 ---
 
-<!-- Download a copy of this file with rcell2::get_workflow_template(), defined at R/workflow_template.R -->
+<!-- Download a copy of this file with rcell2::get_workflow_template() -->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
