@@ -119,10 +119,10 @@ shinyAppUI <- function(){
                                                                  "Pics"),
                                          plotType),
                              textInput(inputId = "facet", label = "Facet formula:", value = initial_facet),
-                             p(paste("Use up to two variables:", paste(names(pdata), collapse = ", ")), "."),  # "pos" may be nice for faceting
-                             p("Use a dot for one-variable facets. Leave blank for none."),
+                             p(paste("Available variables in pdata:", paste(names(pdata), collapse = ", ")), "."),  # "pos" may be nice for faceting
+                             p("You may use a dot for reversing one-variable facets (i.e. 'variable~.'). Leave blank for none."),
                              checkboxInput(inputId = "facet_brush", label = "Brush by facet?", value = TRUE),
-                             checkboxInput(inputId = "facet_grid", label = "Facet grid?", value = facet_grid_option),
+                             checkboxInput(inputId = "facet_grid", label = "Use facet grid?", value = facet_grid_option),
                              shiny::selectInput("facet_scale", "Facet scale type", c("fixed", "free", "free_y", "free_x"), facets_scale_free)
                       )
              )

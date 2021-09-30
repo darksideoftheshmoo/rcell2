@@ -381,7 +381,7 @@ Se puede "filtrar" posiciones y tiempos directo desde la regex, o posteriormente
 Noten el `0+?` enfrente del número, que indica que puede haber un cero o más frente al numerito de posición o tiempo en el nombre del archivo.
 
 ```{r}
-path <- "~/Software/cellID-linux/test_data/"
+path <- "~/Software/cellID-linux/samples/"
 
 cellid.args <- rcell2::arguments(path = path, 
                                  file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
@@ -422,7 +422,7 @@ rcell2::cell2(arguments = cellid.args,
 Esto se hace con la función `load_cell_data`:
 
 ```{r}
-cell_data <- rcell2::load_cell_data(path = path)
+cell.data <- rcell2::load_cell_data(path = path)
 ```
 
 Si esa no funciona, pueden intentar con `cell.load.alt`:
@@ -446,7 +446,7 @@ Inputs importantes:
 
 ```{r}
 cdata <- cell.data$data
-images <- cell.data$images
+images <- cell.data$images  # puede tener otro nombre el data.frame con info de las fotos
 pdata <- read.csv("data/pdata.csv")
 ```
 

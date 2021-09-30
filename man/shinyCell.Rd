@@ -13,7 +13,7 @@ shinyCell(
   plotType = "Dots",
   seed = 1,
   initial_facet = "",
-  initial_vars = NULL,
+  initial_vars = c("a.tot", "fft.stat"),
   facet_grid_option = TRUE,
   facets_scale_free = "fixed",
   n_max = 100,
@@ -24,54 +24,56 @@ shinyCell(
 )
 }
 \arguments{
-\item{cdata}{A Rcell "cdata" data.frame (not the object).}
+\item{cdata}{A Rcell "cdata" data.frame with the CellID variables (not the cell.data object, \code{cell.data$data}).}
 
-\item{pdata}{A "pdata" data.frame with position metadata.}
+\item{pdata}{An optional "pdata" data.frame, with positions' metadata (NULL by default).}
 
-\item{paths}{Paths a la imagen de cada posición.}
+\item{paths}{A "paths" data.frame, with paths to each positions' images (i.e. \code{cell.data$images}).}
 
-\item{filters}{Vector de strings con los filtros. c() by default.}
+\item{filters}{An optional list with the filters from a previous shinyCell run (dataframes with points of 2D polygons). An empty \code{list()} by default.}
 
-\item{plotType}{"Hex", "Density", and "Dots" are available.}
+\item{plotType}{Type of the filtering plot, either: "Dots" (point scatterplot, defaut), "Hex" (2D histogram with hexagonal bins), "Density", "Pics" (a \code{cellSpread} plot).}
 
 \item{seed}{Seed value for sampling of cell images.}
 
-\item{initial_facet}{Initial facet formula as a string.}
+\item{initial_facet}{Initial ggplot facet formula as a string (for example: "~pos+group_1")}
 
-\item{initial_vars}{Initial cdata variables as a string vector (default NULL, for 'a.tot' and 'fft.stat').}
+\item{initial_vars}{Initial cdata variables as a character vector (defaults to \code{c('a.tot', 'fft.stat')}).}
 
-\item{facet_grid_option}{Use facet_grid (TRUE, default) or facet_wrap.}
+\item{facet_grid_option}{Use ggplot's facet_grid (TRUE, default) or facet_wrap (FALSE).}
 
-\item{facets_scale_free}{Use facets with fixed scales (NULL, default) or free scales ("free").}
+\item{facets_scale_free}{Use ggplot's facets with fixed scales (NULL, default) or free scales ("free").}
 
 \item{boxSize}{Size in pixels for individual cells' images.}
 
-\item{filter_progress_file}{Save filtering progress to an RDS file. FALSE (default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.}
+\item{filter_progress_file}{Path to an RDS file, used ofr saving filtering progress. Using FALSE (the default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.}
 
 \item{launch.browser}{Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.}
 
-\item{...}{Further arguments passed to magickCell()}
+\item{...}{Further arguments passed to \code{magickCell()}.}
 }
 \value{
-Lots of stuff.
+A named list with the original cdata and a list of filters. The cdata includes an extra "filter" column, indicating if a row is to be kept (TRUE) or filtered out (FALSE). The list of filters can be passed as a filter argument, and can be plotted with \code{plot_filters}.
 }
 \description{
 Filtrar cdata usando gráficos y dibujando regiones
 }
 \examples{
-path <- "/mac/apesta/trololololol/"
+
+# Minimal example:
+
+path <- "/path/to_your/cellid_images/"
 
 cell.data <- rcell2::cell.load.alt(path = path)
 
-image.paths <- cell.data$d.paths  # image.paths <- rcell2::magickPaths(cell.data)
+cdata <- cell.data$data  # CellID dataframe
 
-pdata <- read_tsv(paste0(path, "pdata.csv"))
+images <- cell.data$images  # Image paths
 
-cdata <- left_join(cell.data$d, pdata)
+pdata <- read.csv("data/pdata.csv")  # "Position" metadata
 
 rcell2::shinyCell(cdata = cdata, 
                   pdata = pdata, 
-                  paths = cell.data$d.paths, 
-                  n_max = 5^2, 
-                  boxSize = 100)
+                  paths = images)
+
 }

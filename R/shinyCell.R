@@ -21,49 +21,55 @@ safe_select <- function(.df, .name){
 
 #' Filtrar cdata usando gráficos y dibujando regiones
 #'
-#' @param cdata A Rcell "cdata" data.frame (not the object).
-#' @param pdata A "pdata" data.frame with position metadata.
-#' @param paths Paths a la imagen de cada posición.
-#' @param filters Vector de strings con los filtros. c() by default.
-#' @param plotType "Hex", "Density", and "Dots" are available.
+#' @param cdata A Rcell "cdata" data.frame with the CellID variables (not the cell.data object, \code{cell.data$data}).
+#' @param pdata An optional "pdata" data.frame, with positions' metadata (NULL by default).
+#' @param paths A "paths" data.frame, with paths to each positions' images (i.e. \code{cell.data$images}).
+#' @param filters An optional list with the filters from a previous shinyCell run (dataframes with points of 2D polygons). An empty \code{list()} by default.
+#' @param plotType Type of the filtering plot, either: "Dots" (point scatterplot, defaut), "Hex" (2D histogram with hexagonal bins), "Density", "Pics" (a \code{cellSpread} plot).
 #' @param seed Seed value for sampling of cell images.
-#' @param initial_facet Initial facet formula as a string.
-#' @param initial_vars Initial cdata variables as a string vector (default NULL, for 'a.tot' and 'fft.stat').
-#' @param facet_grid_option Use facet_grid (TRUE, default) or facet_wrap.
-#' @param facets_scale_free Use facets with fixed scales (NULL, default) or free scales ("free").
+#' @param initial_facet Initial ggplot facet formula as a string (for example: "~pos+group_1")
+#' @param initial_vars Initial cdata variables as a character vector (defaults to \code{c('a.tot', 'fft.stat')}).
+#' @param facet_grid_option Use ggplot's facet_grid (TRUE, default) or facet_wrap (FALSE).
+#' @param facets_scale_free Use ggplot's facets with fixed scales (NULL, default) or free scales ("free").
 #' @param boxSize Size in pixels for individual cells' images.
-#' @param filter_progress_file Save filtering progress to an RDS file. FALSE (default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.
+#' @param filter_progress_file Path to an RDS file, used ofr saving filtering progress. Using FALSE (the default) disables this feature. Set to NULL to let tempfile() choose a path for the RDS, or set to a valid path of your choice.
 #' @param launch.browser Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.
-#' @param ... Further arguments passed to magickCell()
-#' @return Lots of stuff.
+#' @param ... Further arguments passed to \code{magickCell()}.
+#' @return A named list with the original cdata and a list of filters. The cdata includes an extra "filter" column, indicating if a row is to be kept (TRUE) or filtered out (FALSE). The list of filters can be passed as a filter argument, and can be plotted with \code{plot_filters}.
 #' @examples
-#' path <- "/mac/apesta/trololololol/"
+#' 
+#' # Minimal example:
+#' 
+#' path <- "/path/to_your/cellid_images/"
 #' 
 #' cell.data <- rcell2::cell.load.alt(path = path)
 #' 
-#' image.paths <- cell.data$d.paths  # image.paths <- rcell2::magickPaths(cell.data)
+#' cdata <- cell.data$data  # CellID dataframe
 #' 
-#' pdata <- read_tsv(paste0(path, "pdata.csv"))
+#' images <- cell.data$images  # Image paths
 #' 
-#' cdata <- left_join(cell.data$d, pdata)
+#' pdata <- read.csv("data/pdata.csv")  # "Position" metadata
 #' 
 #' rcell2::shinyCell(cdata = cdata, 
 #'                   pdata = pdata, 
-#'                   paths = cell.data$d.paths, 
-#'                   n_max = 5^2, 
-#'                   boxSize = 100)
+#'                   paths = images)
+#' 
 #' @import shiny ggplot2 magick formattable shinydashboard
 #' @importFrom grDevices rgb
 #' @export
 shinyCell <- function(cdata,
                       pdata=NULL,
                       paths,
-                      filters = list(), filters.init_selected = T,
+                      filters = list(),
+                      filters.init_selected = T,
                       plotType = "Dots",
                       seed = 1,
-                      initial_facet = "", initial_vars = NULL,
-                      facet_grid_option = TRUE, facets_scale_free = "fixed",
-                      n_max = 100, boxSize = 80, filter_progress_file = NULL,
+                      initial_facet = "", 
+                      initial_vars = c("a.tot", "fft.stat"),
+                      facet_grid_option = TRUE,
+                      facets_scale_free = "fixed",
+                      n_max = 100, boxSize = 80,
+                      filter_progress_file = NULL,
                       launch.browser = F,
                       ...){
   
@@ -88,10 +94,8 @@ shinyCell <- function(cdata,
       if(!all(initial_vars %in% names(cdata))) stop("Error: cdata does not contain some of the initial_vars")
       if(!is.character(initial_vars)) stop("Error: initial_vars is not a character vector")
       if(length(initial_vars) != 2) stop("Error: initial_vars must be of length 2 (for the horizontal and vertical axes).")
-  } else {
-      initial_vars = c("a.tot",
-                       "fft.stat")
   }
+  
   if(is.null(filter_progress_file)) {
     filter_progress_file <- tempfile(pattern = "shinyCell_progress", fileext = ".RDS")
   }
