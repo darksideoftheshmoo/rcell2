@@ -8,15 +8,22 @@ It is very well tested in baker's yeast.
 
 ## Preview
 
-Input a defocused brightfield image, and _voila_:
+Input a defocused brightfield image to CellID, and _voila_:
 
-![input defocused brightfield image](doc/TFP.png)![segmented brightfield image](doc/TFP.out.png)
+<img src="doc/TFP.png" width="350"> <img src="doc/TFP.out.png" width="350">
 
-Analize the results freely:
+The image is segmented, cells are identified and tracked over time, and features are computed from morphology and fluorescent signal distribution.
 
-![preview_tile](doc/preview_tile.png)
+> Time series images of one cell, showing different acquisition channels. 
 
-![preview_trace](doc/preview_trace.png)
+<img src="doc/preview_tile.png" width="700">
+
+With Rcell2, you can load an analize the CellID results freely, using standard R packages.
+
+> Background corrected fluorescent signal concentration VS time
+
+<img src="doc/preview_trace.png" width="700">
+
 
 # Installation
 
