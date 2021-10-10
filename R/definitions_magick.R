@@ -180,6 +180,26 @@ cellStrip <- function(cdata,
 #' @param cut_strips Use `cut` to split the image series (by index; preserves sortVar order).
 #' @param ... Arguments passed on to magickCell.
 #' 
+#' @example 
+#' # Not run
+#' if(F){
+#' strips <- 
+#'   cellStrips(cdata = cdata %>% filter(ucid == 20308),
+#'              paths = image.paths,
+#'              ch = c("BF", "BF.out", "YFP.out"), equalize_images=T,
+#'              # n_ucids = 2,
+#'              cut_breaks = 3)
+#'              
+#' # Get one cell
+#' strips$`20308` %>%
+#' 
+#'   # For "cut > 1" 
+#'   image_join() %>%
+#'   image_append() %>% 
+#'   
+#'   # For rmarkdown inline rendering
+#'   rcell2::magickForKnitr() %>% knitr::include_graphics()
+#' }
 cellStrips <- function(cdata,
                        paths,
                        n_ucids = NULL,
@@ -211,7 +231,7 @@ cellStrips <- function(cdata,
                             breaks = min(length(ucid_images),
                                          cut_breaks)
                         )) %>% 
-          lapply(list, magick::image_append)
+          lapply(magick::image_append)
         
       } else {
         result <- magick::image_append(ucid_images)
