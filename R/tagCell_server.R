@@ -685,7 +685,7 @@ tagCellServer <- function(input, output, session) {
       cell.strip <- 
         cellStrips(cdata = cdata %>% filter(ucid == ucid.selected,
                                             t.frame %in% frame.range),
-                   paths = images,
+                   paths = paths,
                    # cell_resize=cell_resize,
                    n.cells = max.frames,
                    ch=tag_channels_select, 
