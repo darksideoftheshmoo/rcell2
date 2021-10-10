@@ -83,6 +83,7 @@ shinyCell <- function(cdata,
                       n_max = 100, boxSize = 80,
                       filter_progress_file = NULL,
                       launch.browser = F,
+                      skip_input_check = F,
                       ...){
   
   if(!skip_input_check){

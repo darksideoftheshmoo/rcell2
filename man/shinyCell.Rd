@@ -20,6 +20,7 @@ shinyCell(
   boxSize = 80,
   filter_progress_file = NULL,
   launch.browser = F,
+  skip_input_check = F,
   ...
 )
 }
@@ -50,9 +51,9 @@ shinyCell(
 
 \item{launch.browser}{Set to \code{'firefox'} or equivalent to launch the app in-browser (\code{FALSE} by default). Useful when launching fails with error \code{Error in utils::browseURL(appUrl)} or similar.}
 
-\item{...}{Further arguments passed to \code{magickCell()}.}
-
 \item{skip_input_check}{If FALSE (default)}
+
+\item{...}{Further arguments passed to \code{magickCell()}.}
 }
 \value{
 A named list with the original cdata and a list of filters. The cdata includes an extra "filter" column, indicating if a row is to be kept (TRUE) or filtered out (FALSE). The list of filters can be passed as a filter argument, and can be plotted with \code{plot_filters}.
