@@ -240,6 +240,7 @@ cellArgs2 <- function(...){
 #' @param parameters path to the parameters file or a data.frame with "pos" (position number) and "parameter" (path) columns. Defaults to \code{parameters.write()}.
 #' @param BF.pattern regex pattern to detect BF images only. Defaults to: \code{"^BF"}
 #' @param file.pattern regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.
+#' To consider Z-stacks, use something like "^(BF|[A-Z]\\d+)_Position(\\d+)_time(\\d+).tif$"
 #' @param file.pattern.groups.order a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.
 #' @param tiff.ext regex pattern for the tif file extension
 #' @return a data.frame with all the information needed to run CellID
@@ -471,7 +472,7 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
 #' @param path Path to images directory
 #' @param pdata Path to metadata CSV file
 #' @param position.pattern Regex describing what the position string looks like (default ".*Position(\\d+).*") including a capturing group for the position ID number (coerced to integer).
-#' @param fluorescence.pattern Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$")
+#' @param fluorescence.pattern Regex describing what the fluorescence/channel ID string looks like (default "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$"). There must be one capturing group for the channel identifier.
 #' @param ucid.zero.pad Amount of decimal digits for the cellID (defaults 4, corresponding to a maximum of 9.999 cellIDs and 9999 positions).
 #' @param append.posfix String appended to the channel ID extracted by `fluorescence.pattern` (`NULL` by default, but "FP" is usual).
 #' @param ... Arguments passed on to \code{cargar.out_all}. Patterns for "out" files, fluorescence channel, and other options may be changed here.

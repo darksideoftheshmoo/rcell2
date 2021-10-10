@@ -230,14 +230,25 @@ subset(cellid.args,
 Now comes the magic part. Ut uses temporary directories to work on, 
 and avoids messing up the main data directory.
 
-Remember to adjust file patterns in `rcell2::arguments` and `rcell2::cell.load.alt`:
+Remember to adjust file patterns in `rcell2::arguments` and `rcell2::cell.load.alt`.
+
+Original images file pattern:
 
 ```{r}
-arguments.file.pattern <- "^(BF|TFP)_Position(\\d+)().tif$"
-load.cell.file.pattern <- "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$"
+# Default value: all channels, no z-stack.
+arguments.file.pattern <- "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"
 
-# arguments.file.pattern <- "^(BF|TFP)_Position(\\d+)_time(\\d+).tif$"
-# load.cell.file.pattern <- "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$"
+# BF or TFP only, no t.frame info.
+arguments.file.pattern <- "^(BF|TFP)_Position(\\d+)().tif$"
+```
+
+Fluorescent channel pattern:
+
+```{r}
+# Default value: all fluorescent tags, including Z-stack fluorescence channels.
+load.cell.channel.pattern <- "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$"
+# Same as defualt, but without t.frame information.
+load.cell.channel.pattern <- "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$"
 ```
 
 And the CellID path:
@@ -310,7 +321,7 @@ result <-
             # Load output
             cell.data <- rcell2::cell.load.alt(
               tmp.path,
-              fluorescence.pattern = load.cell.file.pattern
+              fluorescence.pattern = load.cell.channel.pattern
               )
             
             # Keep only the image paths dataframe
