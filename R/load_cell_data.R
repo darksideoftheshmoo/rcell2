@@ -257,7 +257,7 @@ load_cell_data <-
                 bf.fl.mapping[[i]] <- readr::read_tsv(out_mapping,
                                                       col_types = "ciici")
 
-                if (nrow(bf.fl.mapping[[i]] > 0) {
+                if (nrow(bf.fl.mapping[[i]]) > 0) {
                     #creating flag table
                     pos.flag <- .mk_flag_table(bf.fl.mapping[[i]], pos = i)
                     flag.table <- dplyr::bind_rows(pos.flag, flag.table)
