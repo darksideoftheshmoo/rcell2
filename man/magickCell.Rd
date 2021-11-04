@@ -20,6 +20,7 @@ magickCell(
   return_single_imgs = FALSE,
   return_ucid_df = FALSE,
   annotation_params = list(color = "white", background = "black"),
+  add_border = TRUE,
   stack_vertical_first = FALSE,
   return_raw = FALSE
 )
@@ -54,6 +55,8 @@ magickCell(
 \item{return_ucid_df}{If TRUE, return is a list of magick images and ucid dataframes.}
 
 \item{annotation_params}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
+
+\item{add_border}{Add a 1x1 border to the pictures. Useful for stacking/appending.}
 
 \item{stack_vertical_first}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
 

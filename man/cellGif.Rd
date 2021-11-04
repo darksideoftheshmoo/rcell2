@@ -46,6 +46,7 @@ cellGif(
     \item{\code{return_single_imgs}}{If TRUE, return a vector of images instead of a tile.}
     \item{\code{return_ucid_df}}{If TRUE, return is a list of magick images and ucid dataframes.}
     \item{\code{annotation_params}}{Set to NULL to skip annotations, or a named list with values for magick::annotate options (one or more of the names "color" "background" "size"). Note that size close to zero can be invisible.}
+    \item{\code{add_border}}{Add a 1x1 border to the pictures. Useful for stacking/appending.}
     \item{\code{stack_vertical_first}}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
     \item{\code{return_raw}}{Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).}
   }}
