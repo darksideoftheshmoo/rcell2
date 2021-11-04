@@ -485,6 +485,7 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
 cell.load.alt <- function(path,
                           pdata = NULL,
                           position.pattern = ".*Position(\\d+).*",
+                          # fluorescence.pattern = "^([GCYRT]FP)_Position\\d+.tif$",
                           fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+_time\\d+.tif$",
                           ucid.zero.pad = 4,
                           append.posfix = NULL,
@@ -500,9 +501,11 @@ cell.load.alt <- function(path,
                            ...)  # https://stackoverflow.com/questions/40794780/r-functions-passing-arguments-with-ellipsis/40794874
   
   # Check uniqueness of ucid-t.frame combinations
-  if(nrow(unique(d.list$d[,c("cellID", "pos", "t.frame")])) < nrow(d.list$d)) 
-    stop("\nERROR: There are repeated cellID's in the out_all file!")
-  
+  if(nrow(unique(d.list$d[,c("cellID", "pos", "t.frame")])) < nrow(d.list$d)){
+    dump.file <- tempfile(fileext = ".RDS")
+    saveRDS(d.list, dump.file)
+    stop(paste("\nERROR: There are repeated cellID's in the out_all file! Dumped data to:", dump.file))
+  }
   # Create ucid column
   cat("\rCreating ucid column...                            ")
   d.list$d <- d.list$d %>%
@@ -691,6 +694,8 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       cf = f / a.tot,
                       f.loc = f.tot - (f.local.bg * a.tot),
                       cf.loc = f.loc / a.tot)
+  
+  # d.out.map <- filter(d.out.map, cellID==1)  # test one cell
 
   # Right now the out_all is in a "long" format for the channel variable
   # Spread it to match expectations:
@@ -719,7 +724,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   a.tot.m1,
                   a.tot.m2,
                   a.tot.m3,
-                  a.local.bg,
+                  # a.local.bg,
                   a.local,
                   a.local2.bg,
                   a.local2,
@@ -736,6 +741,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       a.nucl,
                       a.vacuole,
                       f.vacuole,
+                      a.local.bg, # moved from the id_cols
                       f.bg,
                       f.tot.p1,
                       f.tot.m1,
