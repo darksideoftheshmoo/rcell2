@@ -811,21 +811,29 @@ NULL
 #' MDA: "Multi dimensional acquisition" app in Metamorph.
 #' 
 #' Uses regex groups to extract channel, position and time information from file names, and uses it to stitch new and friendlyer names.
+#' These are used to copy or link image files to a target directory.
+#' 
+#' For example, \code{far1_rtcc_exp16_thumb_w1LED-BF--YFPcube--cam_s17_t35.TIF} can be converted to \code{BF_Position17_time35.tif}.
 #' 
 #' The \code{identifier.pattern} is a key parameter. There must be three groups, one for each of the three information types: channel, position and time.
+#' The defaults are useful for a file name such as \code{far1_rtcc_exp16_thumb_w1LED-BF--YFPcube--cam_s17_t35.TIF}, in which the channel is identified by a "w", 
+#' position by an "s", and time by a "t".
 #' 
-#' The order in which they appear in the file name is specified in \code{group.order}. If you wish to add a prefix to each field in the final file name,
-#' name the elements in this vector. For example, the default \code{c("ch", Position="pos", time="t.frame")} indicates that channel has no prefix,
+#' The order in which this information appears in the file name is specified in \code{group.order}. 
+#' If you wish to add a prefix to each field in the final file name, name the elements in this vector. 
+#' For example, the default \code{c("ch", Position="pos", time="t.frame")} indicates that channel has no prefix,
 #' the "pos" field will be prefixed by "Position", and the "t.frame" field will be prefixed by "time".
-#' for example, a new file name could look like this: \code{BF_Position1_time3.tif}.
+#' Then, for example, a new file name could look like this: \code{BF_Position1_time3.tif}.
 #' 
 #' Channel names will be translated according to the rows in \code{channel.dict} (see the parameter's description).
 #' These are easily adaptable to other use cases, for example you may change \code{channel.dict} to include more, less or other channels, in whatever order.
-#' Note that the \code{ch} field values must exactly match the strings captured by the corresponding capture group in \code{identifier.pattern}.
-#' In the default case the channel in the original file names are integers from 1 to 3, which are captured and matched with a left join to the \code{channel.dict} data frame.
+#' Note that the values in the \code{ch} column must exactly match the strings captured by the corresponding capture group in \code{identifier.pattern}.
+#' For example, the channel in the original file names may be integers from 1 to 3, which are captured and matched with dplyr's left_join to the \code{channel.dict} data frame.
+#' Then, the value in \code{ch.name} is used to build the final file name.
 #' 
 #' **Limitations**: In the original file names, the identifiers for each field can only be integers.
 #' 
+#' @import dplyr
 #' @param images.path Path to the directory containing the images output by Meramorph MDA.
 #' @param rename.path Path to the target directory. If \code{NULL} (the default) images are sent to a "renamed" subdirectory of \code{images.path}.
 #' @param rename.function Either \code{file.copy}, \code{file.symlink} or a similar function.
