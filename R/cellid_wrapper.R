@@ -820,6 +820,11 @@ NULL
 #' for example, a new file name could look like this: \code{BF_Position1_time3.tif}.
 #' 
 #' Channel names will be translated according to the rows in \code{channel.dict} (see the parameter's description).
+#' These are easily adaptable to other use cases, for example you may change \code{channel.dict} to include more, less or other channels, in whatever order.
+#' Note that the \code{ch} field values must exactly match the strings captured by the corresponding capture group in \code{identifier.pattern}.
+#' In the default case the channel in the original file names are integers from 1 to 3, which are captured and matched with a left join to the \code{channel.dict} data frame.
+#' 
+#' **Limitations**: In the original file names, the identifiers for each field can only be integers.
 #' 
 #' @param images.path Path to the directory containing the images output by Meramorph MDA.
 #' @param rename.path Path to the target directory. If \code{NULL} (the default) images are sent to a "renamed" subdirectory of \code{images.path}.

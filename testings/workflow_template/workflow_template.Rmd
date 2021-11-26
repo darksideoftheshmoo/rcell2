@@ -108,6 +108,16 @@ rename.mda(images.path)
 
 See `?rename.mda` for extra options.
 
+The defaults are useful for a three channel experiment, and file names looking like this: `far1_rtcc_exp16_thumb_w1LED-BF--YFPcube--cam_s17_t35.TIF`.
+
+```{r}
+formals(rename.mda)
+```
+
+These are easily adaptable to other use cases, for example you may change `channel.dict` to include other channels, in a different order.
+
+Note that the `ch` field must match the corresponding capture group in `identifier.pattern` exactly.
+
 ## CellID Examples
 
 ### Parameters for CellID
