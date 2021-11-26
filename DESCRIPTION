@@ -58,7 +58,8 @@ Imports:
     readr,
     shinyjs,
     rlang,
-    data.table
+    data.table,
+    keys
 Suggests: 
     tidyverse,
     skimr
