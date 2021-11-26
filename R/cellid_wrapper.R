@@ -857,7 +857,7 @@ rename.mda <- function(images.path, rename.path = NULL, rename.function = file.s
   image.files <- dir(images.path, pattern = identifier.pattern)
   
   # Skip thumbnails
-  if(!is.null(skip.thumbs.pat)) image.files <- image.files[grepl(skip.thumbs.pat, image.files)]
+  if(!is.null(skip.thumbs.pat)) image.files <- image.files[!grepl(skip.thumbs.pat, image.files)]
   
   # Extract groups
   images.info <- stringr::str_match(image.files, identifier.pattern)[,-1]
@@ -901,7 +901,7 @@ rename.mda <- function(images.path, rename.path = NULL, rename.function = file.s
   status <- rename.function(from = images.info$file.path, 
                             to = paste0(rename.path, "/", images.info$rename.file))
   if(any(!status)) 
-    warning("Some files were not symlinked, see warnings!")
+    warning("At least some files were not renamed, see warnings!")
   else
     cat(paste("It seems the renaming went well :) check your output directory at:", rename.path))
   
