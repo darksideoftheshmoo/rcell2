@@ -95,6 +95,19 @@ list2env(readRDS(paste0(data.dir, "/", "cell2.objects.RDS")),
          globalenv())
 ```
 
+## Renaming Metamorph MDA images
+
+Using Metamorph's _Multi-dimensional acquisition_ (MDA for short), may use file names different from the usual style (i.e `YFP_Position01_time1.tif`, and so on).
+
+`rename.mda` will help you renaming those weird file names into something more useful.
+
+```{r}
+images.path <- "~/Projects/PhD/data/uscope/multidimensional_exp-20211126-Far1NG-wt_y_dKar4/"
+rename.mda(images.path)
+```
+
+See `?rename.mda` for extra options.
+
 ## CellID Examples
 
 ### Parameters for CellID

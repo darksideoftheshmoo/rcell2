@@ -804,3 +804,96 @@ cellArgs2.summary <- function(arguments){
 #' @examples
 #' # some examples if you want to highlight the usage in the package
 NULL
+
+
+#' Image file renamer for Metamorph MDA
+#' 
+#' MDA: "Multi dimensional acquisition" app in Metamorph.
+#' 
+#' Uses regex groups to extract channel, position and time information from file names, and uses it to stitch new and friendlyer names.
+#' 
+#' The \code{identifier.pattern} is a key parameter. There must be three groups, one for each of the three information types: channel, position and time.
+#' 
+#' The order in which they appear in the file name is specified in \code{group.order}. If you wish to add a prefix to each field in the final file name,
+#' name the elements in this vector. For example, the default \code{c("ch", Position="pos", time="t.frame")} indicates that channel has no prefix,
+#' the "pos" field will be prefixed by "Position", and the "t.frame" field will be prefixed by "time".
+#' for example, a new file name could look like this: \code{BF_Position1_time3.tif}.
+#' 
+#' Channel names will be translated according to the rows in \code{channel.dict} (see the parameter's description).
+#' 
+#' @param images.path Path to the directory containing the images output by Meramorph MDA.
+#' @param rename.path Path to the target directory. If \code{NULL} (the default) images are sent to a "renamed" subdirectory of \code{images.path}.
+#' @param rename.function Either \code{file.copy}, \code{file.symlink} or a similar function.
+#' @param skip.thumbs.pat A regex pattern to filter files. Convenient if the MDA output thumbnails for each image. Set to \code{NULL} to disable.
+#' @param identifier.pattern Regex defining gropus for each part of the name.
+#' @param file.ext File extension to use in the final file name, such as: ".tif".
+#' @param group.order Character vector with strings "pos", "t.frame", and "ch" (channel), in the order in which they appear in the \code{identifier.pattern}.
+#' @param channel.dict A dataframe with two columns: "ch" holding the channel names in the original files, and "ch.name" with the new names for each channel.
+#' @export
+#' @examples 
+#' images.path <- "~/Projects/PhD/data/uscope/multidimensional_exp-20211126-Far1NG-wt_y_dKar4/"
+#' rename.mda(images.path, rename.function = file.copy)
+#' @return Invisibly returns a list with the rename.path (output directory), and the output from the renaming function (see the \code{rename.function} parameter's description).
+rename.mda <- function(images.path, rename.path = NULL, rename.function = file.symlink, skip.thumbs.pat = ".*thumb.*",
+                       identifier.pattern=".*_w(\\d).*_s(\\d{1,2})_t(\\d{1,2}).TIF$", file.ext=".tif",
+                       group.order=c("ch", Position="pos", time="t.frame"),
+                       channel.dict = data.frame(ch=1:3, ch.name=c("BF", "YFP", "TFP"))
+                       ){
+  
+  # Get file names
+  image.files <- dir(images.path, pattern = identifier.pattern)
+  
+  # Skip thumbnails
+  if(!is.null(skip.thumbs.pat)) image.files <- image.files[grepl(skip.thumbs.pat, image.files)]
+  
+  # Extract groups
+  images.info <- stringr::str_match(image.files, identifier.pattern)[,-1]
+  
+  # Cleanup and convert to dataframe
+  images.info <- apply(images.info, 2, as.numeric)
+  colnames(images.info) <- group.order
+  images.info <- as.data.frame(images.info)
+  images.info <- dplyr::left_join(images.info, channel.dict, by = "ch")
+  
+  # Add file name and path
+  images.info$path <- images.path
+  images.info$file <- image.files
+  images.info$file.path <- paste0(images.path, "/", 
+                                  image.files)
+  
+  # Check if rename path was specified, use the images path otherwise
+  if(is.null(rename.path)) rename.path <- paste0(images.path, "/renamed")
+  dir.create(rename.path, showWarnings = F, recursive = T)
+  
+  # Make new names and paths
+  images.info$rename.path <- rename.path
+  images.info$rename.file <- paste0(
+    
+    # ifelse(nzchar(names(group.order[group.order=="ch"])), "_", ""),
+    names(group.order[group.order=="ch"]),
+    images.info$ch.name,
+    "_",
+    
+    names(group.order[group.order=="pos"]),
+    images.info$pos,
+    "_",
+    
+    names(group.order[group.order=="t.frame"]),
+    images.info$t.frame,
+    
+    file.ext
+  )
+  
+  # Rename
+  status <- rename.function(from = images.info$file.path, 
+                            to = paste0(rename.path, "/", images.info$rename.file))
+  if(any(!status)) 
+    warning("Some files were not symlinked, see warnings!")
+  else
+    cat(paste("It seems the renaming went well :) check your output directory at:", rename.path))
+  
+  return(invisible(list(
+    rename.path=rename.path,
+    status=status
+  )))
+}
