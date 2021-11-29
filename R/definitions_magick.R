@@ -418,6 +418,7 @@ cellSpread <- function(cdata, paths,
 #' @param underlay_points Underlay data points to the image plot.
 #' @param draw_contour_breaks Overlay a ggplot2::stat_density2d layer. If TRUE, use the default breaks. Otherwise NULL for none, or a numeric vector for the density breaks.
 #' @param ... Extra arguments passed on to cellSpread.
+#' @importFrom ggplot2 expansion
 #' 
 cellSpreadPlot <- function(cdata, paths,
                            ch = "BF.out", boxSize = 80,
