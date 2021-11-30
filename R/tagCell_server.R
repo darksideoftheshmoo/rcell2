@@ -491,7 +491,7 @@ tagCellServer <- function(input, output, session) {
       table_output <- viewed_ucids
     }
     
-    readr::write_csv(table_output, file = tmp_output_file)
+    readr::write_csv(table_output, path = tmp_output_file)
     
     if(debug_messages) print("-- Returning progress to output:")
     stopApp(table_output)
@@ -539,7 +539,7 @@ tagCellServer <- function(input, output, session) {
         table_output <- viewed_ucids
       }
       
-      readr::write_csv(table_output, file = tmp_output_file)
+      readr::write_csv(table_output, path = tmp_output_file)
       
       if(debug_messages) print("-- Returning progress to output:")
       stopApp(table_output)
