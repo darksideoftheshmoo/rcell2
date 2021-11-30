@@ -13,6 +13,8 @@ magickCell(
   n.cells = 25,
   equalize_images = F,
   normalize_images = F,
+  cutomize_images = F,
+  image_customize = NULL,
   ch = "BF.out",
   sortVar = NULL,
   seed = NULL,
@@ -41,6 +43,10 @@ magickCell(
 \item{equalize_images}{Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
 
 \item{normalize_images}{Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
+
+\item{cutomize_images}{Use a custom magick-like function to "customize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
+
+\item{image_customize}{A custom magick-like function to "customize" the channels specified in \code{cutomize_images}. Defaults to NULL (disabled).}
 
 \item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
 

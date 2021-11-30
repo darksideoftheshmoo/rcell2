@@ -531,6 +531,8 @@ getCellGeom <- function(xpos, ypos, boxSize = 50){
 #' @param n.cells maximum number of cells to display.
 #' @param equalize_images Use magick's function to "equalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
 #' @param normalize_images Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
+#' @param cutomize_images Use a custom magick-like function to "customize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
+#' @param image_customize A custom magick-like function to "customize" the channels specified in \code{cutomize_images}. Defaults to NULL (disabled).
 #' @param ch Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
 #' @param sortVar Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.
 #' @param seed Seed value for sampling of cell images. NULL by default, to disable sampling.
@@ -554,6 +556,8 @@ magickCell <- function(cdata, paths,
                        n.cells = 25,
                        equalize_images = F, 
                        normalize_images = F,
+                       cutomize_images = F,
+                       image_customize = NULL,
                        ch = "BF.out",
                        sortVar = NULL,
                        seed = NULL, 
@@ -674,6 +678,7 @@ magickCell <- function(cdata, paths,
             # Recycle-repeat normalize/equalize arguments to ch length
             equalize_images_rep <- rep(equalize_images, length.out = length(ch))
             normalize_images_rep <- rep(normalize_images, length.out = length(ch))
+            customize_images_rep <- rep(cutomize_images, length.out = length(ch))
 
             # Equalize images jointly or separately
             if(length(equalize_images) == 1){
@@ -686,9 +691,18 @@ magickCell <- function(cdata, paths,
             if(length(normalize_images) == 1) {
               if(normalize_images[1]) .imgs <- image_normalize(.imgs)
             } else {
-              .imgs[which(normalize_images_rep)] <- image_equalize(.imgs[which(normalize_images_rep)])
+              .imgs[which(normalize_images_rep)] <- image_normalize(.imgs[which(normalize_images_rep)])
             }
-
+            
+            # Customize images jointly or separately, if required
+            if(!is.null(image_customize)){
+              if(length(cutomize_images) == 1) {
+                if(cutomize_images[1]) .imgs <- image_customize(.imgs)
+              } else {
+                .imgs[which(customize_images_rep)] <- image_customize(.imgs[which(customize_images_rep)])
+              }
+            }
+            
             # Return
             .imgs
           } %>%
