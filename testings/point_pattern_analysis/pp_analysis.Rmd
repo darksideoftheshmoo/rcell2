@@ -1,0 +1,190 @@
+---
+title: "Task name: Short title"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 4
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 4
+    number_sections: true
+editor_options:
+  chunk_output_type: inline
+author: NM
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+urlcolor: blue
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
+---
+
+
+### K-function
+
+```{r}
+library(spatstat)
+```
+
+https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Kest
+
+> Estimates Ripley's reduced second moment function \(K(r)\) from a point pattern in a window of arbitrary shape.
+
+https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/ppp
+
+```{r}
+X <- runifpoint(50)
+K <- Kest(X)
+```
+
+> Creates an object of class "ppp" representing a point pattern dataset in the two-dimensional plane.
+
+`x` Vector of \(x\) coordinates of data points.
+`y` Vector of \(y\) coordinates of data points.
+`window` window of observation, an object of class "owin".
+
+```{r}
+# some arbitrary coordinates in [0,1]
+x <- runif(20)
+y <- runif(20)
+
+# the following are equivalent
+observation_window <- owin(c(0,1),c(0,1))
+X <- ppp(x, y, window=observation_window)
+
+plot(X)
+```
+
+https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/owin
+
+> Creates an object of class "owin" representing an observation window in the two-dimensional plane
+
+`poly` Optional. Polygonal boundary of window. Incompatible with mask.
+
+```{r}
+# polygon (diamond shape)
+owin_poly_window <- owin(poly=list(x=c(0.5,1,0.5,0),y=c(0,1,2,1)))
+
+plot(owin_poly_window)
+```
+
+### Make boundaries
+
+En imagej alinee la posicion 13 con coordinateshift, y exporte el hyperstack croppeado con pocas celulas como imagesequence.
+
+Renombrar:
+
+```{r}
+img.dir <- "/home/nicomic/Projects/Colman/gitlabs_acl/rtcc/far1/20211126-far1NG-rtccExp-condeltaKar4/data/images/ppp_tests/export/"
+target.dir <- "/home/nicomic/Projects/Colman/gitlabs_acl/rtcc/far1/20211126-far1NG-rtccExp-condeltaKar4/data/images/ppp_tests/export/renamed"
+dir.create(target.dir, showWarnings = F)
+
+filenames <- dir(img.dir, pattern = "tif")
+
+d <- data.frame(file.names = filenames,
+                pattern = str_replace(string = filenames, pattern = "ppp_tests_shifted_t(\\d+)_c(\\d+).tif", replacement = "\\2_\\1")) %>%
+  separate(pattern, into = c("chid", "t.frame"))
+
+d <- d %>% left_join(
+    data.frame(chid = paste0("00", 1:3), ch = c("BF", "TFP", "YFP"))
+  ) %>% 
+  mutate(new.name = paste0(ch, "_Position001_time", t.frame, ".tif" ))
+
+d
+```
+
+```{r}
+file.copy(from = paste0(img.dir, "/", d$file.names), to = paste0(target.dir, "/", d$new.name))
+```
+
+#### Run cellid
+
+```{r}
+a <- rcell2::arguments(path = target.dir)
+
+a
+```
+
+
+```{r}
+system("~/Software/cellID-linux/cell -h")
+```
+
+
+```{r}
+rcell2::cell2(a, cell.command = "~/Software/cellID-linux/cell", output_coords_to_tsv = T)
+```
+
+```{r}
+cell.data <- rcell2::cell.load.alt(target.dir)
+
+cell.masks <- rcell2::cell.load.boundaries(target.dir, data.source = 'masks.tsv', arguments = a, pixel.type = c("i", "b"))
+```
+
+```{r}
+cdata <- cell.data$data %>% group_by(ucid) %>% filter(n() > 20)
+
+cdata %>% split(cdata$ucid) %>% sample(1) %>% 
+  lapply(function(x) magickCell(x, cell.data$images, ch = "tfp.out", normalize_images=T))
+
+cdata %>% split(cdata$ucid) %>% sample(1) %>% 
+  lapply(function(x) magickCell(x, cell.data$images, ch = "yfp.out", normalize_images=T))
+
+cdata %>% filter(t.frame == 1) %>% 
+  magickCell(cell.data$images, ch = "tfp.out", normalize_images=T)
+
+good.ucids <- cdata$ucid %>% unique()
+```
+
+
+```{r}
+cell.masks.split <- cell.masks %>% 
+  left_join(unique(select(cell.data$mapping, flag, channel))) %>% 
+  filter(channel == "yfp") %>% 
+  left_join(unique(select(cdata, pos, cellID, t.frame))) %>% 
+  filter(ucid %in% good.ucids) %>% 
+  {split(., .$ucid)}
+
+cell.masks.split$`10000`
+```
+
+```{r}
+sample.cords <- cell.masks.split$`10000` %>% 
+  filter(t.frame == 13) %>% 
+  filter(pixtype == "i") %>% select(x,y)
+
+sample.bounds <- cell.masks.split$`10000` %>% 
+  filter(t.frame == 13) %>% 
+  filter(pixtype == "b") %>% select(x,y) %>% unique()
+
+plot(sample.bounds)
+```
+
+```{r}
+owin_poly_window <- spatstat.geom::owin(poly=list(
+  x = rev(sample.bounds$x),
+  y = rev(sample.bounds$y)
+))
+
+plot(owin_poly_window)
+```
+
+```{r}
+X <- with(sample.cords, {
+  spatstat.geom::ppp(x, y, window=owin_poly_window)
+})
+
+plot(X)
+```
+
+```{r}
+K <- spatstat.core::Kest(X)
+
+plot(K)
+```
+
