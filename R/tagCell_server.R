@@ -55,7 +55,7 @@ tagCellServer <- function(input, output, session) {
       # cleanup columns, select only those on the cell_tags list
       .[c("ucid_t.frame", names(cell_tags))] %>% 
       # reform the tags list
-      split(~ucid_t.frame) %>% 
+      {split(., .$ucid_t.frame)} %>%  # Old syntax for compatibility
       # reform list structure, removing NA entries
       lapply(function(.tags){
         .tags <- as.list(.tags[1,-1])

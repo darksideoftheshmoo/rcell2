@@ -162,3 +162,69 @@ tagCell <- function(cdata,
   # Devolver una lista con los objetos cdata cfilter y los stringFilters
   return(saved)
 }
+            
+#' Pivot cell tags to a cdata-joinable dataframe, with one hot encoding
+#' 
+#' @param tags.df Output from tagCell.
+#' @param exclude.cols Character vector with names of columns which should be removed from input.
+#' 
+#' @details 
+#' Ver:
+#' * `~/Projects/Academia/Doctorado/gitlabs_acl/rtcc/far1/analisis_Far1_arresto-lavado/R/analisis_pos_2_a_7_v7_tags_analysis.Rmd`
+#' * https://stackoverflow.com/questions/55288338/r-multi-hot-encoding-among-multiple-columns
+#' * https://stackoverflow.com/a/63454411/11524079
+#' @export
+tags.to.onehot <- function(tags.df, exclude.cols = c("pos", "cellID", "viewed")){
+  annotations.dt <- tags.df %>% filter(!is.na(t.frame)) %>% 
+    # Remove some redundant ID columns
+    {.[,!names(.) %in% exclude.cols]}
+  
+  # Replace boolean values with strings
+  # annotations.dt <- annotations #%>%
+    # mutate(far1_drop = ifelse(far1_drop, "t_drop", "false_drop")) %>%
+    # mutate(far1_deloc = ifelse(far1_deloc, "far1_deloc", "far1_no_deloc"))
+  
+  # Replace missing values with a string
+  # annotations.dt[is.na(annotations.dt)] <- "not_tagged"
+  
+  # Convert all columns to factor type
+  annotations.dt <- mutate_all(annotations.dt, factor)
+  
+  # Set data table
+  data.table::setDT(annotations.dt)
+  
+  # Melt data table by ucid and t.frame
+  annotations.dt <- annotations.dt %>% data.table::melt(id.vars = c("ucid","t.frame"))
+  
+  # Paste variable names with their values.
+  # These end up as column names after casting (see below).
+  annotations.dt <- annotations.dt %>% 
+    unite(value, variable, value, sep = ".") %>% 
+    mutate_all(factor)
+  
+  # Esta funcion va a calcular el valor de una celda solo cuando
+  # hay múltiples valores para ella en la tabla original (esos vienen de columna "ind", ver más abajo).
+  # Se usa entonces cuando las filas no son identificadas únicamente por las columnas de ID (aunque quizás se use siempre :shrug:).
+  aggr.fun <- function(x) length(x) > 0
+  
+  annotations.dt <- data.table::dcast(
+    # Add "ind" column, filled with ones.
+    data.table::setDT(annotations.dt)[,ind:=1],  # [1,],  # [c(1,1,2,3),],
+    # ?
+    fun.aggregate	= aggr.fun,
+    # Specify what columns are identifiers (LHS),
+    # and which columns have values that will be cast to columns (RHS).
+    ucid+t.frame~value,
+    # The column holding the values that should be cast
+    value.var = "ind",
+    # The fill value for missing values for a combination if ID columns.
+    fill=FALSE
+  ) %>%
+    # Convert ucid and t.frame factors to characters
+    mutate(ucid = as.character.factor(ucid),
+           t.frame = as.character.factor(t.frame)) %>%
+    # Then convert everything to numeric type
+    mutate_all(as.numeric)
+  
+  return(annotations.dt)
+}
