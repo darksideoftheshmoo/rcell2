@@ -224,7 +224,7 @@ tags.to.onehot <- function(tags.df, exclude.cols = c("pos", "cellID", "viewed"))
     mutate(ucid = as.character.factor(ucid),
            t.frame = as.character.factor(t.frame)) %>%
     # Then convert everything to numeric type
-    mutate_all(as.numeric)
+    mutate_all(as.integer)
   
   return(annotations.dt)
 }
