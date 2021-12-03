@@ -6,7 +6,11 @@
 \usage{
 cell.load.boundaries(
   data.source,
-  ...,
+  position_pattern = ".*Position(\\\\d+)$",
+  tsv_pattern = "^out_all_masks.tsv$",
+  cell_id_offset = -1,
+  interior_offset = NULL,
+  blank_bg = NULL,
   arguments = NULL,
   pixel.type = "b",
   flags = NULL,
@@ -17,6 +21,19 @@ cell.load.boundaries(
 }
 \arguments{
 \item{data.source}{Either "out.tif" or "masks.tsv"}
+
+\item{position_pattern}{A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.}
+
+\item{tsv_pattern}{A regex pattern matching the name of the TSV file.}
+
+\item{cell_id_offset}{integer. The pixel intensity offset with respect to maximum pixel intensity, such
+that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.}
+
+\item{interior_offset}{logical. If \code{TRUE} the function expects that
+cell masks have interior pixels offset from boundary pixels (set to TRUE if NULL; the default).}
+
+\item{blank_bg}{logical. If \code{TRUE} the function assumes that the image
+background (i.e., non-mask pixels) are blank. Set to FALSE if left NULL (the default).}
 
 \item{arguments}{The arguments dataframe used to run cellid (prepared with \code{rcell2::arguments}).}
 
@@ -34,8 +51,16 @@ cell.load.boundaries(
 A "cell.boundaries" data.frame.
 }
 \description{
-Using `data_source = "out.tif"` will give **un**ordered boundary pixels.
+Load cellid boundary data to a dataframe
 }
 \details{
-Using `data_source = "masks.tsv"` will give ordered boundary pixels.
+Using \code{data_source = "out.tif"} will give **un** ordered boundary pixels.
+See \code{read_tiff_masks} for details and caveats.
+
+Using \code{data_source = "masks.tsv"} will give ordered boundary pixels.
+Which, in some cases, may not be "manifold"
+(see: https://github.com/darksideoftheshmoo/cellID-linux/issues/11).
+Also, do not expect them to be consistent in their direction (clockwise or 
+anti-clockwise), and double check if the pixels are aligned to the output images
+(see: https://github.com/darksideoftheshmoo/rcell2/issues/29).
 }

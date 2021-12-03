@@ -4,7 +4,7 @@
 \alias{parameters.write}
 \title{Write parameters to a [temporary] file}
 \usage{
-parameters.write(
+\method{parameters}{write}(
   parameters.list = rcell2::parameters.default(),
   param.dir = base::tempdir(),
   param.file = NULL

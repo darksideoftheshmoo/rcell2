@@ -2,9 +2,9 @@
 #'
 #' Read boundary and interior pixel data from a BF.out TIFF image.
 #' 
-#' This function reads cell masks from 16-bit BF.out images onto which boundary
-#' and interior pixels have been encoded as intensity values proportional to each
-#' object's cellID.
+#' This function reads cell masks from 16-bit "BF.out" images produced by Cell-ID,
+#' onto which boundary and interior pixels have been encoded as intensity values
+#'  proportional to each segmented object's cellID.
 #' 
 #' By default the function accounts for the possibility that the image may have
 #' a brightfield image background and/or interior pixel intensities offset from
@@ -13,12 +13,21 @@
 #' boundary and interior pixels separately. This behavior can be overridden by
 #' explicitly specifying the image type via the \code{blank_bg} and
 #' \code{interior_offset} parameters. This may speed up running time.
+#' 
+#' Limitations: this function only uses information from 16-bit "brightfield" 
+#' images output by CellID. The fluoresence channels output images are 8-bit,
+#' and do not contain the necessary information. This might be relevant if the
+#' fluorescent images were aligned to the BF by CellID, such that the pixel
+#' coordinates differ between brightfield and fluorescence output images.
+#' If this is a problem for you, then use \code{cell.load.boundaries} with
+#' \code{data.source = 'masks.tsv'} to read CellID's TSV output files (for 
+#' that see \code{cell2}).
 #'
 #' @param path A string. The path to the 16-bit BF.out tiff file to read.
-#' @param cell_id_offset the offset with respect to maximum pixel intensity, such
+#' @param cell_id_offset integer. The pixel intensity offset with respect to maximum pixel intensity, such
 #' that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.
 #' @param interior_offset logical. If \code{TRUE} the function expects that
-#' cell masks have interior pixels offset from boundary pixels.
+#' cell masks have interior pixels offset from boundary pixels (set to TRUE if NULL; the default).
 #' @param blank_bg logical. If \code{TRUE} the function assumes that the image
 #' background (i.e., non-mask pixels) are blank. Set to FALSE if left NULL (the default).
 #' 
@@ -142,9 +151,17 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
 
 #' Load cellid boundary data to a dataframe
 #' 
-#' Using `data_source = "out.tif"` will give **un**ordered boundary pixels.
+#' @details 
 #' 
-#' Using `data_source = "masks.tsv"` will give ordered boundary pixels.
+#' Using \code{data_source = "out.tif"} will give **un** ordered boundary pixels.
+#' See \code{read_tiff_masks} for details and caveats.
+#' 
+#' Using \code{data_source = "masks.tsv"} will give ordered boundary pixels.
+#' Which, in some cases, may not be "manifold"
+#' (see: https://github.com/darksideoftheshmoo/cellID-linux/issues/11).
+#' Also, do not expect them to be consistent in their direction (clockwise or 
+#' anti-clockwise), and double check if the pixels are aligned to the output images
+#' (see: https://github.com/darksideoftheshmoo/rcell2/issues/29).
 #' 
 #' @param data.source Either "out.tif" or "masks.tsv"
 #' @param arguments The arguments dataframe used to run cellid (prepared with \code{rcell2::arguments}).
@@ -153,12 +170,18 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
 #' @param close.paths When TRUE and \code{data.source = "masks.tsv"}, append the first row to the end of the data.frame (groping by cellID and pos). Useful for plotting of making closed polygons.
 #' @param cell.data When \code{data.source = "out.tif"}, you **must** provide the cell.data object (prepared with \code{rcell2::cell.load.alt}).
 #' @param tiff.channel When \code{data.source = "out.tif"}, provide the channel name for images holding boundary data ('BF.out' by default).
-#' 
+#' @inheritParams tsv_paths_from_args
+#' @inheritParams read_tiff_masks
 #' @return A "cell.boundaries" data.frame.
 #' 
 #' @export
 cell.load.boundaries <- function(data.source,
-                                 ...,
+                                 # tsv_paths_from_args args
+                                 position_pattern = ".*Position(\\d+)$",
+                                 tsv_pattern = "^out_all_masks.tsv$",
+                                 # read_tiff_masks args
+                                 cell_id_offset = -1, interior_offset = NULL, blank_bg = NULL,
+                                 # Other args
                                  arguments = NULL,
                                  pixel.type = "b",
                                  flags = NULL,
@@ -181,7 +204,10 @@ cell.load.boundaries <- function(data.source,
       filter(channel == tiff.channel) %>% 
       mutate(pos_t.frame = paste(pos, t.frame, sep = "_")) %>% 
       with(setNames(file, pos_t.frame)) %>% 
-      lapply(FUN = rcell2::read_tiff_masks, ...) %>% 
+      lapply(FUN = rcell2::read_tiff_masks, 
+             cell_id_offset = cell_id_offset, 
+             interior_offset = interior_offset, 
+             blank_bg = blank_bg) %>% 
       bind_rows(.id = "pos_t.frame") %>% 
       separate(pos_t.frame, into = c("pos", "t.frame"), convert = T)
   }
@@ -192,7 +218,9 @@ cell.load.boundaries <- function(data.source,
     stopifnot(is.data.frame(arguments))
     
     cell.boundaries <- 
-      rcell2::tsv_paths_from_args(arguments, ...) %>% 
+      rcell2::tsv_paths_from_args(arguments, 
+                                  position_pattern=position_pattern,
+                                  tsv_pattern=tsv_pattern) %>% 
       with(setNames(path, pos)) %>% 
       lapply(readr::read_tsv,
              # col_types = "iiiiif") %>%  # types: 5 int columns, 1 factor column 
