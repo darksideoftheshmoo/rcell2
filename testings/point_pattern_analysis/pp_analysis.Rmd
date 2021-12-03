@@ -24,12 +24,15 @@ knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
 ---
 
-
-### K-function
-
-```{r}
+```{r setup, message=F}
+library(tidyverse)
+# devtools::document("~/R/rcell2/")
+devtools::load_all("~/R/rcell2/", reset = T)
 library(spatstat)
 ```
+
+
+### K-function
 
 https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Kest
 
@@ -82,24 +85,27 @@ Renombrar:
 ```{r}
 img.dir <- "/home/nicomic/Projects/Colman/gitlabs_acl/rtcc/far1/20211126-far1NG-rtccExp-condeltaKar4/data/images/ppp_tests/export/"
 target.dir <- "/home/nicomic/Projects/Colman/gitlabs_acl/rtcc/far1/20211126-far1NG-rtccExp-condeltaKar4/data/images/ppp_tests/export/renamed"
-dir.create(target.dir, showWarnings = F)
-
-filenames <- dir(img.dir, pattern = "tif")
-
-d <- data.frame(file.names = filenames,
-                pattern = str_replace(string = filenames, pattern = "ppp_tests_shifted_t(\\d+)_c(\\d+).tif", replacement = "\\2_\\1")) %>%
-  separate(pattern, into = c("chid", "t.frame"))
-
-d <- d %>% left_join(
-    data.frame(chid = paste0("00", 1:3), ch = c("BF", "TFP", "YFP"))
-  ) %>% 
-  mutate(new.name = paste0(ch, "_Position001_time", t.frame, ".tif" ))
-
-d
 ```
 
 ```{r}
-file.copy(from = paste0(img.dir, "/", d$file.names), to = paste0(target.dir, "/", d$new.name))
+# dir.create(target.dir, showWarnings = F)
+# 
+# filenames <- dir(img.dir, pattern = "tif")
+# 
+# d <- data.frame(file.names = filenames,
+#                 pattern = str_replace(string = filenames, pattern = "ppp_tests_shifted_t(\\d+)_c(\\d+).tif", replacement = "\\2_\\1")) %>%
+#   separate(pattern, into = c("chid", "t.frame"))
+# 
+# d <- d %>% left_join(
+#     data.frame(chid = paste0("00", 1:3), ch = c("BF", "TFP", "YFP"))
+#   ) %>% 
+#   mutate(new.name = paste0(ch, "_Position001_time", t.frame, ".tif" ))
+# 
+# d
+```
+
+```{r}
+# file.copy(from = paste0(img.dir, "/", d$file.names), to = paste0(target.dir, "/", d$new.name))
 ```
 
 #### Run cellid
@@ -117,13 +123,15 @@ system("~/Software/cellID-linux/cell -h")
 
 
 ```{r}
-rcell2::cell2(a, cell.command = "~/Software/cellID-linux/cell", output_coords_to_tsv = T)
+rcell2::cell2(a, cell.command = "~/Software/cellID-linux/cell", output_coords_to_tsv = T, encode_cellID_in_pixels = T)
 ```
+### Load output
 
 ```{r}
 cell.data <- rcell2::cell.load.alt(target.dir)
+images <- cell.data$images
 
-cell.masks <- rcell2::cell.load.boundaries(target.dir, data.source = 'masks.tsv', arguments = a, pixel.type = c("i", "b"))
+cell.masks <- rcell2::cell.load.boundaries(data.source = 'masks.tsv', arguments = a, pixel.type = c("i", "b"))
 ```
 
 ```{r}
@@ -166,6 +174,18 @@ plot(sample.bounds)
 ```
 
 ```{r}
+sample.image.info <- images %>% 
+  semi_join(cell.masks.split$`10000`, by = c("pos", "t.frame")) %>% 
+  filter(t.frame == 13) %>% 
+  filter(channel == "yfp.out")
+
+sample.image <- rcell2::read_tiff_masks(sample.image.info$file, )
+
+sample.image
+```
+
+
+```{r}
 owin_poly_window <- spatstat.geom::owin(poly=list(
   x = rev(sample.bounds$x),
   y = rev(sample.bounds$y)
@@ -176,7 +196,7 @@ plot(owin_poly_window)
 
 ```{r}
 X <- with(sample.cords, {
-  spatstat.geom::ppp(x, y, window=owin_poly_window)
+  spatstat.geom::ppp(x + rnorm(length(x), sd = 0.1), y + rnorm(length(x), sd = 0.1), window=owin_poly_window)
 })
 
 plot(X)
