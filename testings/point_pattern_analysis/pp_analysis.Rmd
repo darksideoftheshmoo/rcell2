@@ -36,7 +36,7 @@ library(spatstat)
 
 https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Kest
 
-> Estimates Ripley's reduced second moment function \(K(r)\) from a point pattern in a window of arbitrary shape.
+> Estimates Ripley's reduced second moment function $K(r)$ from a point pattern in a window of arbitrary shape.
 
 https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/ppp
 
@@ -125,6 +125,7 @@ system("~/Software/cellID-linux/cell -h")
 ```{r}
 rcell2::cell2(a, cell.command = "~/Software/cellID-linux/cell", output_coords_to_tsv = T, encode_cellID_in_pixels = T)
 ```
+
 #### Load output
 
 ```{r}
