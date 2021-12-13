@@ -42,7 +42,7 @@ read_description <- function(x){
 }
 
 #' Read TIFF tag information.
-#'
+#' 
 #' TIFF files contain metadata about images in their \emph{TIFF tags}. This function
 #' is for reading this information without reading the actual image. It extends
 #' on the \code{read_tags} function from the \code{ijtiff} package, and extracts
@@ -63,6 +63,6 @@ read_description <- function(x){
 #' 
 #' @export
 read_tiff_tags <- function(path,frames=1){
-  # lapply(ijtiff::read_tags(path,frames),read_description)
-  stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
+  lapply(ijtiff::read_tags(path,frames),read_description)
+  # stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
 }
