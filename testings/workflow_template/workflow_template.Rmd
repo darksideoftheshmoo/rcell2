@@ -500,6 +500,50 @@ Descriptions of the variables in `cdata`:
 rcell2::cellid_output_descriptions()
 ```
 
+### Check XY stage coordinates against expectations
+
+It may be a good idea to double check that the physical coordinates of your images
+match your expectations (i.e. the column/row pairs of each well in a microscopy plate).
+
+This is specially useful when tracing a path for positions in a many-well time-course experiment.
+
+The following code match the images' _position_ (Pos) to their microscope stage _physical_ XY coordinates,
+which are stored in the TIFF tags of the original images.
+
+It requires the `images` dataframe in `cell.data` to get the file names,
+_but_ you could also use `dir` to get the files by pattern, and `sub` to get the position IDs,
+independently of CellID.
+
+```{r}
+tags <- images %>% filter(t.frame==0, channel=="BF") %>% 
+  {split(.$file, .$pos)} %>% 
+  lapply(rcel2::read_tiff_tags)
+
+# any(is.null(names(tags$`1`$frame1)))  # Chekc if any names are missing
+# select.list(tags$`1`$frame1, discard = "description")
+# tags$`1`$frame1$description
+
+tags <- tags %>% 
+  lapply(function(x) x[["frame1"]][["description"]]) %>% 
+  bind_rows(.id = "pos") %>% 
+  mutate(variable = make.names(variable)) %>% 
+  filter(variable %in% make.names(c("stage-position-x", "stage-position-y", "z-position")))
+  
+tags <- tags %>%
+  pivot_wider(id_cols = "pos", names_from = "variable", values_from = "value") %>% 
+  mutate_all(as.numeric)
+```
+
+Then make a scatterplot:
+
+```{r}
+tags %>% ggplot(aes(x=stage.position.x, y=stage.position.y, label=pos)) +
+  geom_text(size=10) +
+  geom_point(color="red") +
+  scale_x_reverse() +
+  ggtitle("Coordenadas del stage")
+```
+
 ## Analizar datos
 
 ### Tidy framework
