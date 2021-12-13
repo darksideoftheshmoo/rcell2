@@ -4,7 +4,7 @@
 \alias{parameters.default}
 \title{Default parameters list for Cell-ID}
 \usage{
-\method{parameters}{default}(
+parameters.default(
   max_split_over_minor = 0.5,
   max_dist_over_waist = 8,
   max_pixels_per_cell = 2000,
