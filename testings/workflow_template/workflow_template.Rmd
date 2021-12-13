@@ -528,7 +528,7 @@ tags <- tags %>%
   bind_rows(.id = "pos") %>% 
   mutate(variable = make.names(variable)) %>% 
   filter(variable %in% make.names(c("stage-position-x", "stage-position-y", "z-position")))
-  
+
 tags <- tags %>%
   pivot_wider(id_cols = "pos", names_from = "variable", values_from = "value") %>% 
   mutate_all(as.numeric)
@@ -537,7 +537,9 @@ tags <- tags %>%
 Then make a scatterplot:
 
 ```{r}
-tags %>% ggplot(aes(x=stage.position.x, y=stage.position.y, label=pos)) +
+tags %>% arrange(pos) %>% 
+  ggplot(aes(x=stage.position.x, y=stage.position.y, label=pos)) +
+  geom_path() + 
   geom_text(size=10) +
   geom_point(color="red") +
   scale_x_reverse() +
