@@ -12,7 +12,8 @@
   identifier.pattern = ".*_w(\\\\d).*_s(\\\\d{1,2})_t(\\\\d{1,2}).TIF$",
   file.ext = ".tif",
   group.order = c("ch", Position = "pos", time = "t.frame"),
-  channel.dict = data.frame(ch = 1:3, ch.name = c("BF", "YFP", "TFP"))
+  channel.dict = data.frame(ch = 1:3, ch.name = c("BF", "YFP", "TFP")),
+  ...
 )
 }
 \arguments{
@@ -31,6 +32,8 @@
 \item{group.order}{Character vector with strings "pos", "t.frame", and "ch" (channel), in the order in which they appear in the \code{identifier.pattern}.}
 
 \item{channel.dict}{A dataframe with two columns: "ch" holding the channel names in the original files, and "ch.name" with the new names for each channel.}
+
+\item{...}{Further arguments passed onto \code{rename.function}.}
 }
 \value{
 Invisibly returns a list with the rename.path (output directory), and the output from the renaming function (see the \code{rename.function} parameter's description).

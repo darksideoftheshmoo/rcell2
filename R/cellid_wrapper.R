@@ -842,6 +842,7 @@ NULL
 #' @param file.ext File extension to use in the final file name, such as: ".tif".
 #' @param group.order Character vector with strings "pos", "t.frame", and "ch" (channel), in the order in which they appear in the \code{identifier.pattern}.
 #' @param channel.dict A dataframe with two columns: "ch" holding the channel names in the original files, and "ch.name" with the new names for each channel.
+#' @param ... Further arguments passed onto \code{rename.function}.
 #' @export
 #' @examples 
 #' images.path <- "~/Projects/PhD/data/uscope/multidimensional_exp-20211126-Far1NG-wt_y_dKar4/"
@@ -850,7 +851,8 @@ NULL
 rename.mda <- function(images.path, rename.path = NULL, rename.function = file.symlink, skip.thumbs.pat = ".*thumb.*",
                        identifier.pattern=".*_w(\\d).*_s(\\d{1,2})_t(\\d{1,2}).TIF$", file.ext=".tif",
                        group.order=c("ch", Position="pos", time="t.frame"),
-                       channel.dict = data.frame(ch=1:3, ch.name=c("BF", "YFP", "TFP"))
+                       channel.dict = data.frame(ch=1:3, ch.name=c("BF", "YFP", "TFP")),
+                       ...
                        ){
   
   # Get file names
@@ -899,7 +901,8 @@ rename.mda <- function(images.path, rename.path = NULL, rename.function = file.s
   
   # Rename
   status <- rename.function(from = images.info$file.path, 
-                            to = paste0(rename.path, "/", images.info$rename.file))
+                            to = paste0(rename.path, "/", images.info$rename.file),
+                            ...)
   if(any(!status)) 
     warning("At least some files were not renamed, see warnings!")
   else
