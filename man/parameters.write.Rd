@@ -21,8 +21,9 @@ parameters.write(
 A path to the text file where parameters where written.
 }
 \description{
-Parses a \code{parameters.list} list object, and saves its contents in a Cell-ID friendly text file.
+Parses a \code{parameters.list} object from \code{parameters.default},
+and writes its contents to a Cell-ID friendly plain text file.
 }
 \seealso{
-\link[rcell2]{parameters.list}, \link[rcell2]{arguments}
+\link[rcell2]{parameters.default}, \link[rcell2]{arguments}
 }

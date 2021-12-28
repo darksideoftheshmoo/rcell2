@@ -12,7 +12,8 @@ parameters.default(
   background_reject_factor = 0.75,
   tracking_comparison = 0.2,
   align_individual_cells = F,
-  align_fl_to_bf = T,
+  align_fl_to_bf = F,
+  align_fl_to_first = F,
   image_type = "brightfield",
   bf_fl_mapping = "list"
 )
@@ -43,6 +44,7 @@ A nice list of parameters.
 }
 \description{
 Returns a list of key-value pairs, for the default Cell-ID parameters.
+It's output will tipically be used by \code{parameters.write}.
 }
 \details{
 Documentation for each parameter can be found at: https://github.com/darksideoftheshmoo/cellID-linux#parameters

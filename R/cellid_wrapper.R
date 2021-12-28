@@ -338,6 +338,7 @@ arguments <- function(path,
 #' Default parameters list for Cell-ID
 #' 
 #' Returns a list of key-value pairs, for the default Cell-ID parameters.
+#' It's output will tipically be used by \code{parameters.write}.
 #' 
 #' @details 
 #' 
@@ -387,7 +388,8 @@ parameters.default <- function(
   background_reject_factor = 0.75,
   tracking_comparison = 0.20,
   align_individual_cells = F,
-  align_fl_to_bf = T,
+  align_fl_to_bf = F,
+  align_fl_to_first = F,
   image_type = "brightfield",
   bf_fl_mapping = "list"){
   
@@ -400,6 +402,7 @@ parameters.default <- function(
     tracking_comparison = tracking_comparison,
     align_individual_cells = align_individual_cells,
     align_fl_to_bf = align_fl_to_bf,
+    align_fl_to_first = align_fl_to_first,
     image_type = image_type,
     bf_fl_mapping = bf_fl_mapping
   ))
@@ -407,9 +410,8 @@ parameters.default <- function(
 
 #' Write parameters to a [temporary] file
 #' 
-#' Parses a \code{parameters.list} list object, and saves its contents in a Cell-ID friendly text file.
-#' 
-#' 
+#' Parses a \code{parameters.list} object from \code{parameters.default},
+#' and writes its contents to a Cell-ID friendly plain text file.
 #' 
 #' @param parameters.list a parameters list for Cell-ID (like one from parameters.default)
 #' @param param.dir directory where parameter files will be written.
@@ -418,7 +420,7 @@ parameters.default <- function(
 #' 
 #' @export
 #' 
-#' @seealso \link[rcell2]{parameters.list}, \link[rcell2]{arguments}
+#' @seealso \link[rcell2]{parameters.default}, \link[rcell2]{arguments}
 #' 
 parameters.write <- function(parameters.list = rcell2::parameters.default(), 
                              param.dir = base::tempdir(),
