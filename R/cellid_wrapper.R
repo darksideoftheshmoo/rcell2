@@ -310,13 +310,13 @@ arguments <- function(path,
     arrange(pos, t.frame)
   
   # Recycle parameters if lenght is 1
-  if(length(parameters) == 1){
+  if(length(parameters) == 1 & is.atomic(parameters)){
     arguments.df.out$parameters <- parameters
   } else {
   # Else bind to the passed parameters data.frame
     arguments.df.out <- left_join(arguments.df.out,
                                   dplyr::select(parameters, pos, parameters),
-                                  by = "parameters")
+                                  by = "pos")
   }
   
   # Normalize parameters' paths
@@ -502,12 +502,6 @@ cell.load.alt <- function(path,
                            fluorescence.pattern = fluorescence.pattern,
                            ...)  # https://stackoverflow.com/questions/40794780/r-functions-passing-arguments-with-ellipsis/40794874
   
-  # Check uniqueness of ucid-t.frame combinations
-  if(nrow(unique(d.list$d[,c("cellID", "pos", "t.frame")])) < nrow(d.list$d)){
-    dump.file <- tempfile(fileext = ".RDS")
-    saveRDS(d.list, dump.file)
-    stop(paste("\nERROR: There are repeated cellID's in the out_all file! Dumped data to:", dump.file))
-  }
   # Create ucid column
   cat("\rCreating ucid column...                            ")
   d.list$d <- d.list$d %>%
@@ -698,6 +692,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       cf.loc = f.loc / a.tot)
   
   # d.out.map <- filter(d.out.map, cellID==1)  # test one cell
+  # browser()
 
   # Right now the out_all is in a "long" format for the channel variable
   # Spread it to match expectations:
@@ -728,7 +723,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   a.tot.m3,
                   # a.local.bg,
                   a.local,
-                  a.local2.bg,
+                  # a.local2.bg,
                   a.local2,
                   a.surf,
                   # con.vol_1,  # duplicated, removed by read_tsv.con.pos and in recent CellID versions
@@ -744,6 +739,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       a.vacuole,
                       f.vacuole,
                       a.local.bg, # moved from the id_cols
+                      a.local2.bg,  # moved from the id_cols
                       f.bg,
                       f.tot.p1,
                       f.tot.m1,
@@ -776,11 +772,36 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                   cellID = as.integer(cellID),
                   t.frame = as.integer(t.frame))
 
-  return(list(
+  # Make output list
+  d.list <- list(
     "d" = cdata,
     "d.map" = d.map,
     "flag.channel.mapping" = flag.channel.mapping
-    ))
+    )
+  
+  # Check uniqueness of ucid-t.frame combinations
+  if(nrow(unique(cdata[,c("cellID", "pos", "t.frame")])) < nrow(cdata)){
+    
+    dump.file <- tempfile(fileext = ".RDS")
+    saveRDS(d.list, dump.file)
+    
+    test.df <- cdata[,c("cellID", "pos", "t.frame")]
+    test.df.list <- split(test.df, test.df$pos)
+    test.res <- 
+      lapply(test.df.list, function(d){
+        nrow(unique(d)) < nrow(d)
+      }) %>% unlist()
+    
+    stop(paste(
+      "\nERROR: There are repeated cellID's in the out_all file! Dumped data to:",
+      dump.file,
+      "Problematic positions:", paste(names(test.res[test.res]), collapse = " ")
+      )
+    )
+  }
+  
+  # Return
+  return(d.list)
 }
 
 #' cellArgs2 Summaries
