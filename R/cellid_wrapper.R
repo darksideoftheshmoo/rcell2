@@ -692,7 +692,99 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                       cf.loc = f.loc / a.tot)
   
   # d.out.map <- filter(d.out.map, cellID==1)  # test one cell
+  
+  
+  # Variables that should not change across fluroescence channels are used as IDs
+  cell_idcols <- c("cellID", "t.frame", "pos")
+  id_cols = c("cellID",
+              # flag,  # dropped above
+              "t.frame",
+              "time",
+              "pos",
+              "xpos",
+              "ypos",
+              "a.tot",
+              "num.pix",
+              "fft.stat",
+              "perim",
+              "maj.axis",
+              "min.axis",
+              "rot.vol",
+              "con.vol",
+              "a.tot.p1",  # should be moved from the id_cols, issue #32
+              "a.tot.m1",
+              "a.tot.m2",
+              "a.tot.m3",
+              # a.local.bg,  # moved from the id_cols, issue #32
+              "a.local",
+              # a.local2.bg,  # moved from the id_cols, issue #32
+              "a.local2",
+              "a.surf",
+              # con.vol_1,  # duplicated, removed by read_tsv.con.pos and in recent CellID versions
+              "sphere.vol")
+
+  id_cols_notcell <- setdiff(id_cols, cell_idcols)
+  
+  values_from = c("f.tot",
+                  "f", 
+                  "cf",
+                  "f.loc",
+                  "cf.loc",
+                  "f.nucl",
+                  "a.nucl",
+                  "a.vacuole",
+                  "f.vacuole",
+                  "a.local.bg", # moved from the id_cols, issue #32
+                  "a.local2.bg",  # moved from the id_cols, issue #32
+                  "f.bg",
+                  "f.tot.p1",
+                  "f.tot.m1",
+                  "f.tot.m2",
+                  "f.tot.m3",
+                  "xpos.nucl",
+                  "ypos.nucl",
+                  "f.nucl1",
+                  "f.nucl.tag1",
+                  "a.nucl1",
+                  "f.nucl2",
+                  "f.nucl.tag2",
+                  "a.nucl2",
+                  "f.nucl3",
+                  "f.nucl.tag3",
+                  "a.nucl3",
+                  "f.nucl4",
+                  "f.nucl.tag4",
+                  "a.nucl4",
+                  "f.nucl5",
+                  "f.nucl.tag5",
+                  "a.nucl5",
+                  "f.nucl6",
+                  "f.nucl.tag6",
+                  "a.nucl6",
+                  "f.local.bg",
+                  "f.local2.bg")
+  
   # browser()
+  # Check if "id columns" are really the same within each observation
+  id_cols_check <- d.out.map[,id_cols] %>% group_by_at(.vars = cell_idcols) %>% 
+    summarise_all(.funs = function(x) length(unique(x)) == 1) %>% 
+    arrange(pos, cellID, t.frame)
+  
+  id_cols_check$any_bad <- !apply(id_cols_check[,id_cols_notcell], 1, all)
+  id_cols_check$which_bad <- apply(id_cols_check[,id_cols_notcell], 1, function(x) id_cols_notcell[which(!x)])
+  
+  which_bad <- id_cols_check %>% filter(any_bad) %>% with(which_bad) %>% unlist() %>% unique()
+  
+  if (length(which_bad) > 0) {
+    warning(paste(
+      "Columns [", which_bad, "] are not ID columns, they have different values across channels of the same cell.",
+      "Converting these to value columns.\n",
+      collapse = " "
+    ))
+    
+    id_cols <- id_cols[!id_cols %in% which_bad]
+    values_from <- unique(c(values_from, which_bad))
+  }
 
   # Right now the out_all is in a "long" format for the channel variable
   # Spread it to match expectations:
@@ -701,72 +793,9 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
     tidyr::pivot_wider(
       # Names for fluorescence columns come from the "channel" variable
       names_from = channel, names_sep = ".",
-      # Variables that should not change across fluroescence channels are used as IDs
-      id_cols = c(cellID,
-                  # flag,  # dropped above
-                  t.frame,
-                  time,
-                  pos,
-                  xpos,
-                  ypos,
-                  a.tot,
-                  num.pix,
-                  fft.stat,
-                  perim,
-                  maj.axis,
-                  min.axis,
-                  rot.vol,
-                  con.vol,
-                  a.tot.p1,
-                  a.tot.m1,
-                  a.tot.m2,
-                  a.tot.m3,
-                  # a.local.bg,
-                  a.local,
-                  # a.local2.bg,
-                  a.local2,
-                  a.surf,
-                  # con.vol_1,  # duplicated, removed by read_tsv.con.pos and in recent CellID versions
-                  sphere.vol),
-
-      values_from = c(f.tot,
-                      f, 
-                      cf,
-                      f.loc,
-                      cf.loc,
-                      f.nucl,
-                      a.nucl,
-                      a.vacuole,
-                      f.vacuole,
-                      a.local.bg, # moved from the id_cols
-                      a.local2.bg,  # moved from the id_cols
-                      f.bg,
-                      f.tot.p1,
-                      f.tot.m1,
-                      f.tot.m2,
-                      f.tot.m3,
-                      xpos.nucl,
-                      ypos.nucl,
-                      f.nucl1,
-                      f.nucl.tag1,
-                      a.nucl1,
-                      f.nucl2,
-                      f.nucl.tag2,
-                      a.nucl2,
-                      f.nucl3,
-                      f.nucl.tag3,
-                      a.nucl3,
-                      f.nucl4,
-                      f.nucl.tag4,
-                      a.nucl4,
-                      f.nucl5,
-                      f.nucl.tag5,
-                      a.nucl5,
-                      f.nucl6,
-                      f.nucl.tag6,
-                      a.nucl6,
-                      f.local.bg,
-                      f.local2.bg))
+      id_cols = id_cols,
+      values_from = values_from
+      )
   
   cdata <- mutate(cdata, 
                   cellID = as.integer(cellID),
