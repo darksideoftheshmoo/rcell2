@@ -635,6 +635,7 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                            out_file_pattern = "^out_all$",
                            out_mapping_pattern = "^out_bf_fl_mapping$",
                            fluorescence.pattern = ".*([A-Z])FP_Position.*"){
+  
   # Migrated from cell.load()
   .nombre.archivos <- list.files(path = path, pattern = out_file_pattern, recursive = T, include.dirs = T)
   .nombre.archivos.map <- list.files(path = path, pattern = out_mapping_pattern, recursive = T, include.dirs = T)
@@ -772,8 +773,18 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
     summarise_all(.funs = function(x) length(unique(x)) == 1) %>% 
     arrange(pos, cellID, t.frame)
   
-  id_cols_check$any_bad <- !apply(id_cols_check[,id_cols_notcell], 1, all)
-  id_cols_check$which_bad <- apply(id_cols_check[,id_cols_notcell], 1, function(x) id_cols_notcell[which(!x)])
+  id_cols_check$any_bad <- !apply(id_cols_check[,id_cols_notcell], 
+                                  MARGIN = 1, 
+                                  FUN = all)
+  id_cols_check$which_bad <- apply(id_cols_check[,id_cols_notcell], 
+                                   MARGIN = 1, 
+                                   FUN = function(x) {
+                                     # Handle non-bad columns with NA value
+                                     which_bad <- which(!x)
+                                     ifelse(length(which_bad) == 0, NA_character_, 
+                                            paste(id_cols_notcell[which_bad], collapse = " "))
+                                     
+                                   })
   
   which_bad <- id_cols_check %>% filter(any_bad) %>% with(which_bad) %>% unlist() %>% unique()
   
