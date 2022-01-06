@@ -7,8 +7,8 @@
 ## between them. The maximum value of this ratio was larger for cells with
 ## a “figure-eight” shape that were pinched in some part than for circular cells.
 ## If the maximum value was above a user-defined threshold (which defaulted to 6), 
-## then we  split the cell into two cells at the location of the pinch
-## However, iff the Euclidean distance divided by the length of the minor axis was
+## then we split the cell into two cells at the location of the pinch
+## However, if the Euclidean distance divided by the length of the minor axis was
 ## greater than a user-defined value (which defaulted to 0.5), for either of the
 ## new cells, then the two cells were re-grouped as a single cell. Thus, we 
 ## required that the two new cells had a generally circular shape and were 
@@ -101,3 +101,13 @@ bf_fl_mapping list
 # new ones.
 # the argument is the offset to add to the id numbers
 # append_output 1000
+
+# Check whether to align the fluorescence images to the brightfield image
+# Will align first FL files to brightfield.
+# Overrides by "align_fl_to_first"
+ align_fl_to_bf
+
+# Check whether we want to use the first fluorescence image to
+# align all the others. Will align all FL files to first FL file.
+# Overriden by "align_fl_to_bf"
+ align_fl_to_first
