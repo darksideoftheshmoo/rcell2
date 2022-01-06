@@ -10,6 +10,7 @@ arguments(
   BF.pattern = "^BF",
   file.pattern = "^(BF|[A-Z]FP)_Position(\\\\d+)_time(\\\\d+).tif$",
   file.pattern.groups.order = c("ch", "pos", "t.frame"),
+  output.dir.basename = "Position",
   tiff.ext = "tif$"
 )
 }
@@ -24,6 +25,8 @@ arguments(
 To consider Z-stacks, use something like "^(BF|[A-Z]\\d+)_Position(\\d+)_time(\\d+).tif$"}
 
 \item{file.pattern.groups.order}{a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.}
+
+\item{output.dir.basename}{Basename for the CellID output directories for each position.}
 
 \item{tiff.ext}{regex pattern for the tif file extension}
 }

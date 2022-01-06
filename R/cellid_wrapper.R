@@ -242,6 +242,7 @@ cellArgs2 <- function(...){
 #' @param file.pattern regex pattern for all tif files, with one group for each of \code{c("ch", "pos", "t.frame")} in \code{file.pattern.groups.order}. Uses \code{"^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$"} by default. To omit time, use an empty group for the t.frame in the regex, for example: \code{"^(BF|[A-Z]FP)_Position(\\d+)().tif$"}.
 #' To consider Z-stacks, use something like "^(BF|[A-Z]\\d+)_Position(\\d+)_time(\\d+).tif$"
 #' @param file.pattern.groups.order a character vector of components \code{c("ch", "z", "pos", "t.frame")} with order corresponding to the order of groups in \code{file.pattern}.
+#' @param output.dir.basename Basename for the CellID output directories for each position.
 #' @param tiff.ext regex pattern for the tif file extension
 #' @return a data.frame with all the information needed to run CellID
 #' @import dplyr tidyr
@@ -255,6 +256,7 @@ arguments <- function(path,
                       # file.pattern.groups.order = c("ch", "z", "pos", "t.frame"),
                       file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
                       file.pattern.groups.order = c("ch", "pos", "t.frame"),
+                      output.dir.basename = "Position",
                       # out.dir = "out",
                       tiff.ext = "tif$"){
   
@@ -304,7 +306,7 @@ arguments <- function(path,
   
   # Add output column and arrange by position and t.frame
   arguments.df.out <- arguments.df %>% 
-    mutate(output = paste0(path, "/Position", pos)) %>% 
+    mutate(output = paste0(path, "/", output.dir.basename, pos)) %>% 
     mutate(pos = as.integer(pos),
            t.frame = as.integer(t.frame)) %>% 
     arrange(pos, t.frame)
@@ -429,11 +431,11 @@ parameters.write <- function(parameters.list = rcell2::parameters.default(),
   # Check if directory exists
   param.dir <- normalizePath(param.dir, mustWork = T)
   
-  if(is.null(param.file))
+  if(is.null(param.file)){
     param.file <- tempfile(tmpdir = param.dir, pattern = "parameters_", fileext = ".txt")
-  else
+  } else {
     param.file <- paste(param.dir, param.file, sep = "/")
-  
+  }
   
   # Process the list into a valid parameter list
   # converting values to character type
