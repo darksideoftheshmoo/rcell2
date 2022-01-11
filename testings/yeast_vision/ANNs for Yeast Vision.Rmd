@@ -30,7 +30,7 @@ knitr::opts_knit$set(root.dir = here::here())
 
 library(tidyverse)
 library(utiles)
-library(rcell2)
+devtools::load_all()
 
 # knitr::opts_chunk$set(cache = T)
 ```
@@ -44,12 +44,15 @@ path <- "data/image_vision_anns/"
 
 cid.arguments <- arguments(path, 
                            file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$")
+
+cid.arguments
 ```
 
 
 ```{r, eval=F}
 cell2(cid.arguments, "~/Software/cellID-linux/cell", 
-      encode_cellID_in_pixels = T)
+      encode_cellID_in_pixels = T,
+      dry = T)
 ```
 
 
@@ -78,17 +81,21 @@ Load images:
 bf.img <- magick::image_read(bf) %>% magick::image_data() %>% as.numeric() %>% .[, , 1]
 out.img <- read_tif_to_matrix(bf.out)
 
-magick::image_read(bf) %>% rcell2::magickForKnitr() %>% knitr::include_graphics()
+magick::image_read(bf) %>% magick::image_normalize() %>% 
+  rcell2::magickForKnitr() %>% knitr::include_graphics()
 magick::image_read(bf.out) %>% rcell2::magickForKnitr() %>% knitr::include_graphics()
 
-plot_matrix(bf.img)
-plot_matrix(out.img)
+# plot_matrix(bf.img)
+# plot_matrix(out.img)
 ```
 
 ## Cargar el BF.out editado en krita
 
 ```{r}
-bf.out2 <- read_tif_to_matrix("data/image_vision_anns/edited_masks/BF_Position001.tif.out_edited.tif")
+bf.out2 <- 
+  read_tif_to_matrix("data/image_vision_anns/edited_masks/BF_Position001.tif.out_edited.tif")
+
+image(bf.out2[1:300, 1:300])
 ```
 
 Binarizar:
