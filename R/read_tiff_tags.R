@@ -21,7 +21,9 @@ read_description <- function(x){
     # Check if first row ("Description") contains HTML character codes
     if(length(grep("(&amp;#13;&amp;#10;)",y[1,2]))){
       # Extract and split value in first row
-      descr <- matrix(unlist(strsplit(y[1,2],"(&amp;#13;&amp;#10;)|(: )")),ncol=2,byrow=TRUE)
+      descr <- matrix(data=unlist(strsplit(y[1,2],"(&amp;#13;&amp;#10;)|(: )")),
+                      ncol=2,
+                      byrow=TRUE)
       y <- rbind(descr,y[-1,])
     }
     
@@ -65,4 +67,53 @@ read_description <- function(x){
 read_tiff_tags <- function(path,frames=1){
   lapply(ijtiff::read_tags(path,frames),read_description)
   # stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
+}
+
+#' Get stage XY coordinates from tiff file's description tag
+#' 
+#' The description is in the tiff file's metadata, tipically written by Metamorph.
+#' 
+#' @param tiff.path A path to the tiff file, passed to ijtiff::read_tags().
+#' @param frames The frame number to process, passed to ijtiff::read_tags().
+#' 
+#' @return A named list, with "x" and "y" coordinates.
+#' 
+#' @importFrom xml2 read_xml as_list
+#' @importFrom ijtiff read_tags
+#' 
+#' @export
+#' 
+#' @examples 
+#' 
+#' # Get the "images" data.frame from CellID
+#' cell.data <- cell.load.alt("path/to/output/")
+#' images <- cell.data$images
+#' 
+#' # Generate a list with file paths split and named by "pos"
+#' tags.list <- images %>% filter(t.frame==0, channel=="BF") %>% 
+#'   {split(.$file, .$pos)}
+#'   
+#' # Otherwise, a simple list of file paths ordered by "pos" suffice.
+#' # tags.list <- list(file.paths)  # NOT RUN
+#' 
+#' # Get stage positions
+#' tags.stage <- tags.list %>% 
+#'   lapply(get_stage_xy_from_file) %>% bind_rows(.id="pos") %>% 
+#'   mutate(pos = as.integer(pos))
+#' 
+#' tags.stage
+#' 
+get_stage_xy_from_file <- function(tiff.path, frames=1){
+  tags.xml <- tiff.path %>% 
+    ijtiff::read_tags(frames = frames) %>% 
+    .[["frame1"]] %>% .[["description"]] %>% 
+    xml2::read_xml() %>% xml2::as_list()
+  
+  tag.attrs <- tags.xml$MetaData$PlaneInfo %>% lapply(attributes) %>% 
+    {setNames(., sapply(., "[[", "id"))}
+  
+  c(
+    x = tag.attrs$`stage-position-x`$value %>% as.numeric(),
+    y = tag.attrs$`stage-position-y`$value %>% as.numeric()
+  )
 }

@@ -913,7 +913,7 @@ NULL
 #' images.path <- "~/Projects/PhD/data/uscope/multidimensional_exp-20211126-Far1NG-wt_y_dKar4/"
 #' rename.mda(images.path, rename.function = file.copy)
 #' @return Invisibly returns a list with the rename.path (output directory), and the output from the renaming function (see the \code{rename.function} parameter's description).
-rename.mda <- function(images.path, rename.path = NULL, rename.function = file.symlink, skip.thumbs.pat = ".*thumb.*",
+rename_mda <- function(images.path, rename.path = NULL, rename.function = file.symlink, skip.thumbs.pat = ".*thumb.*",
                        identifier.pattern=".*_w(\\d).*_s(\\d{1,2})_t(\\d{1,2}).TIF$", file.ext=".tif",
                        group.order=c("ch", Position="pos", time="t.frame"),
                        channel.dict = data.frame(ch=1:3, ch.name=c("BF", "YFP", "TFP")),
