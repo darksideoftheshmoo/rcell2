@@ -30,6 +30,7 @@ cellMagick(...)
     \item{\code{add_border}}{Add a 1x1 border to the pictures. Useful for stacking/appending.}
     \item{\code{stack_vertical_first}}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
     \item{\code{return_raw}}{Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).}
+    \item{\code{crop_images}}{Whether to crop images to a box centered on the cell's XY position (TRUE, default), or the full image (FALSE).}
   }}
 }
 \value{

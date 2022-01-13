@@ -543,6 +543,7 @@ getCellGeom <- function(xpos, ypos, boxSize = 50){
 #' @param add_border Add a 1x1 border to the pictures. Useful for stacking/appending.
 #' @param stack_vertical_first Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).
 #' @param return_raw Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).
+#' @param crop_images Whether to crop images to a box centered on the cell's XY position (TRUE, default), or the full image (FALSE).
 #' @return A list of two elements: the magick image and the ucids in the image.
 # @examples
 # magickCell(cdataFiltered, sample_tiff$file, position = sample_tiff$pos, resize_string = "1000x1000")
@@ -568,7 +569,8 @@ magickCell <- function(cdata, paths,
                                                 background = "black"),
                        add_border = TRUE,
                        stack_vertical_first = FALSE,
-                       return_raw = FALSE
+                       return_raw = FALSE,
+                       crop_images = TRUE
                        ){
   if(.debug) print("F8")
   if(!nrow(cdata) > 0){
@@ -608,12 +610,15 @@ magickCell <- function(cdata, paths,
   # Annotation parameters
   annotation_params_default = list(color = "white",
                                    background = "black",
-                                   size = cell_resize/7)
+                                   size = cell_resize/7,
+                                   arrow_color = NULL,
+                                   arrow_text = sprintf('\u2191'),
+                                   arrow_size = 50, 
+                                   arrow_angle = 45)
   if(!is.null(annotation_params)) 
     annotation_params <- updateList(annotation_params_default, 
                                     annotation_params)
   
-
   n.cells <- min(c(n.cells, nrow(cdata))) # Limit amount of pics to "n.cells"
   
   # To-do:
@@ -660,16 +665,37 @@ magickCell <- function(cdata, paths,
       stopifnot(length(picPath) == length(ch) & is.character(picPath)) # Checks
       
       imgs.raw <- 
+        # Read images
         magick::image_read(picPath) %>%
-          magick::image_crop(getCellGeom(xpos = cdataSample$xpos[i],
-                                         ypos = cdataSample$ypos[i],
-                                         boxSize))
+        # Add arrow if requested:
+        {
+          if(!is.null(annotation_params$arrow_color)){
+            magick::image_annotate(image = .,
+              text = annotation_params$arrow_text,
+              size = annotation_params$arrow_size, 
+              color = annotation_params$arrow_color,
+              degrees = annotation_params$arrow_angle,
+              boxcolor = "transparent", #location = "+190+275"
+              location = paste0("+", cdataSample$xpos[i] - annotation_params$arrow_size*1/2.5, 
+                                "+", cdataSample$ypos[i])
+          )} else {.}
+        } %>% 
+        # Crop image to box, or skip cropping if requested.
+        {
+          if (crop_images) {
+            magick::image_crop(.,
+                               getCellGeom(xpos = cdataSample$xpos[i],
+                                           ypos = cdataSample$ypos[i],
+                                           boxSize))
+          } else {.}
+        }
       
+      # If requested, stop this loop iteration early, returning a "raw" image.
       if(return_raw){
-        
-        return(imgs.raw)  # Return
-        
+        return(imgs.raw)
+      # Else continue processing
       } else {
+        # Apply modifications: normalization, equalization, and customization.
         imgs.proceesed <- imgs.raw %>% 
           {
             # Deal with the dot mystery
@@ -679,6 +705,8 @@ magickCell <- function(cdata, paths,
             equalize_images_rep <- rep(equalize_images, length.out = length(ch))
             normalize_images_rep <- rep(normalize_images, length.out = length(ch))
             customize_images_rep <- rep(cutomize_images, length.out = length(ch))
+            
+            # browser()
 
             # Equalize images jointly or separately
             if(length(equalize_images) == 1){
@@ -706,42 +734,49 @@ magickCell <- function(cdata, paths,
             # Return
             .imgs
           } %>%
-          # {
-          #   if(normalize_images[1]) image_normalize(.) else .
-          # } %>% 
-          # {
-          #   if(equalize_images[1]) image_equalize(.) else .
-          # } %>% 
-          # Add square black box
-          {magick::image_composite(
-            magick::image_blank(boxSize, boxSize, "black"),
-            ., gravity = "Center"
-          )} %>% 
+          # Add square black box background, forcing all to at least the same boxSize:
+          {
+            if(crop_images){
+              magick::image_composite(
+                image = magick::image_blank(boxSize, boxSize, "black"),
+                composite_image = ., 
+                gravity = "Center")
+            } else {.}
+          } %>% 
           # Resize
-          magick::image_scale(cell_resize_string) %>%
-          # Annotate
-          {if(is.null(annotation_params)) . else 
-            magick::image_annotate(.,
-                                   text = paste(paste0("Pos", as.character(position)),
-                                                paste0("t", t_frame),
-                                                ch),
-                                   color = annotation_params[["color"]],
-                                   boxcolor = annotation_params[["background"]],
-                                   size = annotation_params[["size"]],
-                                   font = "Comic sans",
-                                   gravity = "SouthEast")} %>%
-          {if(is.null(annotation_params)) . else 
-            magick::image_annotate(.,
-                                   text = as.character(ucid),
-                                   color = annotation_params[["color"]],
-                                   boxcolor = annotation_params[["background"]],
-                                   size = annotation_params[["size"]],
-                                   font = "Comic sans",
-                                   gravity = "NorthWest")} %>%
-          # Add black border
+          {
+            if(crop_images) {magick::image_scale(., cell_resize_string)} else {.}
+          } %>%
+          # Annotate pos, t.frame and channel
+          {
+            if(is.null(annotation_params)) {.} else { 
+              magick::image_annotate(.,
+                                     text = paste(paste0("Pos", as.character(position)),
+                                                  paste0("t", t_frame),
+                                                  ch),
+                                     color = annotation_params[["color"]],
+                                     boxcolor = annotation_params[["background"]],
+                                     size = annotation_params[["size"]],
+                                     font = "Comic sans",
+                                     gravity = "SouthEast")
+            }
+          } %>% 
+          # Annotate ucid
+          {
+            if(is.null(annotation_params)) {.} else {
+              magick::image_annotate(.,
+                                     text = as.character(ucid),
+                                     color = annotation_params[["color"]],
+                                     boxcolor = annotation_params[["background"]],
+                                     size = annotation_params[["size"]],
+                                     font = "Comic sans",
+                                     gravity = "NorthWest")
+            }
+          } %>%
+          # Add 1x1 black border
           {
             if(isTRUE(add_border)){magick::image_border(., "black","1x1")} else {.}
-          }  %>% 
+          } %>% 
           # Tile horizontally
           magick::image_append(stack = stack_vertical_first)
         
@@ -749,7 +784,8 @@ magickCell <- function(cdata, paths,
         imgs.proceesed
       }
     }
-
+  
+  # Return images without compositing
   if(return_raw) return(imga)
   
   stopifnot(length(imga) == nrow(cdataSample)) # Checks
@@ -773,11 +809,11 @@ magickCell <- function(cdata, paths,
     j = (1 + i*nCol):(i*nCol + nCol)
     j = j[j <= n.cells]
 
-    magick::image_apply(imga[j], function(i){
+    magick::image_apply(imga[j], function(img){
       magick::image_blank(width = max.width, height = max.height, color = "black") %>%
         # Now unnecesary, image_blank size is based on maximum sizes in 'imga'.
         # magick::image_scale(cell_resize_string) %>%
-        magick::image_composite(i) }) %>%
+        magick::image_composite(composite_image = img) }) %>%
       magick::image_append(stack = stack_vertical_first)
   }
   imgb <- magick::image_append(imgb, 

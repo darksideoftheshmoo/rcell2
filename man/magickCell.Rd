@@ -24,7 +24,8 @@ magickCell(
   annotation_params = list(color = "white", background = "black"),
   add_border = TRUE,
   stack_vertical_first = FALSE,
-  return_raw = FALSE
+  return_raw = FALSE,
+  crop_images = TRUE
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ magickCell(
 \item{stack_vertical_first}{Set to TRUE to stack images vertically first (useful when \code{return_single_imgs = T}).}
 
 \item{return_raw}{Returns loaded images prematurely (i.e. without any processing other than magick::image_read and magick::image_crop).}
+
+\item{crop_images}{Whether to crop images to a box centered on the cell's XY position (TRUE, default), or the full image (FALSE).}
 }
 \value{
 A list of two elements: the magick image and the ucids in the image.
