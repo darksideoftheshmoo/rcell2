@@ -73,16 +73,9 @@ read_tiff_tags <- function(path,frames=1){
 #' 
 #' The description is in the tiff file's metadata, tipically written by Metamorph.
 #' 
-#' @param tiff.path A path to the tiff file, passed to ijtiff::read_tags().
-#' @param frames The frame number to process, passed to ijtiff::read_tags().
-#' 
-#' @return A named list, with "x" and "y" coordinates.
-#' 
-#' @importFrom xml2 read_xml as_list
-#' @importFrom ijtiff read_tags
-#' 
+#' @inheritParams get_tiff_description
+#' @return A named vector, with "x" and "y" coordinates.
 #' @export
-#' 
 #' @examples 
 #' 
 #' # Get the "images" data.frame from CellID
@@ -104,10 +97,8 @@ read_tiff_tags <- function(path,frames=1){
 #' tags.stage
 #' 
 get_stage_xy_from_file <- function(tiff.path, frames=1){
-  tags.xml <- tiff.path %>% 
-    ijtiff::read_tags(frames = frames) %>% 
-    .[["frame1"]] %>% .[["description"]] %>% 
-    xml2::read_xml() %>% xml2::as_list()
+  
+  tags.xml <- get_tiff_description(tiff.path, frames)
   
   tag.attrs <- tags.xml$MetaData$PlaneInfo %>% lapply(attributes) %>% 
     {setNames(., sapply(., "[[", "id"))}
@@ -116,4 +107,52 @@ get_stage_xy_from_file <- function(tiff.path, frames=1){
     x = tag.attrs$`stage-position-x`$value %>% as.numeric(),
     y = tag.attrs$`stage-position-y`$value %>% as.numeric()
   )
+}
+
+#' Get tiff acquisition times from tiff file's description tag
+#' 
+#' The description is in the tiff file's metadata, tipically written by Metamorph.
+#' 
+#' @inheritParams get_tiff_description 
+#' @inheritParams base::as.POSIXct
+#' @param ... Passed to \code{as.POSIXct}.
+#' @export
+#' @return The tiff time (as.POSIXct).
+#' 
+get_tiff_time_from_file <- function(tiff.paths, frames=1,
+                                    format = "%Y%m%d %H:%M:%OS",
+                                    ...){
+  tiff.times <- 
+    sapply(tiff.paths, FUN = function(tiff.path){
+      tags.xml <- get_tiff_description(tiff.path, frames)
+      
+      tag.attrs <- tags.xml$MetaData$PlaneInfo %>% lapply(attributes) %>% 
+        {setNames(., sapply(., "[[", "id"))}
+      
+      time.str <- tag.attrs$`acquisition-time-local`$value
+      
+      return(time.str)
+    })
+  
+  tiff.times.df <- data.frame(time.str = tiff.times) %>% 
+    mutate(time.posixct = as.POSIXct(x = time.str,
+                                     format=format,
+                                     ...))
+  
+  return(tiff.times.df)
+}
+
+#' Get Metamorph image XML description
+#' 
+#' @param tiff.path A path to the tiff file, passed to ijtiff::read_tags().
+#' @param frames The frame number to process, passed to ijtiff::read_tags().
+#' 
+#' @importFrom xml2 read_xml as_list
+#' @importFrom ijtiff read_tags
+#' 
+get_tiff_description <- function(tiff.path, frames=1){
+  tiff.path %>% 
+    ijtiff::read_tags(frames = frames) %>% 
+    .[["frame1"]] %>% .[["description"]] %>% 
+    xml2::read_xml() %>% xml2::as_list()
 }

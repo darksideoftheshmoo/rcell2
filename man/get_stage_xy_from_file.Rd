@@ -12,7 +12,7 @@ get_stage_xy_from_file(tiff.path, frames = 1)
 \item{frames}{The frame number to process, passed to ijtiff::read_tags().}
 }
 \value{
-A named list, with "x" and "y" coordinates.
+A named vector, with "x" and "y" coordinates.
 }
 \description{
 The description is in the tiff file's metadata, tipically written by Metamorph.

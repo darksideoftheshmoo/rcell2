@@ -857,6 +857,28 @@ cellArgs2.summary <- function(arguments){
   arguments %>% group_by(pos) %>% summarise(n_count = n(), .groups = "drop") %>% print()
 }
 
+#' Make "images" dataframe from "arguments" dataframe
+#' 
+#' Essentially a pivot_longer of the arguments.
+#' 
+#' @return A data.frame similar to \code{cell.load.alt()$images}.
+#' @export
+arguments_to_images <- function(arguments){
+  images <- 
+    bind_rows(
+      arguments %>% select(pos, t.frame, path, bf) %>% 
+        unique() %>% mutate(ch = "BF") %>% rename(image = bf),
+      arguments %>% select(pos, t.frame, path, image, ch)
+    ) %>% 
+    mutate(file = paste0(path, "/", image),
+           is.out = F) %>% 
+    select(pos, t.frame, ch, file, path, is.out, image) %>% 
+    rename(channel = ch) #%>% 
+    # mutate(t.frame = t.frame - min(t.frame))
+  
+  images
+}
+
 #' Pipe
 #'
 #' Put description here
