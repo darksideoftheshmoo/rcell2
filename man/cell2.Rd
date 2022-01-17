@@ -37,7 +37,7 @@ cell2(
 
 \item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').}
 
-\item{ignore.stdout}{Set to FALSE to see CellID output from a system call.}
+\item{ignore.stdout}{Set to FALSE to see CellID output from a system call. DEPRECATED: since moving from system() to system2().}
 
 \item{intern}{Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.}
 }

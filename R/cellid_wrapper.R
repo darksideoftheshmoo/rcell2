@@ -71,7 +71,7 @@ cellid <- function(args, debug_flag=0){
 #' @param fill_interior_pixels Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').
 #' @param label_cells_in_bf Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l', default FALSE).
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
-#' @param ignore.stdout Set to FALSE to see CellID output from a system call.
+#' @param ignore.stdout Set to FALSE to see CellID output from a system call. DEPRECATED: since moving from system() to system2().
 #' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.
 #' @return A dataframe with one column indicating the issued commands. Use rcell2::load_cell_data to get the results from the CellID output, typically located at the images path.
 # @examples
@@ -149,43 +149,72 @@ cell2 <- function(arguments,
     # if(is.null(cell.command)) cell.command <- system.file("cell", package = "rcell2", mustWork = T)
     if(is.null(cell.command)) stop("\nError: cell.command must point to an existing CellID binary on your system.")
     
-    command <- paste0(normalizePath(cell.command),
-                      " -b ", bf_rcell2,
-                      " -f ", fl_rcell2,
-                      " -o ", paste0(normalizePath(arguments_pos$output[1]), "/out"),
-                      " -p ", arguments_pos$parameters[1],
-                      {if(label_cells_in_bf) " -l" else ""},
-                      {if(output_coords_to_tsv) " -t" else ""},
-                      {if(encode_cellID_in_pixels) " -m" else ""},
-                      {if(fill_interior_pixels) {if(encode_cellID_in_pixels) " -i" else " -m -i"} else ""}
+    command.args <- paste0(
+      " -b ", bf_rcell2,
+      " -f ", fl_rcell2,
+      " -o ", paste0(normalizePath(arguments_pos$output[1]), "/out"),
+      " -p ", arguments_pos$parameters[1],
+      {if(label_cells_in_bf) " -l" else ""},
+      {if(output_coords_to_tsv) " -t" else ""},
+      {if(encode_cellID_in_pixels) " -m" else ""},
+      {if(fill_interior_pixels) {if(encode_cellID_in_pixels) " -i" else " -m -i"} else ""}
     )
     
-    # Write command to log file
-    cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
-                           fileext = ".txt",
-                           pattern = "cellid_log.")
-    write(c("\n Cell-ID command:\n\n", command, "\n\n"),
-          cellid.log)
-
-    if(!dry & ignore.stdout) warning("Running CellID through a system call ignoring standard output messages (ignore.stdout = T). This is discouraged!")
-    if(!dry) {
-      command.output <- system(command = command,
-                               wait = T,
-                               ignore.stdout = ignore.stdout & !intern,
-                               intern = intern)
+    command <- paste0(normalizePath(cell.command),
+                      command.args
+    )
+    
+    # Default is to print messages to console
+    cellid.log <- ""
+    cellid.err <- ""
+    # Otherwise, write command and outputs to log files
+    if(intern){
+      cellid.log <- tempfile(tmpdir = arguments_pos$output[1],
+                             fileext = ".txt",
+                             pattern = "cellid_log.")
       
-      if(intern) {
-        write(command.output,
-              cellid.log, 
-              append = T)
-      }
+      cellid.err <- tempfile(tmpdir = arguments_pos$output[1],
+                             fileext = ".txt",
+                             pattern = "cellid_error.")
+      
+      write(x = c("\n Cell-ID command:\n\n", command, "\n\n"),
+            file = cellid.log)
+    } 
+    
+    
+    if(!dry & ignore.stdout & !intern){
+      warning("Running CellID through a system call ignoring output messages (ignore.stdout == T & intern == F). This is discouraged!")
+    }
+    
+    if(!dry) {
+      # command.output <- system(command = command,
+      #                          wait = T,
+      #                          ignore.stdout = ignore.stdout & !intern,
+      #                          intern = intern)
+      # if(intern) {
+      #   write(command.output,
+      #         cellid.log, 
+      #         append = T)
+      # }
+      
+      command.output <- system2(command = normalizePath(cell.command),
+                                args = command.args,
+                                stdout = cellid.log,
+                                stderr = cellid.err,
+                                wait = T)
+      
     }
     
     print("---- Done with this position.")
     print(command)
     
     return(
-      list(command = command, cellid.log = cellid.log)
+      list(
+        command.output = command.output,
+        command = command,
+        cellid.log = cellid.log,
+        cellid.err = cellid.err
+      )
     )
   }
   
@@ -193,7 +222,7 @@ cell2 <- function(arguments,
     parallel::stopCluster(cl)
   }
   
-  cat("\nDone, please examine logs above if anything seems strange :)")
+  cat("\nDone, please examine logs if anything seems strange :)")
   
   return(dplyr::bind_rows(sent_commands))
 }
