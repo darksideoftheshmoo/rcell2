@@ -652,6 +652,20 @@ read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_ty
     d <- dplyr::select(d, -con.vol_1)
   }
   
+  con.vol.dupes <- startsWith(names(d), "con.vol")
+  if(sum(con.vol.dupes) > 1){
+    first <- names(d)[which(con.vol.dupes)][1]
+    dupes <- names(d)[which(con.vol.dupes)][-1]
+    dupes <- paste(dupes, collapse = ", ")
+    
+    cat(paste0("\nRemoving '", dupes, "' column(s) from position: ", 
+               .pos, 
+               ". Use CellID version > 1.4.6 to stop seeing this message.\n"))
+    # browser()
+    colnames(d)[which(con.vol.dupes)[1]] <- "con.vol"
+    d[which(con.vol.dupes)[-1]] <- NULL
+  }
+  
   return(d)
 }
 
