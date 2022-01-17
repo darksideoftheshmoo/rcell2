@@ -115,17 +115,22 @@ cell2 <- function(arguments,
   
   # Run CellID
   if(is.null(no_cores)) no_cores <- parallel::detectCores() - 1  # Problema rarísimo: se repiten rows cada "no_cores" posiciones
-  cl <- parallel::makeCluster(
-    min(n_positions,
-        no_cores), 
-    outfile = tempfile(pattern = "dopar", tmpdir = "/tmp", fileext = ".log"),
-    setup_strategy = "sequential"  #https://github.com/rstudio/rstudio/issues/6692
-    # outfile = NULL
-  )
-  parallel::clusterExport(cl, "arguments", envir = environment())
-  doParallel::registerDoParallel(cl)
-  
-  sent_commands <- foreach::foreach(pos=positions) %dopar% {
+  if(no_cores > 1){
+    cl <- parallel::makeCluster(
+      min(n_positions,
+          no_cores), 
+      outfile = tempfile(pattern = "dopar", tmpdir = "/tmp", fileext = ".log"),
+      setup_strategy = "sequential"  #https://github.com/rstudio/rstudio/issues/6692
+      # outfile = NULL
+    )
+    parallel::clusterExport(cl, "arguments", envir = environment())
+    doParallel::registerDoParallel(cl)
+    
+    `%do_op%` <- `%dopar%`
+  } else {
+    `%do_op%` <- `%do%`
+  }
+  sent_commands <- foreach::foreach(pos=positions) %do_op% {
   # sent_commands <- list()
   # for(pos in positions){
     arguments_pos <- arguments[arguments$pos == pos,]
@@ -184,7 +189,9 @@ cell2 <- function(arguments,
     )
   }
   
-  parallel::stopCluster(cl)
+  if(no_cores > 1){
+    parallel::stopCluster(cl)
+  }
   
   cat("\nDone, please examine logs above if anything seems strange :)")
   
