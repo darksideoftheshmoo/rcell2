@@ -73,7 +73,7 @@ cellid <- function(args, debug_flag=0){
 #' @param output_coords_to_tsv Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').
 #' @param ignore.stdout Set to FALSE to see CellID output from a system call. DEPRECATED: since moving from system() to system2().
 #' @param intern Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.
-#' @return A dataframe with one column indicating the issued commands. Use rcell2::load_cell_data to get the results from the CellID output, typically located at the images path.
+#' @return A dataframe with one column indicating the issued commands and exit codes (in the command.output column). If the execution was sucessful, now you may run rcell2::load_cell_data or rcell2::cell.load.alt to get the results from the CellID output, typically located at the images path.
 # @examples
 # cell(cell.args, path = path)
 #' @import purrr dplyr stringr tidyr doParallel readr parallel
@@ -134,7 +134,7 @@ cell2 <- function(arguments,
   # sent_commands <- list()
   # for(pos in positions){
     arguments_pos <- arguments[arguments$pos == pos,]
-    print(arguments_pos)
+    # print(arguments_pos)
     
     bf_rcell2 <- tempfile(tmpdir = arguments_pos$output[1],
                           fileext = ".txt",
@@ -205,8 +205,8 @@ cell2 <- function(arguments,
       
     }
     
-    print("---- Done with this position.")
-    print(command)
+    cat(paste0("---- cell2: Done with position ", pos, ". "))
+    # print(command)
     
     return(
       list(
@@ -222,9 +222,15 @@ cell2 <- function(arguments,
     parallel::stopCluster(cl)
   }
   
-  cat("\nDone, please examine logs if anything seems strange :)")
+  output <- dplyr::bind_rows(sent_commands)
   
-  return(dplyr::bind_rows(sent_commands))
+  if(all(output$command.output == 0)){
+    cat("\nDone, please examine logs if anything seems strange :)")
+  } else {
+    cat("\nDone, please examine logs immediately! some exit codes signaled errors :(")
+  }
+  
+  return(output)
 }
 
 #' Cluster test

@@ -42,7 +42,7 @@ cell2(
 \item{intern}{Set to TRUE to save CellID output from a system call to a file in the "out" directories (one per position) and the commands to a file at the first "path" in the arguments data.frame.}
 }
 \value{
-A dataframe with one column indicating the issued commands. Use rcell2::load_cell_data to get the results from the CellID output, typically located at the images path.
+A dataframe with one column indicating the issued commands and exit codes (in the command.output column). If the execution was sucessful, now you may run rcell2::load_cell_data or rcell2::cell.load.alt to get the results from the CellID output, typically located at the images path.
 }
 \description{
 Function to run CellID
