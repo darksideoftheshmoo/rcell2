@@ -177,8 +177,14 @@ cell2 <- function(arguments,
                              fileext = ".txt",
                              pattern = "cellid_error.")
       
-      write(x = c("\n Cell-ID command:\n\n", command, "\n\n"),
-            file = cellid.log)
+      cellid.cmd <- tempfile(tmpdir = arguments_pos$output[1],
+                             fileext = ".txt",
+                             pattern = "cellid_cmd.")
+      
+      write(x = c("# Cell-ID command:\n\n", command, "\n\n"),
+            file = cellid.cmd)
+      
+      print(cellid.cmd)
     } 
     
     
