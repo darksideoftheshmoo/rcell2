@@ -1,0 +1,287 @@
+---
+title: "Task name: Short title"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 4
+    number_sections: false
+    smooth_scroll: false
+    code_folding: hide
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 4
+    number_sections: true
+editor_options:
+  chunk_output_type: inline
+author: NM
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+urlcolor: blue
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/renders") })
+---
+
+```{r setup, message=F}
+knitr::opts_chunk$set(message = F)
+knitr::opts_knit$set(root.dir = here::here())
+
+library(tidyverse)
+```
+
+## About
+
+Se puede usar el multi-point tool de ImageJ para marcar células (xej, en los `.out`
+de CellID) con diferentes "Counter"s para diferentes eventos. La marca conserva
+información del tipo de "Counter", la posición en XY, y el "Slice" del stack.
+
+Esos multipoints se pueden salvar en una tabla generada con "Ctrl+m" (measure),
+y esa tabla se puede importar en R, y mergear con `cdata`.
+
+Esto es una alternativa al tagueo, y también está `tagCell` hecha con Shiny.
+
+## Load data
+
+### Make descriptions for the ImageJ "counters" (tags)
+
+Cada "Counter" deberia tener un "tag" asociado,
+que corresponde al evento que se marcó en la foto.
+
+```{r}
+counter.desc <- list(
+  "0" = "RtCC, 0 implies t.bud > observation window",
+  "1" = "budding early / cycling cell",
+  "2" = "dead cell or dying",
+  "3" = "not sure"
+)
+
+counter.desc.df <- 
+  data.frame(Counter = as.integer(names(counter.desc)),
+             tag_description = unname(unlist(counter.desc)))
+
+counter.desc.df
+```
+
+### Cargar tags
+
+```{r}
+txt.filters <- c(
+  "data/multipoint_tags/Results4.csv",
+  "data/multipoint_tags/Results11.csv",
+  "data/multipoint_tags/Results12.csv"
+)
+
+txt.filters.pos <- sub(pattern = ".*Results(\\d+).csv", 
+                       replacement = "\\1",
+                       x = txt.filters)
+
+mp.tags <-
+  split(txt.filters, txt.filters.pos) %>% 
+  lapply(read_csv) %>% bind_rows(.id = "pos") %>% 
+  mutate(pos = as.integer(pos),
+         mpid = 1:n())
+```
+
+Masajear para que queden bien, considrando:
+
+* Los "Slice" empiezan en 1, pero los t.frames de CellID empiezan en 0.
+* Qué frame "de referencia" se usó para asignar la posición XY los tags 
+(en caso que CellID no se haya ejecutado en todo el time course).
+
+```{r}
+mp.filter <- mp.tags %>% 
+  select(X, Y, pos, Counter, Slice, mpid)
+```
+
+### Force same bounding box
+
+Make a bounding box.
+
+En este caso la hice a partir de los puntos en las fotos 11 y 12,
+porque en esas solo usé el centro de la foto para taguear.
+
+Sin embargo, puede ser cualquier otra cosa.
+
+```{r}
+mp.filter.bounding.box <- 
+  mp.filter %>% filter(Counter %in% 0:1, pos %in% 11:12) %>% 
+  summarise(
+    x.max = max(X),
+    x.min = min(X),
+    y.max = max(Y),
+    y.min = min(Y)
+  )
+```
+
+Ahora filtro por esa bounding box:
+
+```{r}
+in.bb <- function(X){
+  # Check if xpos-ypos pair from cell.data is in bounding box
+  # Meant to be used in apply()
+  x <- X["X"]
+  y <- X["Y"]
+  
+  with(mp.filter.bounding.box, {
+    (x <= x.max & x >= x.min) & (y <= y.max & y >= y.min )
+  })
+}
+
+mp.filter$point.in.bb <- apply(mp.filter, 1, in.bb)
+
+mp.filter.bb <- mp.filter %>% filter(point.in.bb)
+```
+
+## Mapping to cdata
+
+Calculate distance to closest multipoint and save it's "id":
+
+* Consider only multipoints in bounding box.
+* Use counters for rtcc (0) and cycling (1).
+
+```{r}
+cdata.mp[, c("closest.mp", "closest.mp.id")] <-
+  apply(cdata.mp, 1, function(x){
+    mp.pos <- filter(mp.filter.bb, 
+                     pos == x["pos"],
+                     Counter %in% 0:1,
+                     point.in.bb)
+    
+    dists <- sqrt(( (x["xpos"]-mp.pos$X)^2) + ((x["ypos"]-mp.pos$Y)^2) )
+    
+    if(length(dists) == 0){
+      return(c(closest.mp.drop=NA,
+               closest.mp.drop.id=NA))
+    }
+    
+    min.id <- mp.pos$mpid[which.min(dists)]
+    
+    c(min( dists ), min.id)
+  }) %>% t()
+```
+
+Set a threshold distance, and save the filter:
+
+```{r}
+cdata.mp$has.close.mp <- cdata.mp$closest.mp < 7
+```
+
+Graficar umbral:
+
+```{r}
+p <- ggplot() + 
+  geom_point(aes(xpos, ypos, color="all"),
+             data=cdata.mp) +
+  
+  geom_point(aes(X, Y, color="ImageJ"), 
+             # data = mp.filter %>% filter(Counter %in% 0:1 & point.in.bb), 
+             data = mp.filter.bb %>% filter(Counter %in% 0:1), 
+             size =3) +
+  
+  geom_point(aes(xpos, ypos, color="filtradas"),
+             data=cdata.mp %>% filter(has.close.mp)) +
+  
+  facet_grid(~pos) + coord_equal() +
+  ggtitle("Examinar filtrado", 
+          "En negro los puntos de imagej, en gris todas las celulas, en red las celulas filtradas.") + 
+  
+  scale_color_manual(values=c(ImageJ="black", filtradas="red", all="grey")) +
+  scale_y_reverse()
+
+plotly::ggplotly(p)
+```
+
+Add one of the Counter columns to cdata:
+
+```{r}
+cdata.good[, c(
+  "closest.counter0",
+  "closest.counter0.id",
+  "closest.counter0.slice")] <- cdata.good %>% 
+  
+  apply(MARGIN = 1, FUN = function(x){
+    
+    # Get corresponding counters
+    mp.pos <- filter(mp.drops, 
+                     pos == x["pos"],
+                     Counter == 0,
+                     point.in.bb)
+    
+    # Calculate distances
+    dists <- sqrt(( (x["xpos"]-mp.pos$X)^2) + ((x["ypos"]-mp.pos$Y)^2) )
+    
+    # Find the minumum distance and the multipoint's ID
+    min.id <- mp.pos$mpid[which.min(dists)]
+    min.slice <- mp.pos$Slice[which.min(dists)]
+    min.dist <- dists[which.min(dists)]
+    # Note: using min() was problematic with apply() when length(dists) == 0.
+    
+    if(length(min.dist) == 0){
+      return(c(closest.mp.drop=NA,
+               closest.mp.drop.id=NA))
+    } else {
+      return(c(
+        closest.counter0 = min.dist,
+        closest.counter0.id = min.id,
+        closest.counter0.slice = min.slice
+      ))
+    }
+  }) %>% t()
+```
+
+Set a threshold distance, and save it to a new filter column:
+
+```{r}
+cdata.good <- cdata.good %>% 
+  mutate(has.counter0 = closest.counter0 < 7)
+```
+
+### Revisar si hay IDs duplicados
+
+Generar columna indicadora de duplicados:
+
+```{r}
+cdata.good$dupes <- cdata.good %>% 
+  # filter(has.t.drop) %>% 
+  with(closest.mp.drop.id) %>% 
+  sapply(function(id) sum(cdata.good$closest.mp.drop.id == id, na.rm = T) == 1)
+```
+
+Revisar graficamente:
+
+```{r}
+cdata.good %>% 
+  ggplot() + 
+  
+    geom_point(aes(X, Y), color = "gray",
+             # data = mp.filter %>% filter(Counter %in% 0:1 & point.in.bb), 
+             data = mp.drops %>% filter(Counter == 0 & point.in.bb), 
+             size =3) +
+  
+  geom_point(aes(xpos, ypos, color = has.t.drop)) + 
+  geom_line(aes(xpos, ypos, group=closest.mp.drop.id), color = "red",
+            data = cdata.good %>% filter(isTRUE(has.t.drop))) + 
+  
+  ggtitle("Re-chequeo gráfico de t.drop asignado unicamente",
+          "Los puntos de cdata con el mismo multipoint más cercano se conectan con lineas, \nsolo si ambos tienen has.t.drop == TRUE (no deberia pasar)") +
+  
+  facet_wrap(~pos)
+```
+
+Chequeo de lo mismo pero en tablita:
+
+Por cada `closest.mp.drop.id`, deberia haber un solo row (después de filtrar por `has.t.drop`).
+
+```{r}
+chequeo.df <- cdata.good %>% 
+  group_by(closest.mp.drop.id) %>% 
+  filter(has.t.drop) %>% 
+  summarise(row.count = n()) %>% 
+  arrange(-row.count)
+
+all(chequeo.df$row.count == 1)
+
+chequeo.df
+```

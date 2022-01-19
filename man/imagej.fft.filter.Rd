@@ -18,5 +18,8 @@ imagej.fft.filter(
 \item{script.path}{Path to the ImageJ macro. Defaults to built-in macro.}
 }
 \description{
-Replaces files matching \code{BF.*.tif} in the target directory.
+Passes an ImageJ FFT filter on files matching \code{BF.*.tif} in the target directory.
+}
+\details{
+The modified images are saved to a new subdirectory with default name: "filtered/".
 }

@@ -684,6 +684,12 @@ There are various mini-projects for analizyng boundary/mask/cellid data. See:
 
 * `testings/fft_filter`
 
+### ImageJ multipoint filter
+
+Otra alternativa al filtrado de células.
+
+* `testings/imagej_multipoints/imagej_multipoints.Rmd`
+
 ### Cell shapes / Boundary angles
 
 * `testings/curvature_tests`
