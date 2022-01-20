@@ -6,14 +6,12 @@
 \usage{
 imagej.fft.filter(
   pic.path,
-  imagej.path = "~/Software/Fiji.app/ImageJ-linux64",
-  script.path = system.file("inst/FFT_filter_on_BFs_R.txt", package = "rcell2")
+  script.path = system.file("inst/imagej_macros/FFT_filter_on_BFs_R.txt", package =
+    "rcell2")
 )
 }
 \arguments{
 \item{pic.path}{Path to the directory containing the image files.}
-
-\item{imagej.path}{Path to the ImageJ binary (a path to "ImageJ-linux64" or equivalent).}
 
 \item{script.path}{Path to the ImageJ macro. Defaults to built-in macro.}
 }
