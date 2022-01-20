@@ -49,7 +49,7 @@ magickCell(
 
 \item{image_customize}{A custom magick-like function to "customize" the channels specified in \code{cutomize_images}. Defaults to NULL (disabled).}
 
-\item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
+\item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default, use a vector to select more than one channel simultaneously (images will be stacked).}
 
 \item{sortVar}{Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.}
 

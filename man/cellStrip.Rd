@@ -39,7 +39,7 @@ cellStrip(
     \item{\code{n.cells}}{maximum number of cells to display.}
     \item{\code{cutomize_images}}{Use a custom magick-like function to "customize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).}
     \item{\code{image_customize}}{A custom magick-like function to "customize" the channels specified in \code{cutomize_images}. Defaults to NULL (disabled).}
-    \item{\code{ch}}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
+    \item{\code{ch}}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default, use a vector to select more than one channel simultaneously (images will be stacked).}
     \item{\code{sortVar}}{Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.}
     \item{\code{seed}}{Seed value for sampling of cell images. NULL by default, to disable sampling.}
     \item{\code{.debug}}{Print more messages if TRUE.}

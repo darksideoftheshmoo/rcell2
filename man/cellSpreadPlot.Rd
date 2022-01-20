@@ -24,7 +24,7 @@ cellSpreadPlot(
 
 \item{paths}{A paths dataframe with file path, t.frame, position and channel information of each picture.}
 
-\item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.}
+\item{ch}{Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default, use a vector to select more than one channel simultaneously (images will be stacked).}
 
 \item{boxSize}{Size of the box containing the individual cell images. 50 by default.}
 

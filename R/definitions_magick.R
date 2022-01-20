@@ -174,12 +174,15 @@ cellStrip <- function(cdata,
 #' 
 #' `images` are split with `cut`, useful wen strips are too long.
 #' 
-#' @inheritParams cellStrip
-#' @inheritDotParams  cellStrip
-#' @param n_ucids will select the first `n_ucids`
+#' @inheritParams magickCell
+#' @inheritDotParams magickCell
+#' @param n_ucids Will select the first `n_ucids`, by default (NULL) it selects all.
+#' @param cut_breaks Will split each strip into `cut_breaks` pieces.
+#' @param split_col Column from cdata used to separate different sets of cells.
+#' @param sortVar Column from cdata used to sort the pictures in the strips.
 #' @param cut_strips Use `cut` to split the image series (by index; preserves sortVar order).
 #' @param ... Arguments passed on to magickCell.
-#' 
+#' @importFrom magick image_append
 #' @example 
 #' # Not run
 #' if(F){
@@ -205,7 +208,7 @@ cellStrips <- function(cdata,
                        n_ucids = NULL,
                        cut_breaks = 1,
                        split_col = "ucid",
-                       ch = c("BF.out", "YFP.out"),
+                       ch = c("BF.out", "yfp.out"),
                        sortVar = "t.frame",
                        ...){
 
@@ -533,7 +536,7 @@ getCellGeom <- function(xpos, ypos, boxSize = 50){
 #' @param normalize_images Use magick's function to "normalize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
 #' @param cutomize_images Use a custom magick-like function to "customize" the image when TRUE (FALSE by default). Can be a logical vector, each value applied separately to each channel (recycled to the length of \code{ch}).
 #' @param image_customize A custom magick-like function to "customize" the channels specified in \code{cutomize_images}. Defaults to NULL (disabled).
-#' @param ch Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default.
+#' @param ch Name of the CellID channel (BF, BF.out, RFP, etc.). "BF.out" by default, use a vector to select more than one channel simultaneously (images will be stacked).
 #' @param sortVar Variable name used to sort the rows after sampling if a \code{seed} was specified. NULL by default, to preserve the original or random sampling order.
 #' @param seed Seed value for sampling of cell images. NULL by default, to disable sampling.
 #' @param .debug Print more messages if TRUE.
