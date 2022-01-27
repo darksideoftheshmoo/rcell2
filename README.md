@@ -110,6 +110,8 @@ See: `?rcell2::kmeans_clustering`
 * ~~Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage).~~ Implemented in cellSpread, cellSpreadPlot, and "Pics" type plot in shinyCell.
 * ~~Generic shiny function for filtering points in a custom ggplot~~. Implemented in plotApp.
 * 1D / histogram filtering support in the filtering app.
+* Per-facet filtering in shinyCell.
+* cellStrips support in shinyCell image viewer.
 
 !['Automating' comes from the roots 'auto-' meaning 'self-', and 'mating', meaning 'screwing'.](https://imgs.xkcd.com/comics/automation.png)
 
