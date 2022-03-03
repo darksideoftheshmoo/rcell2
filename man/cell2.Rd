@@ -33,7 +33,7 @@ cell2(
 
 \item{fill_interior_pixels}{Set to TRUE to fill each cell interior area in the output image file with intensity-labeled pixels (CellID option '-i').}
 
-\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF output image (CellID option '-l', default FALSE).}
+\item{label_cells_in_bf}{Set to TRUE to enable labeling of cells with their CellID in the BF output image using number characters (CellID option '-l', default FALSE).}
 
 \item{output_coords_to_tsv}{Set to TRUE to write cell interior and boundary pixels data to a .tsv file in the output directory (CellID option '-m').}
 
