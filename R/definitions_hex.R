@@ -7,7 +7,8 @@
 #' @param vary the y-axis "pdata" variable
 #' @return Lots of stuff.
 #' @import hexbin
-hexPlotDf<- function(cdata, facetVars = c("pos", "treatment"), varx = "a.tot", vary = "el.p"){
+#' @keywords internal
+hexPlotDf <- function(cdata, facetVars = c("pos", "treatment"), varx = "a.tot", vary = "el.p"){
   print("F9")
   # Reemplacé las funciones anteriores por esta, que procesa un cdata y lo pone lindo para geom_hex
   # Lindo según: https://stackoverflow.com/questions/14495111/setting-hex-bins-in-ggplot2-to-same-size
@@ -60,6 +61,8 @@ hexPlotDf<- function(cdata, facetVars = c("pos", "treatment"), varx = "a.tot", v
 #' 
 #' La función puede fallar de forma medio oscura cuando el input tiene problemas
 #' (i.e. si está vacío, o si es todo NAs, etc.)
+#' 
+#' @keywords internal
 #' 
 myhexbin <- function(bindata, varx , vary, xbins = 25){
   print("F10.1")

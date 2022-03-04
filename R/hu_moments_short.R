@@ -433,6 +433,8 @@ append_hues <- function(cell_data, image_bits, cell_id_offset = -1, return_point
 }
 
 #' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
+#' 
+#' @keywords internal
 check_tiff_mask <- function(cell_data){
   
   options(dplyr.summarise.inform = FALSE)
@@ -478,6 +480,8 @@ check_tiff_mask <- function(cell_data){
 }
 
 #' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
+#' 
+#' @keywords internal
 check_tiff_mask2 <- function(cell_data){
   
   options(dplyr.summarise.inform = FALSE)

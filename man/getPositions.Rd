@@ -9,3 +9,4 @@ getPositions(input, numPos)
 \description{
 Get a list of numbers from the "position" input string
 }
+\keyword{internal}

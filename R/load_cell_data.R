@@ -717,7 +717,7 @@ load_cell_data <-
 #' @param pos integer, corresponds to position
 #'
 #' @return a data.frame containing the bf.fl.mapping of a single position
-#'
+#' @keywords internal
 #' @examples
 .mk_flag_table <- function(bf.fl.mapping, pos = NULL){
 
@@ -793,7 +793,7 @@ load_cell_data <-
 #' @param vars.all, NULL
 #'
 #' @return character vector containing variable names
-#'
+#' @keywords internal
 #' @examples
 .parse_load_vars <- function(load.vars, vars.all = NULL){
 
@@ -1085,7 +1085,7 @@ write.delim <- function(x,
 #'
 #' @return string of shortened sequence
 #' @export
-#'
+#' @keywords internal
 #' @examples
 .format.sequence <- function(pos) {
     if(length(pos) < 2) return(as.character(pos))

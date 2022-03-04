@@ -9,3 +9,4 @@ shinyAppUI()
 \description{
 Shiny app UI object for shinyCell
 }
+\keyword{internal}

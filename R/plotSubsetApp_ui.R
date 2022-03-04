@@ -1,6 +1,7 @@
 #' Shiny app UI object for shinyCell
 #'
 #' @import shiny 
+#' @keywords internal
 # @import DT
 #'
 plotAppUI <- function(){

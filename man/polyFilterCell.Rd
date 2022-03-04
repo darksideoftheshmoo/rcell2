@@ -9,3 +9,4 @@ polyFilterCell(cdataDF, filterDF, polygonDF, polygonName = 1)
 \description{
 Build filterDF from polygonDF and cdataDF
 }
+\keyword{internal}

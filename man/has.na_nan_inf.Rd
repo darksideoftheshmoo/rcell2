@@ -17,3 +17,4 @@ Logical value: TRUE (chekc passed) or FALSE (check failed; nasty values found).
 \description{
 Check dataframes for NA, NaN or Inf values.
 }
+\keyword{internal}

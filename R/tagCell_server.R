@@ -5,6 +5,7 @@
 #' @param session provided by shiny
 #' @import shiny shinyjs formattable dplyr tidyr hexbin magick keys
 #' @importFrom graphics polygon
+#' @keywords internal
 tagCellServer <- function(input, output, session) {
   if(runtime_messages) print("tagCellServer 1: start")
   

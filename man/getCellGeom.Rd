@@ -22,3 +22,4 @@ https://ropensci.org/blog/2017/08/15/magick-10/
 \details{
 https://livefreeordichotomize.com/2017/07/18/the-making-of-we-r-ladies/
 }
+\keyword{internal}

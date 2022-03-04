@@ -3,7 +3,7 @@
 #' @param df The data.frame to check.
 #' @param print.which Print which columns have bad values to the console.
 #' @return Logical value: TRUE (chekc passed) or FALSE (check failed; nasty values found).
-#' 
+#' @keywords internal
 has.na_nan_inf <- function (df, print.which = F) {
   r <- lapply(df, function(x) is.nan(x) | is.infinite(x) | 
                 is.na(x))
@@ -94,7 +94,7 @@ plot_filters <- function(saved_data,
 
 #' Bind shinyCell polygon filters by variable pairs
 #' 
-#' Useful to check out what areas the filters are covering.
+#' Unites polygons with matching dimensions. Useful to check out what areas the filters are covering (see \code{plot_bound_filters}).
 #'
 #' @param saved_data The output of shinyCell.
 # @param .type a string, either "Subtractive" or "Additive", the two types of filters.
@@ -102,7 +102,7 @@ plot_filters <- function(saved_data,
 #' @importFrom rlang parse_expr
 #' @importFrom plyr adply
 #'
-#' @return A list of polygons bound by variable, with names unique to variable pairs (by sort). "x" and "y" column names may be swapped.
+#' @return A list of polygons bound by variable, with names unique to variable pairs (by sort). Note that "x" and "y" column names may be swapped relative to the input order.
 #' @export
 #'
 # @examples

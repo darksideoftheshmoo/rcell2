@@ -16,3 +16,4 @@ pip(
 \description{
 Polygon filtering function using "sp" package
 }
+\keyword{internal}

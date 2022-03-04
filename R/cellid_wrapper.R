@@ -239,7 +239,9 @@ cell2 <- function(arguments,
   return(output)
 }
 
-#' Cluster test
+#' foreach and parLapply cluster test
+#' 
+#' @keywords internal
 cluster_test <- function(){
   cl <- parallel::makeCluster(2)
   
@@ -253,17 +255,6 @@ cluster_test <- function(){
   foreach(x=list(1,2)) %dopar% print(x)
   
   parallel::stopCluster(cl)
-}
-
-#' Obtener argumentos para CellID
-#' 
-#' rcell2::arguments wrapper, for backwards compatibility.
-#' 
-#' @inheritParams arguments
-#' @export
-#' 
-cellArgs2 <- function(...){
-  arguments(...)
 }
 
 #' Obtener argumentos para CellID
@@ -642,6 +633,7 @@ cell.load.alt <- function(path,
 
 
 #' Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
+#' @keywords internal
 read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_types = "c"){
   cat(paste0("\rReading: ", .nombre.archivo), "\033[K")
   
@@ -691,6 +683,7 @@ read_tsv.con.pos <- function(.nombre.archivo, .carpeta, position.pattern, col_ty
 #' @import dplyr tidyr readr
 #' @importFrom purrr map
 #' @return A list of two dataframes: `d` contains the actual output, and `out.map` contains image paths and metadata.
+#' @keywords internal
 cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
                            path,
                            position.pattern = ".*Position(\\d+).*",
@@ -912,16 +905,20 @@ cargar.out_all <- function(#.nombre.archivos, .nombre.archivos.map,
 #' 
 #' A function to print some summaries, to check cellArgs2 output.
 #' 
-cellArgs2.summary <- function(arguments){
+arguments.summary <- function(arguments){
   arguments %>% group_by(ch) %>% summarise(n_count = n(), .groups = "drop") %>% print()
   arguments %>% select(bf) %>% summarise(unique_BF = "", n_count = length(unique(bf)), .groups = "drop") %>% print()
   arguments %>% group_by(t.frame) %>% summarise(n_count = n(), .groups = "drop") %>% print()
   arguments %>% group_by(pos) %>% summarise(n_count = n(), .groups = "drop") %>% print()
 }
 
-#' Make "images" dataframe from "arguments" dataframe
+#' Make and "images" dataframe from "arguments" dataframe
 #' 
-#' Essentially a pivot_longer of the arguments.
+#' The images dataframe is needed by many rcell2 functions. If it is not available from the output of \code{load_cell_data} or \code{cell.load.alt}, then this function can help.
+#' 
+#' It essentially does a pivot_longer of the arguments.
+#' 
+#' @param arguments The "arguments" dataframe, output from \code{rcell2::arguments()}.
 #' 
 #' @return A data.frame similar to \code{cell.load.alt()$images}.
 #' @export
@@ -943,14 +940,14 @@ arguments_to_images <- function(arguments){
 
 #' Pipe
 #'
-#' Put description here
+#' purrr's pipe operator
 #'
 #' @importFrom purrr %>%
 #' @name %>%
 #' @rdname pipe
-#' @export
 #' @param lhs,rhs specify what lhs and rhs are
 #' @examples
+#' @keywords internal
 #' # some examples if you want to highlight the usage in the package
 NULL
 

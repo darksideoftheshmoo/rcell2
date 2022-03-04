@@ -14,8 +14,5 @@ image_border_one(image, geometry = "0x15", color = "white")
 \item{color}{color string for the border background.}
 }
 \description{
-image_border adds borders symmetrically.
-}
-\details{
-image_border_one is good for padding images to add captions later.
+magick's image_border adds borders symmetrically to all sides. image_border_one is good for padding images to add captions later.
 }

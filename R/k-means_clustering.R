@@ -31,7 +31,7 @@ standardise_data <- function(x){standardize_data(x)}
 #' @param x a cell.data data.frame
 #'
 #' @return a cell.data data.frame to which new variables have been added
-#'
+#' @keywords internal
 calculate_extra_morpho_vars <- function(x){
   x %>%
     mutate(perim.bud=(pi*maj.axis),
@@ -68,7 +68,7 @@ calculate_extra_morpho_vars <- function(x){
 #' @param var_cats a character vector indicating whether morphology ('morpho') and/or fluorescence ('fluor') variables should be used for clustering.
 #'
 #' @return a reduced cell.data data.frame with selected clustering variables only
-#'
+#' @keywords internal
 get_fit_vars <- function(x, f.channels, var_cats=NULL, custom_vars=NULL){
   # Define ID variables; these are used to uniquely identify each row
   id.vars <- c('ucid','t.frame')

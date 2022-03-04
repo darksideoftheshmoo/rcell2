@@ -14,3 +14,4 @@ hover_closest(ui_input, cdata)
 \description{
 Find cell closest to hover point in shiny
 }
+\keyword{internal}

@@ -2,10 +2,11 @@
 % Please edit documentation in R/definitions.R
 \name{getFacetVars}
 \alias{getFacetVars}
-\title{Una función para procesar el facet string y que devuelva las variables presentes en names(pdata) en un character vector}
+\title{Parse ggplot facet formula and get variables as a character vector}
 \usage{
 getFacetVars(pdata, facetFormulaString = "pos ~ treatment")
 }
 \description{
 Una función para procesar el facet string y que devuelva las variables presentes en names(pdata) en un character vector
 }
+\keyword{internal}

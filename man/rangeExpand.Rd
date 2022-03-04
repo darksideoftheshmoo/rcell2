@@ -7,15 +7,17 @@
 rangeExpand(text = "1:2, 7-9", maxPos)
 }
 \arguments{
-\item{text}{the input string to parse}
+\item{text}{the input string to parse. Expect unexpected behaviour with decimal numbers, use integers only: \code{text = "1:2, 7-9"}.}
 
 \item{maxPos}{total amount of positions (an int)}
 }
+\value{
+Integer vector, an expansion of the ranges specified in the input string.
+}
 \description{
-Function for parsing "position" input strings.
+Function for producing an integer vector, by parsing integer ranges provided as a string: a comma-separated list of integers and "ranges" (i.e. "1:3" or "1-3").
 }
 \details{
-A format for expressing an ordered list of integers is to use a comma separated list of either 
-
 See https://www.rosettacode.org/wiki/Range_expansion#R
 }
+\keyword{internal}

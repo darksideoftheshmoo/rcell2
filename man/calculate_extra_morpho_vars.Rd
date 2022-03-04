@@ -15,3 +15,4 @@ a cell.data data.frame to which new variables have been added
 \description{
 Create custom fit variables
 }
+\keyword{internal}

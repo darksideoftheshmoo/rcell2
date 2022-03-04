@@ -9,3 +9,4 @@ plotAppUI()
 \description{
 Shiny app UI object for shinyCell
 }
+\keyword{internal}
