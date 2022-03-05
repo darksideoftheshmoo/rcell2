@@ -42,3 +42,5 @@ data/image_vision_anns/
 data/time_series_image_samples/
 /inst/*#
 *time_of_t0.txt
+
+testings/workflow_template/test_parameters_videos/
