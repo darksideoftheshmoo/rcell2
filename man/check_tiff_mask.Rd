@@ -2,11 +2,13 @@
 % Please edit documentation in R/hu_moments_short.R
 \name{check_tiff_mask}
 \alias{check_tiff_mask}
-\title{Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.}
+\title{Check X/Y positions of cells and cells's masks}
 \usage{
 check_tiff_mask(cell_data)
+}
+\arguments{
+\item{cell_data}{A cell.data list object, with a "masks" dataframe element.}
 }
 \description{
 Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
 }
-\keyword{internal}

@@ -11,12 +11,12 @@ tsv_paths_from_args(
 )
 }
 \arguments{
-\item{arguments}{As produced by \code{rcell2::cellArgs2}.}
+\item{arguments}{An "arguments" dataframe, as produced by \code{rcell2.cellid::arguments}.}
 
 \item{position_pattern}{A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.}
 
 \item{tsv_pattern}{A regex pattern matching the name of the TSV file.}
 }
 \description{
-Generate data.frame with paths to coordinate TSV files
+Convenience function to generate input for \code{hues_from_tsv_files2}.
 }

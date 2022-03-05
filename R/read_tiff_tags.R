@@ -2,7 +2,7 @@
 #'
 #' @return A list with the `description` attribute modified.
 #'
-#' @noRd
+#' @keywords internal
 read_description <- function(x){
   # If "description" attribute contains HTML-formatted metadata
   if(length(grep("<MetaData>",x$description))){
