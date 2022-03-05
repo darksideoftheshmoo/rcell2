@@ -6,6 +6,14 @@
 \usage{
 hues_from_xy(pic_df, split_col = "cellID")
 }
+\arguments{
+\item{pic_df}{A data frame with XY coordinates, containing columns "x", "y", and the grouping column; named by the \code{split_col} parameter.}
+
+\item{split_col}{A string matching the name of the colum used to split the dataframe into individual shapes.}
+}
 \description{
-This function requires a CellID column to split the coordinates by.
+This function requires a CellID column to split the coordinates by (uses "cellID" by default).  Can be provided by \code{read_coords_tsv}.
+}
+\details{
+See \code{hues_from_xy2} for a parallelized version.
 }

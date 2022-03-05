@@ -33,4 +33,6 @@ Cells in the dataframe are split by cellID, t.frame, flag, and pixtype by defaul
 Optional filtering by shape type (boundary or interior) and CellID flag number.
 
 Optional cell-wise parallelization.
+
+To process many TSV files at once, use \code{hues_from_tsv_files2}.
 }

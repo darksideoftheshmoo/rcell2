@@ -2,12 +2,12 @@
 % Please edit documentation in R/hu_moments_short.R
 \name{hues_from_xy2}
 \alias{hues_from_xy2}
-\title{Generate Hu moments from XY coordinates dataframe}
+\title{Generate Hu moments from XY coordinates in parallel}
 \usage{
 hues_from_xy2(coords_df, split_col = "cellID")
 }
 \arguments{
-\item{coords_df}{A data frame with XY coordinates, containing columns "x", "y", and the column named by the \code{split_col} parameter.}
+\item{coords_df}{A data frame with XY coordinates, containing columns "x", "y", and the grouping column; named by the \code{split_col} parameter. Can be provided by \code{read_coords_tsv}.}
 
 \item{split_col}{A string matching the name of the colum used to split the dataframe into individual shapes.}
 }
@@ -15,5 +15,8 @@ hues_from_xy2(coords_df, split_col = "cellID")
 A data frame with Hu moments for each split of the input, identified by \code{split_col}.
 }
 \description{
-This function requires a CellID column to split the coordinates by. Optional cell-wise parallelization.
+This function requires a CellID column to split the coordinates by (uses "cellID" by default).
+}
+\details{
+See \code{hues_from_xy2} for a serial (non-parallel) version.
 }
