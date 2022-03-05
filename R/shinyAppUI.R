@@ -1,7 +1,7 @@
 #' Shiny app UI object for shinyCell
 #'
 #' @import shiny formattable shinydashboard
-#'
+#' @keywords internal
 shinyAppUI <- function(){
   fluidPage(
     fluidRow(

@@ -3,6 +3,7 @@
 #' Find cell closest to hover point in shiny
 #' @param ui_input the "input" object from whiny server
 #' @param cdata the dataframe to filter
+#' @keywords internal
 hover_closest <- function(ui_input, cdata){
     d.closest <- sqrt(  
         (ui_input$hover$x - cdata[[ui_input$x]])^2 +
@@ -11,13 +12,10 @@ hover_closest <- function(ui_input, cdata){
     return(d.closest)
 }
 
-# Import operators
-# `%do%` <- foreach::`%do%`
-# `%>%` <- dplyr::`%>%`
-
 #' convert sequence of numbers to ranges
 #' @importFrom IRanges IRanges
 #' @importFrom IRanges reduce
+#' @keywords internal
 numbers_to_intervals <- function(numbers = c(1:10, 20:30)){
     print("F0.1 numbers_to_intervals")
     x <- IRanges::reduce(IRanges::IRanges(numbers, width = 1))
@@ -28,24 +26,25 @@ numbers_to_intervals <- function(numbers = c(1:10, 20:30)){
 
 #' rangeExpand
 #' 
-#' Function for parsing "position" input strings.
-#' 
-#' A format for expressing an ordered list of integers is to use a comma separated list of either 
+#' Function for producing an integer vector, by parsing integer ranges provided as a string: a comma-separated list of integers and "ranges" (i.e. "1:3" or "1-3").
 #' 
 #' See https://www.rosettacode.org/wiki/Range_expansion#R
-#' @param text the input string to parse 
+#' @param text the input string to parse. Expect unexpected behaviour with decimal numbers, use integers only: \code{text = "1:2, 7-9"}.
 #' @param maxPos total amount of positions (an int)
-#' @export
+#' @return Integer vector, an expansion of the ranges specified in the input string.
+#' @keywords internal
+# @export
 rangeExpand <- function(text = "1:2, 7-9", maxPos) {
     print("F0.2 rangeExpand")
-    text <- gsub("[^0-9,\\:\\-]", replacement = "", text)
+    text <- gsub("[^0-9,\\:\\-]", replacement = "", text)  # Remove anything that is not integers or separators: ":" "-" ","
     lst <- gsub("(\\d)[-\\:]", "\\1:", unlist(strsplit(text, ",")))
     numeritos <- unlist(sapply(lst, function (x) eval(parse(text=x))), use.names=FALSE)
     # numeritos <- numeritos[numeritos < maxPos]  # better to fail
     if (length(numeritos) > 0) as.numeric(numeritos) else 1:maxPos
 }
 
-#' Return brush vertices
+#' Return Shiny brush vertices
+#' @keywords internal
 square <- function(x1, y1, x2, y2){
     print("F0.3 square")
     return(list(
@@ -57,7 +56,11 @@ square <- function(x1, y1, x2, y2){
 # To-do: hacer algo para poder armar filtros fuera de la app. ¿Cómo hacer filtros de una sola variable? El polígono no sirve.
 #filterBox <- function(xvar, xmin, xmax, yvar, ymin, ymax)
 
+#' Parse ggplot facet formula and get variables as a character vector
+#' 
 #' Una función para procesar el facet string y que devuelva las variables presentes en names(pdata) en un character vector
+#' 
+#' @keywords internal
 getFacetVars <- function(pdata, facetFormulaString = "pos ~ treatment"){
     print("F1 getFacetVars")
     facetFormula <- eval(parse(text=facetFormulaString))
@@ -67,6 +70,9 @@ getFacetVars <- function(pdata, facetFormulaString = "pos ~ treatment"){
 }
 
 #' Get a list of numbers from the "position" input string
+#' 
+#' @keywords internal
+#' 
 getPositions <- function(input, numPos){
     print("F2 getPositions")
     positions <- sort(strtoi(strsplit(input, split = ' |,|,,| ,|, ')[[1]]))
@@ -75,6 +81,8 @@ getPositions <- function(input, numPos){
 }
 
 #' Apply polygonal filters to cdata
+#' 
+#' Adds a boolean "filter" column to the "cdata" dataframe, based on a polygon list (typically output by shinyCell).
 #' 
 #' @param polygon_df_list A list of polygon dataframes with columns: x (values) y (values) xvar (variable name for x values) yvar (variable name for y values) type ("Subtractive" or "Additive")
 #' @param cdata A "cdata" dataframe.
@@ -121,6 +129,7 @@ polyFilterApply <- function(polygon_df_list,
 }
 
 #' Build filterDF from polygonDF and cdataDF
+#' @keywords internal
 polyFilterCell <- function(cdataDF, filterDF, polygonDF, polygonName = 1){
     print(paste("F4: polygon name:", polygonName))
     # polygonDF is NULL
@@ -147,6 +156,7 @@ polyFilterCell <- function(cdataDF, filterDF, polygonDF, polygonName = 1){
 
 #' Polygon filtering function using "sp" package
 #' @importFrom sp point.in.polygon
+#' @keywords internal
 pip <- function(points, pgn, points_x_column = 1, points_y_column = 2, pgn_x_column = 1, pgn_y_column = 2){
     print("F5: computing pips")
     # Points dataframe and polygon dataframe, each with only two columns corresponding to x and y values.
@@ -208,6 +218,7 @@ calculateTruth <- function(filterDF, cell_unique_id_field = "ucid", truth_column
 }
 
 #' Add TRUTH column to cdata
+#' @keywords internal
 applyFilter <- function(cdataDF, filterDF, cell_unique_id_field = "ucid", truth_column = "filter"){
     print("F7.1 applyFilter")
     # Agregar a "cdata" una columna de TRUE/FALSE que refleje si cada célula pasó o no los filtros
@@ -223,175 +234,3 @@ applyFilter <- function(cdataDF, filterDF, cell_unique_id_field = "ucid", truth_
     print("F7.2 applyFilter")
     return(.cdataDF)
 }
-
-
-
-
-# # Build the filter string from brush and position data, and previous filter strings or selections,
-# makeFilterString <- function(positions, x, y, brush, choices, selected, variableNames, negate = F){
-#
-#     if(length(positions) > 0){
-#         positionsStr <- paste(positions, collapse = ",")
-#         positionsStr <- paste("pos", "%in% c(", positionsStr, ") & ")
-#     } else {
-#         positionsStr <- ""
-#     }
-#
-#     filterString <- paste(
-#         positionsStr,
-#         paste(x, "<=", signif(brush$xmax, 3), " & "),
-#         paste(x, ">=", signif(brush$xmin, 3), " & "),
-#         paste(y, "<=", signif(brush$ymax, 3), " & "),
-#         paste(y, ">=", signif(brush$ymin, 3)),
-#         sep = ""
-#     )
-#     # Negate
-#     if(negate) filterString <- paste("!(", filterString, ")")
-#
-#     # Append filter to reactive array, this should update the UI
-#     choices <- c(choices, filterString)  # all filters + new
-#     # Also conserve the selected filters
-#     selected <- c(selected, filterString)  # input selected + new
-#
-#     # Build choice names
-#     choiceNames <- makeChoiceNames(choices, variableNames = variableNames)
-#
-#     print(choices)
-#     print(choiceNames)
-#
-#     return(list(
-#         choices = choices,
-#         selected = selected,
-#         choiceNames = choiceNames
-#     ))
-# }
-
-# #' Funcion copada para hacer nombres bonitos a partir de un filtro tipo select
-# #'
-# #' @param choices A Rcell data.frame (not the object).
-# #' @param variableNames Paths a la imagen de cada posición.
-# #' @return Lots of stuff.
-# # @examples
-# # makeChoiceNames(choices, variableNames)
-# #' @import foreach
-# makeChoiceNames <- function(choices, variableNames){
-#     # Make a nicer name for a given string filter
-#     if(length(choices) > 0){
-#         # If there are filters in the list, find all cdata variables used in the filter to make the filter name.
-#         choiceNames <- foreach::foreach(choice=choices, .combine = c) foreach::`%do%` {
-#             variableNames[sapply(variableNames, FUN = function(x){grepl(x, choice)}, USE.NAMES = F)] %>%
-#                 paste(collapse = "_")
-#         }
-#         choiceNumbers <- paste(rep("Filter", length(choices)), seq.int(1,length(choices),1), sep = "")
-#         choiceNames <- stringr::str_remove(paste(choiceNumbers, choiceNames, sep = "-"), "-$")
-#     } else {
-#         choiceNames <- NULL
-#     }
-#     return(choiceNames)
-# }
-
-# #' Funcion de filtrado para shinyCell
-# #'
-# #' @param cdataDF A "cdata" dataframe from Rcell or Tidycell (not the object).
-# #' @param filterDF A "cfilter" dataframe with filter data. data.frame() by default.
-# #' @param condition Optional: a filter as you would use in subset (quoted if string_mode = T). NA by default.
-# #' @param initialDF If TRUE, supplied filterDF is ignored and a new and empty filterDF dataframe is returned. FALSE by default.
-# #' @param cell_unique_id_field The cdata column wich has te primary key. "ucid" by default)
-# #' @param string_mode If TRUE, the supplied condition argument is a string (a quoted filter). FALSE by default.
-# #' @return Lots of stuff.
-# # @examples
-# # cfilter <- filterCell(cdata, initialDF = T)
-# #' @import dplyr
-# filterCell <- function(cdataDF, filterDF = data.frame(), condition = NA, initialDF = F, cell_unique_id_field = "ucid", string_mode = F){
-#     # Esta función toma una condición (estilo subset) y agrega una columna a "cfilter" para cada fila en "cdata".
-#     # Si pasa el filtro, se asigna TRUE, o bien FALSE si no pasa.
-#
-#     # Si se está inicializando el filtro
-#     if(initialDF) filterDF <- data.frame(ucid = cdataDF[,cell_unique_id_field], filter = T)
-#
-#     # Build filter according to input type
-#     # https://stat.ethz.ch/R-manual/R-devel/library/base/html/Logic.html
-#     if(string_mode){
-#         # condition <- "substitute("a.tot < 650 & a.tot > 200"
-#         if(is.na(condition)) {condition_str <- "NA"} else {condition_str <- condition}
-#         print(paste("Filter (string):",condition_str))
-#         condition <- parse(text=condition)
-#     } else {
-#         # condition <- substitute(a.tot < 650 & a.tot > 200)
-#         condition <- substitute(condition)
-#         condition_str <- deparse(condition)
-#         print(paste("Filter (expr):", condition_str))
-#     }
-#
-#     # Si hay alguna condición asignada
-#     if(condition_str != "NA"){
-#         # https://stackoverflow.com/a/4605268
-#         # Asignar todo true y solo poner el false. Creo que no se puede, porque no puedo asignar valores a un subset()
-#
-#         f <- subset(cdataDF, eval(condition))[, cell_unique_id_field, drop = FALSE]  # Tomar las que cumplen y poner TRUE
-#         if(nrow(f)>0) f[, condition_str] <- TRUE
-#
-#         g <- subset(cdataDF, !eval(condition))[, cell_unique_id_field, drop = FALSE]  # Tomar las que NO cumplen y poner FALSE
-#         if(nrow(g)>0) g[, condition_str] <- FALSE
-#
-#         fg <- dplyr::bind_rows(f, g)  # Juntarlas de nuevo
-#         fg <- fg[order(fg$ucid),]  # y ordenarlas por "ucid"
-#
-#         # Mergearlas con el filterDF proporcionado en los argumentos de la función (o el inicializado al principio)
-#         filterDF <- merge(filterDF,
-#                           fg,
-#                           by = cell_unique_id_field)
-#
-#         filterDF <- calculateTruth(filterDF)  # Recalcular la verdad
-#     }
-#
-#     return(filterDF)
-# }
-#
-# # Apply string filters to cdata
-# filterCellApply <- function(stringFilters, cdata){
-#     args <- stringFilters  # Test: args = c("pos %in% c( 1,2 )", "a.tot <= 446", "a.tot >= 244")
-#
-#     # Initialize empty cfilter
-#     cfilter <- filterCell(cdata, initialDF = T)
-#
-#     # Populate cfilter columns
-#     for (i in seq_along(args)) cfilter = do.call(what = filterCell, args = list(cdataDF = cdata,
-#                                                                                 filterDF = cfilter,  # Recursive
-#                                                                                 condition = args[i],
-#                                                                                 string_mode = T))
-#     # Add TRUTH column to cdata
-#     cdata <- applyFilter(cdata, cfilter)
-#
-#     # Return cdata and cfilter in a list.
-#     return(list(cdata = cdata, cfilter= cfilter))
-# }
-
-# MISC
-# Para hacer muchos assignments en una línea
-# https://strugglingthroughproblems.wordpress.com/2010/08/27/matlab-style-multiple-assignment-in%C2%A0r/
-
-# '%=%' = function(l, r, ...) UseMethod('%=%')
-#
-# l = function(...) {
-#     List = as.list(substitute(list(...)))[-1L]
-#     class(List) = 'lbunch'
-#
-#     List
-# }
-#
-# '%=%.lbunch' = function(l, r, ...) {
-#     Envir = as.environment(-1)
-#
-#     for (II in 1:length(l)) {
-#         do.call('<-', list(l[[II]], r[[II]]), envir=Envir)
-#     }
-# }
-
-# l(a,b) %=% list("2", 3)
-# También está esto: https://stackoverflow.com/a/45329855/11524079
-
-# Assign to parent dataframe
-# https://stackoverflow.com/questions/42873592/assign-variable-in-parent-environment-of-a-function
-#`%<-1%` <- function(x, y) { p <- parent.frame() ; p[[deparse(substitute(x))]] <- y }
-#`%<-2%` <- function(x, y) { assign(deparse(substitute(x)), y, env = parent.frame())}

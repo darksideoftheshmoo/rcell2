@@ -26,3 +26,4 @@ Lots of stuff.
 \description{
 Funcion para armar un dataframe para hacer plots tipo HEX
 }
+\keyword{internal}

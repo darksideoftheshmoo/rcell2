@@ -18,3 +18,4 @@ shinyAppServer(input, output, session)
 Shiny app server function for shinyCell
 Define server logic required to draw a histogram
 }
+\keyword{internal}

@@ -9,3 +9,4 @@ tagCellUi()
 \description{
 Shiny app UI object for tagCell
 }
+\keyword{internal}

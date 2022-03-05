@@ -822,7 +822,7 @@ cimage.default <- function(X, ...){
 #*************************************************************************#
 #generic
 #returns a cell.image object
-#' Title
+#' Retrieves the images from single cells in an cell.data or cell.image (dataframe) object
 #'
 #' @param X cell.data object or data.frame that specifies the images
 #' @param ... further arguments for methods

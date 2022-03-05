@@ -18,3 +18,4 @@ tagCellServer(input, output, session)
 Shiny app server function for tagCell
 Define server logic required to draw a histogram
 }
+\keyword{internal}

@@ -2,10 +2,11 @@
 % Please edit documentation in R/definitions.R
 \name{square}
 \alias{square}
-\title{Return brush vertices}
+\title{Return Shiny brush vertices}
 \usage{
 square(x1, y1, x2, y2)
 }
 \description{
-Return brush vertices
+Return Shiny brush vertices
 }
+\keyword{internal}

@@ -1,8 +1,6 @@
 #' Add a border to one side of the image
 #'
-#' image_border adds borders symmetrically.
-#'
-#' image_border_one is good for padding images to add captions later.
+#' magick's image_border adds borders symmetrically to all sides. image_border_one is good for padding images to add captions later.
 #'
 #' @param image magick image.
 #' @param geometry magick geometry string.
@@ -492,6 +490,7 @@ cellSpreadPlot <- function(cdata, paths,
 #' @param ypos y pixel coordinate.
 #' @param boxSize side length of the final square
 #' @return magick::geometry_area configured for cellMagick
+#' @keywords internal
 #' 
 getCellGeom <- function(xpos, ypos, boxSize = 50){
   geometry <- magick::geometry_area(width = boxSize,
@@ -844,7 +843,9 @@ cellMagick <- function(...){
   magickCell(...)
 }
 
-#' Funcion copada para mostrar fotos basada en magick
+#' Load image to a ggplot2 layer
+#' 
+#' Funcion basada en magick para abrir una foto y mostrarla en un ggplot2 layer.
 #'
 #' @param picPath Image path for the correct position, only one.
 #' @param interpolate Passed on to layer params.
@@ -874,7 +875,9 @@ annotation_magick <- function(picPath, interpolate = FALSE) {
   ggplot2::layer(#data = dummy_data(),
     data = data.frame(x = NA),
     mapping = NULL, stat = ggplot2::StatIdentity,
-    position = ggplot2::PositionIdentity, geom = ggplot2::GeomRasterAnn, inherit.aes = FALSE,
+    position = ggplot2::PositionIdentity, 
+    geom = ggplot2::GeomRasterAnn, 
+    inherit.aes = FALSE,
     params = list(raster = raster,
                   xmin = 0,
                   xmax = .img.info$width,

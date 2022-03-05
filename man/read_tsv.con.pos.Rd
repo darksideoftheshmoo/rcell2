@@ -9,3 +9,4 @@ read_tsv.con.pos(.nombre.archivo, .carpeta, position.pattern, col_types = "c")
 \description{
 Una función que lea un .csv y les agregue una columna con un id del archivo (pos)
 }
+\keyword{internal}

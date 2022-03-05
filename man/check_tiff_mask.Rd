@@ -9,3 +9,4 @@ check_tiff_mask(cell_data)
 \description{
 Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
 }
+\keyword{internal}

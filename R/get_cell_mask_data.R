@@ -22,6 +22,8 @@
 #' If this is a problem for you, then use \code{cell.load.boundaries} with
 #' \code{data.source = 'masks.tsv'} to read CellID's TSV output files (for 
 #' that see \code{cell2}).
+#' 
+#' See CellID's mask_mod branch for more details: https://github.com/darksideoftheshmoo/cellID-linux/blob/mask_mod/README.md#branch-notes
 #'
 #' @param path A string. The path to the 16-bit BF.out tiff file to read.
 #' @param cell_id_offset integer. The pixel intensity offset with respect to maximum pixel intensity, such

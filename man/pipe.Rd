@@ -7,8 +7,18 @@
 \item{lhs, rhs}{specify what lhs and rhs are}
 }
 \description{
-Put description here
+purrr's pipe operator
 }
-\examples{
-# some examples if you want to highlight the usage in the package
-}
+\keyword{#}
+\keyword{examples}
+\keyword{highlight}
+\keyword{if}
+\keyword{in}
+\keyword{internal}
+\keyword{package}
+\keyword{some}
+\keyword{the}
+\keyword{to}
+\keyword{usage}
+\keyword{want}
+\keyword{you}

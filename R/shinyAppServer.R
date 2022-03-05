@@ -5,6 +5,7 @@
 #' @param session provided by shiny
 #' @import shiny formattable dplyr tidyr hexbin magick
 #' @importFrom graphics polygon
+#' @keywords internal
 shinyAppServer <-
   function(input, output, session) {
 

@@ -1,7 +1,7 @@
 #' Shiny app UI object for tagCell
 #'
 #' @import shiny shinyjs formattable shinydashboard keys
-#'
+#' @keywords internal
 tagCellUi <- function(){shiny::fluidPage(shinyjs::useShinyjs(),  # Set up shinyjs
                                          tags$head(
                                            tags$style(HTML('#quit{background-color:orange}'))

@@ -13,3 +13,4 @@ Esencialmente hexbin() pero un poco más a mi gusto.
 La función puede fallar de forma medio oscura cuando el input tiene problemas
 (i.e. si está vacío, o si es todo NAs, etc.)
 }
+\keyword{internal}

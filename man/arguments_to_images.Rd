@@ -2,13 +2,19 @@
 % Please edit documentation in R/cellid_wrapper.R
 \name{arguments_to_images}
 \alias{arguments_to_images}
-\title{Make "images" dataframe from "arguments" dataframe}
+\title{Make and "images" dataframe from "arguments" dataframe}
 \usage{
 arguments_to_images(arguments)
+}
+\arguments{
+\item{arguments}{The "arguments" dataframe, output from \code{rcell2::arguments()}.}
 }
 \value{
 A data.frame similar to \code{cell.load.alt()$images}.
 }
 \description{
-Essentially a pivot_longer of the arguments.
+The images dataframe is needed by many rcell2 functions. If it is not available from the output of \code{load_cell_data} or \code{cell.load.alt}, then this function can help.
+}
+\details{
+It essentially does a pivot_longer of the arguments.
 }

@@ -10,8 +10,8 @@ bind_filters(saved_data, print_plots = TRUE)
 \item{saved_data}{The output of shinyCell.}
 }
 \value{
-A list of polygons bound by variable, with names unique to variable pairs (by sort). "x" and "y" column names may be swapped.
+A list of polygons bound by variable, with names unique to variable pairs (by sort). Note that "x" and "y" column names may be swapped relative to the input order.
 }
 \description{
-Useful to check out what areas the filters are covering.
+Unites polygons with matching dimensions. Useful to check out what areas the filters are covering (see \code{plot_bound_filters}).
 }

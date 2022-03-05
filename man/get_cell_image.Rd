@@ -2,7 +2,7 @@
 % Please edit documentation in R/cimage.R
 \name{get_cell_image}
 \alias{get_cell_image}
-\title{Title}
+\title{Retrieves the images from single cells in an cell.data or cell.image (dataframe) object}
 \usage{
 get_cell_image(X, ...)
 }
@@ -15,5 +15,5 @@ get_cell_image(X, ...)
 
 }
 \description{
-Title
+Retrieves the images from single cells in an cell.data or cell.image (dataframe) object
 }

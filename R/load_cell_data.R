@@ -122,7 +122,8 @@ if(getRversion() >= "2.15.1") {
 #' @examples
 load_cell_data <-
     function(path = getwd(),
-             pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
+             pattern = ".*Position(\\d+)$",
+#            pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
              basename = "out",
              select = NULL,
              exclude = NULL,
@@ -222,7 +223,8 @@ load_cell_data <-
             cat(gsub("[a-zA-Z_]", "", posdir[i])," ")
             if(i %% 10 == 0) cat("\n")
 
-            pos.data[[i]] <- readr::read_tsv(out_all, col_types = readr::cols())
+            pos.data[[i]] <- readr::read_tsv(out_all, col_types = readr::cols(), name_repair = "minimal")
+            pos.data[[i]] <- pos.data[[i]][!duplicated(names(pos.data[[i]]))]
 
             # ToDo: check if there's a difference between using Hmisc::import.cleanup or not.
 
@@ -256,10 +258,11 @@ load_cell_data <-
                 bf.fl.mapping[[i]] <- readr::read_tsv(out_mapping,
                                                       col_types = "ciici")
 
-
-                #creating flag table
-                pos.flag <- .mk_flag_table(bf.fl.mapping[[i]], pos = i)
-                flag.table <- dplyr::bind_rows(pos.flag, flag.table)
+                if (nrow(bf.fl.mapping[[i]]) > 0) {
+                    #creating flag table
+                    pos.flag <- .mk_flag_table(bf.fl.mapping[[i]], pos = i)
+                    flag.table <- dplyr::bind_rows(pos.flag, flag.table)
+                }
 
             } else warning(out_mapping, "not found")
         }
@@ -491,21 +494,27 @@ load_cell_data <-
             cat("f.y\ncf.y\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.y = f.tot.y - (a.tot * f.bg.y),
-                          cf.y = f.y / a.tot)
+                          cf.y = f.y / a.tot,
+                          f.y.loc = f.tot.y - (f.local.bg.y * a.tot),
+                          cf.y.loc = f.y.loc / a.tot)
         }
 
         if ("f.tot.c" %in% va) {
             cat("f.c\ncf.c\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.c = f.tot.c - (a.tot * f.bg.c),
-                          cf.c = f.c / a.tot)
+                          cf.c = f.c / a.tot,
+                          f.c.loc = f.tot.c - (f.local.bg.c * a.tot),
+                          cf.c.loc = f.c.loc / a.tot)
         }
 
         if ("f.tot.r" %in% va) {
             cat("f.r\ncf.r\n")
             pos.data <- dplyr::mutate(pos.data,
                           f.r = f.tot.r - (a.tot * f.bg.r),
-                          cf.r = f.r / a.tot)
+                          cf.r = f.r / a.tot,
+                          f.r.loc = f.tot.r - (f.local.bg.r * a.tot),
+                          cf.r.loc = f.r.loc / a.tot)
         }
 
 
@@ -513,11 +522,11 @@ load_cell_data <-
         #################################################################
         # Removing duplicates
         #################################################################
-
-        if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
-            cat("\nremoving duplicate con.vol\n")
-            pos.data <- dplyr::select(pos.data, -con.vol_1)
-        }
+        # TODO: check and correct in timecourses. readr changes names differently for some reason
+        #if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
+        #    cat("\nremoving duplicate con.vol\n")
+        #    pos.data <- dplyr::select(pos.data, -con.vol_1)
+        #}
 
 
         #################################################################
@@ -717,7 +726,7 @@ load_cell_data <-
 #' @param pos integer, corresponds to position
 #'
 #' @return a data.frame containing the bf.fl.mapping of a single position
-#'
+#' @keywords internal
 #' @examples
 .mk_flag_table <- function(bf.fl.mapping, pos = NULL){
 
@@ -793,7 +802,7 @@ load_cell_data <-
 #' @param vars.all, NULL
 #'
 #' @return character vector containing variable names
-#'
+#' @keywords internal
 #' @examples
 .parse_load_vars <- function(load.vars, vars.all = NULL){
 
@@ -1085,7 +1094,7 @@ write.delim <- function(x,
 #'
 #' @return string of shortened sequence
 #' @export
-#'
+#' @keywords internal
 #' @examples
 .format.sequence <- function(pos) {
     if(length(pos) < 2) return(as.character(pos))

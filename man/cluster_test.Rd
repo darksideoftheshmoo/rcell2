@@ -2,10 +2,11 @@
 % Please edit documentation in R/cellid_wrapper.R
 \name{cluster_test}
 \alias{cluster_test}
-\title{Cluster test}
+\title{foreach and parLapply cluster test}
 \usage{
 cluster_test()
 }
 \description{
-Cluster test
+foreach and parLapply cluster test
 }
+\keyword{internal}

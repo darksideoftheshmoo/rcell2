@@ -24,5 +24,5 @@ polyFilterApply(
 a "saved_data" list object, where the cdata is appended a "filter" logical column.
 }
 \description{
-Apply polygonal filters to cdata
+Adds a boolean "filter" column to the "cdata" dataframe, based on a polygon list (typically output by shinyCell).
 }

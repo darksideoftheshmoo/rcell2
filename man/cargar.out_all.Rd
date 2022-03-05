@@ -29,3 +29,4 @@ A list of two dataframes: `d` contains the actual output, and `out.map` contains
 \description{
 Una función para leer y combinar todos los archivos "out".
 }
+\keyword{internal}

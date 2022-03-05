@@ -14,3 +14,4 @@ applyFilter(
 \description{
 Add TRUTH column to cdata
 }
+\keyword{internal}

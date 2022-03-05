@@ -4,6 +4,7 @@
 #' @param output provided by shiny
 #' @param session provided by shiny
 #' @import shiny dplyr tidyr
+#' @keywords internal
 plotAppServer <-
   function(input, output, session) {
     

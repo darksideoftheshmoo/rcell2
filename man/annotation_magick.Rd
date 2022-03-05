@@ -2,7 +2,7 @@
 % Please edit documentation in R/definitions_magick.R
 \name{annotation_magick}
 \alias{annotation_magick}
-\title{Funcion copada para mostrar fotos basada en magick}
+\title{Load image to a ggplot2 layer}
 \usage{
 annotation_magick(picPath, interpolate = FALSE)
 }
@@ -15,5 +15,5 @@ annotation_magick(picPath, interpolate = FALSE)
 A custom annotation_raster for ggplot.
 }
 \description{
-Funcion copada para mostrar fotos basada en magick
+Funcion basada en magick para abrir una foto y mostrarla en un ggplot2 layer.
 }

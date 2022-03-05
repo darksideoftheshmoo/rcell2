@@ -9,3 +9,4 @@ numbers_to_intervals(numbers = c(1:10, 20:30))
 \description{
 convert sequence of numbers to ranges
 }
+\keyword{internal}
