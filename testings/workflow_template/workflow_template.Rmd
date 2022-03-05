@@ -50,17 +50,16 @@ or set your own using `rcell2::parameters.default()` and `rcell2::parameters.wri
 ```{r}
 data.dir <- "data/image_samples/"
 
-parameters.txt <- rcell2::parameters.write(rcell2::parameters.default())
+parameters.txt <- rcell2.cellid::parameters.write(rcell2::parameters.default())
 
-cellid.args <- rcell2::arguments(path = data.dir,
+cellid.args <- rcell2.cellid::arguments(path = data.dir,
                                  parameters = parameters.txt,  # optional
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
 cell2.out <- 
-  rcell2::cell2(arguments = cellid.args, 
-                output_coords_to_tsv = T,  # Optional
-                cell.command = "~/Software/cellID-linux/cell")
+  rcell2.cellid::cell2(arguments = cellid.args, 
+                output_coords_to_tsv = T)
 
-cell.data <- rcell2::cell.load.alt(path = data.dir,
+cell.data <- rcell2.cellid::cell.load.alt(path = data.dir,
                                    fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
 
 cell.boundaries <- 
@@ -68,6 +67,8 @@ cell.boundaries <-
                                arguments = cellid.args,
                                pixel.type = "b"
                                )
+
+cell.boundaries <- load_tsv_masks(data.dir)
 ```
 
 ### Guardar todo el output

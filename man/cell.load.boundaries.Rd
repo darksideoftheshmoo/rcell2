@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_cell_mask_data.R
 \name{cell.load.boundaries}
 \alias{cell.load.boundaries}
-\title{Load cellid boundary data to a dataframe}
+\title{Load CellID boundary data to a dataframe}
 \usage{
 cell.load.boundaries(
   data.source,
@@ -20,7 +20,7 @@ cell.load.boundaries(
 )
 }
 \arguments{
-\item{data.source}{Either "out.tif" or "masks.tsv"}
+\item{data.source}{Either "out.tif" or "masks.tsv".}
 
 \item{position_pattern}{A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.}
 
@@ -51,14 +51,16 @@ background (i.e., non-mask pixels) are blank. Set to FALSE if left NULL (the def
 A "cell.boundaries" data.frame.
 }
 \description{
-Load cellid boundary data to a dataframe
+Load CellID boundary data to a dataframe
 }
 \details{
 Using \code{data_source = "out.tif"} will give **un** ordered boundary pixels.
 See \code{read_tiff_masks} for details and caveats.
+CellID must have been run with the "encode_cellID_in_pixels" option enabled.
 
 Using \code{data_source = "masks.tsv"} will give ordered boundary pixels.
-Which, in some cases, may not be "manifold"
+CellID must have been run with the "output_coords_to_tsv" option enabled.
+However, in some cases, the pixel sequence may not be "manifold"
 (see: https://github.com/darksideoftheshmoo/cellID-linux/issues/11).
 Also, do not expect them to be consistent in their direction (clockwise or 
 anti-clockwise), and double check if the pixels are aligned to the output images
