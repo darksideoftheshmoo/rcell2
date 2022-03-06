@@ -29,8 +29,13 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 
 library(magick)  # if you need it
-library(utiles)  # if you need it, get this from: https://gitlab.com/naikymen/r_utils
+
+# library(utiles)  # if you need it, get this from: https://gitlab.com/naikymen/r_utils
+
 library(rcell2)  # this package you are checking out :)
+library(rcell2.cellid)
+library(rcell2.magick)
+
 library(tidyverse)  # import numpy as np (?)
 ```
 
@@ -50,14 +55,15 @@ or set your own using `rcell2::parameters.default()` and `rcell2::parameters.wri
 ```{r}
 data.dir <- "data/image_samples/"
 
-parameters.txt <- rcell2.cellid::parameters.write(rcell2::parameters.default())
+parameters.txt <- rcell2.cellid::parameters.write(rcell2.cellid::parameters.default())
 
 cellid.args <- rcell2.cellid::arguments(path = data.dir,
                                  parameters = parameters.txt,  # optional
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
 cell2.out <- 
   rcell2.cellid::cell2(arguments = cellid.args, 
-                output_coords_to_tsv = T)
+                output_coords_to_tsv = T,  # Optional
+                cell.command = "~/Software/cellID-linux/cell")
 
 cell.data <- rcell2.cellid::cell.load.alt(path = data.dir,
                                    fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
@@ -67,8 +73,6 @@ cell.boundaries <-
                                arguments = cellid.args,
                                pixel.type = "b"
                                )
-
-cell.boundaries <- load_tsv_masks(data.dir)
 ```
 
 ### Guardar todo el output
@@ -104,7 +108,8 @@ Using Metamorph's _Multi-dimensional acquisition_ (MDA for short), may use file 
 
 ```{r}
 images.path <- "~/Projects/PhD/data/uscope/multidimensional_exp-20211126-Far1NG-wt_y_dKar4/"
-rename_mda(images.path)
+
+rcell2.cellid::rename_mda(images.path)
 ```
 
 See `?rename_mda` for extra options.
@@ -126,7 +131,7 @@ Note that the `ch` field must match the corresponding capture group in `identifi
 Description for parameters:
 
 ```{r}
-rcell2::cellid_parameter_descriptions(list_format = F)
+rcell2.cellid::cellid_parameter_descriptions(list_format = F)
 ```
 
 A prototype parameter list, with defaults:
@@ -149,7 +154,7 @@ parameters.list <- list(
 There is a helper function to make one more easily:
 
 ```{r}
-parameters.list <- rcell2::parameters.default()
+parameters.list <- rcell2.cellid::parameters.default()
 
 parameters.list$max_split_over_minor
 ```
@@ -161,7 +166,7 @@ Para eso está la siguiente función,
 que devuelve el path donde se guardó el archivo:
 
 ```{r}
-parameters.txt <- rcell2::parameters.write(parameters.list)
+parameters.txt <- rcell2.cellid::parameters.write(parameters.list)
 
 parameters.txt
 ```
@@ -181,7 +186,7 @@ For each parameter variation, we need a new parameters file.
 In this example, only `background_reject_factor` is changed:
 
 ```{r}
-parameters.list <- rcell2::parameters.default(
+parameters.list <- rcell2.cellid::parameters.default(
   background_reject_factor = seq(from=0, to=1.5, by = 0.6)
 )
 
@@ -191,7 +196,7 @@ parameters.list$background_reject_factor
 If tou have my `utiles` package, this may be useful too:
 
 ```{r}
-parameters.list <- rcell2::parameters.default()
+parameters.list <- rcell2.cellid::parameters.default()
 
 parameters.list$background_reject_factor <-
   utiles::value.to.range(
@@ -235,8 +240,8 @@ data.dir <- "data/image_samples/"
 Check that their file names are properly recognized:
 
 ```{r}
-cellid.args <- rcell2::arguments(data.dir,
-                                 file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
+cellid.args <- rcell2.cellid::arguments(data.dir,
+                                        file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
 
 cellid.args
 ```
@@ -309,10 +314,10 @@ result <-
             parameters.list.one <- parameters.df[test.param,]
             
             # Save parameters
-            parameters.txt <- rcell2::parameters.write(parameters.list.one)
+            parameters.txt <- rcell2.cellid::parameters.write(parameters.list.one)
             
             # Create arguments
-            cellid.args <- rcell2::arguments(data.dir,
+            cellid.args <- rcell2.cellid::arguments(data.dir,
                                              file.pattern = arguments.file.pattern,
                                              parameters = parameters.txt)
             # Subset only one position
@@ -335,15 +340,15 @@ result <-
         
             
             # Regenerate arguments for the new tmp path
-            cellid.args.tmp <- rcell2::arguments(tmp.path,
+            cellid.args.tmp <- rcell2.cellid::arguments(tmp.path,
                                                  file.pattern = arguments.file.pattern,
                                                  parameters = parameters.txt)
             # Run cellid
-            rcell2::cell2(arguments = cellid.args.tmp, 
+            rcell2.cellid::cell2(arguments = cellid.args.tmp, 
                           cell.command = cell.command.path)
             
             # Load output
-            cell.data <- rcell2::cell.load.alt(
+            cell.data <- rcell2.cellid::cell.load.alt(
               tmp.path,
               fluorescence.pattern = load.cell.channel.pattern
               )
@@ -442,9 +447,9 @@ Noten el `0+?` enfrente del número, que indica que puede haber un cero o más f
 ```{r}
 path <- "~/Software/cellID-linux/samples/"
 
-cellid.args <- rcell2::arguments(path = path, 
-                                 file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
-                                 parameters = parameters)
+cellid.args <- rcell2.cellid::arguments(path = path, 
+                                        file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)_time(\\d+).tif$",
+                                        parameters = parameters)
 cellid.args
 ```
 
@@ -471,9 +476,9 @@ El parámetro `cell.command` es el path al ejecutable. En ciertas versiones de `
 el binario se compila durante la instalación y se usa por defecto.
 
 ```{r}
-rcell2::cell2(arguments = cellid.args, 
-              cell.command = "~/Software/cellID-linux/cell",
-              dry = T, no_cores = 2)
+rcell2.cellid::cell2(arguments = cellid.args, 
+                     cell.command = "~/Software/cellID-linux/cell",
+                     dry = T, no_cores = 2)
 ```
 
 ## Load CellID data
@@ -487,8 +492,8 @@ cell.data <- rcell2::load_cell_data(path = path)
 Si esa no funciona, pueden intentar con `cell.load.alt`:
 
 ```{r}
-cell.data <- rcell2::cell.load.alt(path = path,
-                                   fluorescence.pattern = "^([GCYRT]FP)_Position\\d+.tif$")
+cell.data <- rcell2.cellid::cell.load.alt(path = path,
+                                          fluorescence.pattern = "^([GCYRT]FP)_Position\\d+.tif$")
 ```
 
 Obs: su `fluorescence.pattern` regex puede variar.
@@ -498,7 +503,7 @@ Obs: su `fluorescence.pattern` regex puede variar.
 Descriptions of the variables in `cdata`:
 
 ```{r}
-rcell2::cellid_output_descriptions()
+rcell2.cellid::cellid_output_descriptions()
 ```
 
 ### Check XY stage coordinates against expectations
@@ -566,7 +571,7 @@ pdata <- read.csv("data/pdata.csv")
 Uso mínimo:
 
 ```{r}
-shiny.filter <- shinyCell(cdata, pdata, images)
+shiny.filter <- rcell2.magick::shinyCell(cdata, pdata, images)
 ```
 
 Si hay muchas celulas, conviene iniciar con `plotType = "Hex"` u otro plot aglomerativo.
@@ -574,7 +579,7 @@ Si hay muchas celulas, conviene iniciar con `plotType = "Hex"` u otro plot aglom
 Para ver las regiones filtradas, hay una función que grafica los filtros:
 
 ```{r}
-plot_filters(shiny.filter, print_plots = F)
+rcell2.magick::plot_filters(shiny.filter, print_plots = F)
 ```
 
 Ver ejemplos (un poco viejos) en:
@@ -609,8 +614,8 @@ Si especificaron la opción `encode_cellID_in_pixels` en `cell2`, el CellID est�
 
 ```{r}
 mask <- 
-  rcell2:::pic_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", 
-                            image_bits = 16)
+  rcell2:::mask_df_from_tiff(tiff_path = "../data/image_samples/BF_Position001.tif.out.tif", 
+                             image_bits = 16)
 ```
 
 ### TSV output
