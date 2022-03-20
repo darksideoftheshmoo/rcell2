@@ -1,7 +1,6 @@
 .Rhistory
 .RData
 .Rproj.user
-rcell2.Rproj
 /src/*.o
 /src/*.so
 /data/image_samples/*.out.tif
