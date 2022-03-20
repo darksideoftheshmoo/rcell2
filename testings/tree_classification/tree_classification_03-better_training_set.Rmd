@@ -18,7 +18,7 @@ En el curso de clustering hice algo simple con kmeans:
 ```{r}
 path <- "data/image_samples_classification/renamed/" %>% here::here()
 
-parameters.txt <- parameters.write()
+parameters.txt <- parameters_write()
 
 my_arguments <- 
   arguments(path = path,

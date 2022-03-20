@@ -39,7 +39,7 @@ Para uno solo se deja vacío el grupo:
     file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$"
 
 ```{r}
-parameters.txt <- rcell2::parameters.write()
+parameters.txt <- rcell2::parameters_write()
 
 path <- "~/Software/cellID-linux/samples/"
 

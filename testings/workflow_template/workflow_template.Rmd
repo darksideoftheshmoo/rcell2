@@ -50,12 +50,12 @@ library(tidyverse)  # import numpy as np (?)
 Run cellid using the selected parameters.
 
 Otherwise you may omit `parameters = parameters.txt` in the `rcell2::arguments()` call,
-or set your own using `rcell2::parameters.default()` and `rcell2::parameters.write()`.
+or set your own using `rcell2::parameters_default()` and `rcell2::parameters_write()`.
 
 ```{r}
 data.dir <- "data/image_samples/"
 
-parameters.txt <- rcell2.cellid::parameters.write(rcell2.cellid::parameters.default())
+parameters.txt <- rcell2.cellid::parameters_write(rcell2.cellid::parameters_default())
 
 cellid.args <- rcell2.cellid::arguments(path = data.dir,
                                  parameters = parameters.txt,  # optional
@@ -154,7 +154,7 @@ parameters.list <- list(
 There is a helper function to make one more easily:
 
 ```{r}
-parameters.list <- rcell2.cellid::parameters.default()
+parameters.list <- rcell2.cellid::parameters_default()
 
 parameters.list$max_split_over_minor
 ```
@@ -166,7 +166,7 @@ Para eso está la siguiente función,
 que devuelve el path donde se guardó el archivo:
 
 ```{r}
-parameters.txt <- rcell2.cellid::parameters.write(parameters.list)
+parameters.txt <- rcell2.cellid::parameters_write(parameters.list)
 
 parameters.txt
 ```
@@ -186,7 +186,7 @@ For each parameter variation, we need a new parameters file.
 In this example, only `background_reject_factor` is changed:
 
 ```{r}
-parameters.list <- rcell2.cellid::parameters.default(
+parameters.list <- rcell2.cellid::parameters_default(
   background_reject_factor = seq(from=0, to=1.5, by = 0.6)
 )
 
@@ -196,7 +196,7 @@ parameters.list$background_reject_factor
 If tou have my `utiles` package, this may be useful too:
 
 ```{r}
-parameters.list <- rcell2.cellid::parameters.default()
+parameters.list <- rcell2.cellid::parameters_default()
 
 parameters.list$background_reject_factor <-
   utiles::value.to.range(
@@ -314,7 +314,7 @@ result <-
             parameters.list.one <- parameters.df[test.param,]
             
             # Save parameters
-            parameters.txt <- rcell2.cellid::parameters.write(parameters.list.one)
+            parameters.txt <- rcell2.cellid::parameters_write(parameters.list.one)
             
             # Create arguments
             cellid.args <- rcell2.cellid::arguments(data.dir,

@@ -59,7 +59,7 @@ Run cellid:
 
 ```{r}
 rcargs <- 
-  rcell2::arguments("data/image_samples/", parameters = parameters.write(),
+  rcell2::arguments("data/image_samples/", parameters = parameters_write(),
                     file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$",
                     )
 ```
