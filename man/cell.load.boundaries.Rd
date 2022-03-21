@@ -7,7 +7,7 @@
 cell.load.boundaries(
   data.source,
   position_pattern = ".*Position(\\\\d+)$",
-  tsv_pattern = "^out_all_masks.tsv$",
+  tsv_pattern = "^out_all_masks.tsv(?:\\\\.gz)?$",
   cell_id_offset = -1,
   interior_offset = NULL,
   blank_bg = NULL,
@@ -24,7 +24,7 @@ cell.load.boundaries(
 
 \item{position_pattern}{A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.}
 
-\item{tsv_pattern}{A regex pattern matching the name of the TSV file.}
+\item{tsv_pattern}{A regex pattern matching the name of the TSV file (\code{readr::read_tsv} supports reading "gz" compressed files direclty).}
 
 \item{cell_id_offset}{integer. The pixel intensity offset with respect to maximum pixel intensity, such
 that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.}

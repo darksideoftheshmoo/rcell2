@@ -160,11 +160,11 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
 #'
 #' @param arguments An "arguments" dataframe, as produced by \code{rcell2.cellid::arguments}.
 #' @param position_pattern A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.
-#' @param tsv_pattern A regex pattern matching the name of the TSV file.
+#' @param tsv_pattern A regex pattern matching the name of the TSV file (\code{readr::read_tsv} supports reading "gz" compressed files direclty).
 #' @export
 tsv_paths_from_args <- function(arguments,
                                 position_pattern = ".*Position(\\d+)$",
-                                tsv_pattern = "^out_all_masks.tsv$"){
+                                tsv_pattern = "^out_all_masks.tsv(?:\\.gz)?$"){
   
   tsv_paths <- dir(unique(arguments$output), 
                    pattern = tsv_pattern, 
@@ -213,7 +213,7 @@ tsv_paths_from_args <- function(arguments,
 cell.load.boundaries <- function(data.source,
                                  # tsv_paths_from_args args
                                  position_pattern = ".*Position(\\d+)$",
-                                 tsv_pattern = "^out_all_masks.tsv$",
+                                 tsv_pattern = "^out_all_masks.tsv(?:\\.gz)?$",
                                  # read_tiff_masks args
                                  cell_id_offset = -1, interior_offset = NULL, blank_bg = NULL,
                                  # Other args

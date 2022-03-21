@@ -7,7 +7,7 @@
 tsv_paths_from_args(
   arguments,
   position_pattern = ".*Position(\\\\d+)$",
-  tsv_pattern = "^out_all_masks.tsv$"
+  tsv_pattern = "^out_all_masks.tsv(?:\\\\.gz)?$"
 )
 }
 \arguments{
@@ -15,7 +15,7 @@ tsv_paths_from_args(
 
 \item{position_pattern}{A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.}
 
-\item{tsv_pattern}{A regex pattern matching the name of the TSV file.}
+\item{tsv_pattern}{A regex pattern matching the name of the TSV file (\code{readr::read_tsv} supports reading "gz" compressed files direclty).}
 }
 \description{
 Convenience function to generate input for \code{hues_from_tsv_files2}.
