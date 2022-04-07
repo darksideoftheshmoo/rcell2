@@ -39,27 +39,18 @@ Imports:
     tibble,
     dplyr,
     EBImage,
-    IRanges,
     sp,
     tidyr,
     ggplot2,
-    magick,
     foreach,
     parallel,
     doParallel,
-    shiny,
-    hexbin,
-    shinydashboard,
-    formattable,
     grDevices,
-    reshape2,
     stringr,
     purrr,
     readr,
-    shinyjs,
     rlang,
-    data.table,
-    keys
+    data.table
 Suggests: 
     tidyverse,
     skimr
