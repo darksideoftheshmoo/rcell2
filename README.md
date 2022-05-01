@@ -68,6 +68,8 @@ devtools::install_github("darksideoftheshmoo/rcell2", ref = "rcell2.cellid")
 devtools::install_github("darksideoftheshmoo/rcell2", ref = "rcell2.magick")
 ```
 
+Example data and analysis notebooks can be found in the examples package: [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples/tree/main).
+
 # New tools
 
 ## CellID bundled in R
@@ -123,7 +125,9 @@ See: `?rcell2::kmeans_clustering`
 
 ## Development notebooks
 
-The `testings` directory holds many rmarkdown notebooks, where we explore different analysis approaches to single cell images and cytometry:
+Example data and analysis notebooks can be found in the examples package: [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples/tree/main).
+
+The `inst/testings` directory holds many rmarkdown notebooks, where we explore different analysis approaches to single cell images and cytometry:
 
 * Spatial distribution of fluorescent signals.
 * Pattern detection in time-series.
