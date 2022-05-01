@@ -12,7 +12,7 @@ get_tiff_time_from_file(
 )
 }
 \arguments{
-\item{frames}{The frame number to process, passed to ijtiff::read_tags().}
+\item{frames}{The frame number to process, passed to \code{\link[ijtiff]{read_tags}}.}
 
 \item{format}{character string giving a date-time format as used
     by \code{\link[base]{strptime}}.}

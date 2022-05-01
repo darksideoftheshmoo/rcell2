@@ -47,7 +47,7 @@ read_description <- function(x){
 #' 
 #' TIFF files contain metadata about images in their \emph{TIFF tags}. This function
 #' is for reading this information without reading the actual image. It extends
-#' on the \code{read_tags} function from the \code{ijtiff} package, and extracts
+#' on the \code{\link[ijtiff]{read_tags}} function from the \link{ijtiff} package, and extracts
 #' additional information nested within the \code{description} attribute of some TIFF
 #' images.
 #'
@@ -65,6 +65,10 @@ read_description <- function(x){
 #' 
 #' @export
 read_tiff_tags <- function(path,frames=1){
+  # Check dependency  
+  if(!requireNamespace("ijtiff")){
+    stop("read_tiff_tags requires the 'ijtiff' package.")
+  }
   lapply(ijtiff::read_tags(path,frames),read_description)
   # stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
 }
@@ -144,15 +148,23 @@ get_tiff_time_from_file <- function(tiff.paths, frames=1,
 
 #' Get Metamorph image XML description
 #' 
-#' @param tiff.path A path to the tiff file, passed to ijtiff::read_tags().
-#' @param frames The frame number to process, passed to ijtiff::read_tags().
+#' @param tiff.path A path to the tiff file, passed to \code{\link[ijtiff]{read_tags}}.
+#' @param frames The frame number to process, passed to \code{\link[ijtiff]{read_tags}}.
 #' 
 #' @importFrom xml2 read_xml as_list
-#' @importFrom ijtiff read_tags
+# @importFrom ijtiff read_tags
 #' 
 get_tiff_description <- function(tiff.path, frames=1){
-  tiff.path %>% 
+  
+  # Check dependency  
+  if(!requireNamespace("ijtiff")){
+    stop("get_tiff_description requires the 'ijtiff' package.")
+  }
+  
+  description <- tiff.path %>% 
     ijtiff::read_tags(frames = frames) %>% 
     .[["frame1"]] %>% .[["description"]] %>% 
     xml2::read_xml() %>% xml2::as_list()
+  
+  return(description)
 }

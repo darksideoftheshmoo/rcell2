@@ -50,4 +50,5 @@ Imports:
     data.table
 Suggests: 
     tidyverse,
-    skimr
+    skimr,
+    ijtiff

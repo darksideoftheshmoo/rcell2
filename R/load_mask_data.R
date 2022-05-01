@@ -45,6 +45,11 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
   if(is.null(interior_offset)) interior_offset <- TRUE
   if(is.null(blank_bg)) blank_bg <- FALSE
   
+  # Check dependency  
+  if(!requireNamespace("ijtiff")){
+    stop("read_tiff_masks requires the 'ijtiff' package.")
+  }
+  
   # Read TIFF image
   img <- ijtiff::read_tif(path = path,msg = FALSE)
   

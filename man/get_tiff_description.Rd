@@ -7,9 +7,9 @@
 get_tiff_description(tiff.path, frames = 1)
 }
 \arguments{
-\item{tiff.path}{A path to the tiff file, passed to ijtiff::read_tags().}
+\item{tiff.path}{A path to the tiff file, passed to \code{\link[ijtiff]{read_tags}}.}
 
-\item{frames}{The frame number to process, passed to ijtiff::read_tags().}
+\item{frames}{The frame number to process, passed to \code{\link[ijtiff]{read_tags}}.}
 }
 \description{
 Get Metamorph image XML description
