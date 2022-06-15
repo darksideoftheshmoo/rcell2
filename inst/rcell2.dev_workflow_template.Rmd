@@ -28,13 +28,12 @@ bibliography: references.bib
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(magick)  # if you need it
-
-# library(utiles)  # if you need it, get this from: https://gitlab.com/naikymen/r_utils
-
 library(rcell2)  # this package you are checking out :)
-library(rcell2.cellid)
-library(rcell2.magick)
+library(rcell2.cellid)  # Advanced functionality: run CellID entirely in R.
+library(rcell2.magick)  # Advanced functionality: filter data using Shiny and preview images with Magick.
+
+# library(magick)  # if you need it
+# library(utiles)  # if you need it, get this from: https://gitlab.com/naikymen/r_utils
 
 library(tidyverse)  # import numpy as np (?)
 ```
@@ -47,7 +46,7 @@ library(tidyverse)  # import numpy as np (?)
 
 ## FULL EXAMPLE (TL;DR)
 
-Run cellid using the selected parameters.
+Run cellid using the selected parameters, and load data into R.
 
 Otherwise you may omit `parameters = parameters.txt` in the `rcell2::arguments()` call,
 or set your own using `rcell2::parameters_default()` and `rcell2::parameters_write()`.
@@ -55,13 +54,11 @@ or set your own using `rcell2::parameters_default()` and `rcell2::parameters_wri
 ```{r}
 data.dir <- "data/image_samples/"
 
-parameters.txt <- rcell2.cellid::parameters_write(rcell2.cellid::parameters_default())
-
 cellid.args <- rcell2.cellid::arguments(path = data.dir,
                                  parameters = parameters.txt,  # optional
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
-cell2.out <- 
-  rcell2.cellid::cell2(arguments = cellid.args, 
+cell2.out <-
+  rcell2.cellid::cell2(arguments = cellid.args,
                 output_coords_to_tsv = T,  # Optional
                 cell.command = "~/Software/cellID-linux/cell")
 
@@ -75,32 +72,44 @@ cell.boundaries <-
                                )
 ```
 
-### Guardar todo el output
+## Pre-processing
 
-Puede ser conveniente guardar todo en una lista:
+### Image file names
 
-```{r}
-saveRDS(
-  file = paste0(data.dir, "/", "cell2.objects.RDS"),
-  object = list(
-    parameters.df=parameters.df[2,],
-    cellid.args=cellid.args,
-    cell2.out=cell2.out,
-    cell.data=cell.data,
-    cell.boundaries=cell.boundaries
-  ))
+Images are assumed to be in a single directory, and have names with identifiers for:
+
+* Imaging channel (birghtfield, transmission, fluorescence, z-level, etc.).
+* Microscope position (*pos*).
+* Time (optional).
+
+For example, expected file names have this appearance:
+
+```
+BF_Position001_time01.tif
+BF_Position001_time02.tif
+TFP_Position001_time01.tif
+TFP_Position001_time02.tif
+YFP_Position001_time01.tif
+YFP_Position001_time02.tif
+BF_Position002_time01.tif
+BF_Position002_time02.tif
+TFP_Position002_time01.tif
+TFP_Position002_time02.tif
+YFP_Position002_time01.tif
+YFP_Position002_time02.tif
 ```
 
-### Restaurar output
+Later on, the file list has to be recognized by a specific regular expression (regex).
+A regex matching these files can be `^(BF|TFP)_Position(\\d+)_time(\\d+).tif$`,
+and it might be used by one of the image loading functions in this package.
 
-La listas se pueden cargar como objetos en el environment así: https://stackoverflow.com/a/13797968
+Always read the help page of each function for details, for example:
 
 ```{r}
-list2env(readRDS(paste0(data.dir, "/", "cell2.objects.RDS")),
-         globalenv())
+?rename_mda
 ```
 
-## Renaming Metamorph MDA images
+### Renaming Metamorph MDA images
 
 Using Metamorph's _Multi-dimensional acquisition_ (MDA for short), may use file names different from the usual style (i.e `YFP_Position01_time1.tif`, and so on).
 
@@ -125,6 +134,8 @@ These are easily adaptable to other use cases, for example you may change `chann
 Note that the `ch` field must match the corresponding capture group in `identifier.pattern` exactly.
 
 ## CellID Examples
+
+> These examples require the `rcell2.cellid` package.
 
 ### Parameters for CellID
 
@@ -177,7 +188,9 @@ Revisemos el contenido del `parameters.txt` que generamos recién:
 writeLines(readLines(parameters.txt))
 ```
 
-#### Test many!
+#### Testing parameter combinations
+
+> Optional section; these scripts below are for demostration purposes.
 
 A veces querés probar muchos parámetros antes de correr CellID en todas las fotos.
 
@@ -187,21 +200,9 @@ In this example, only `background_reject_factor` is changed:
 
 ```{r}
 parameters.list <- rcell2.cellid::parameters_default(
+  # If tou have my `utiles` package, `value.to.range()` may come in handy.
   background_reject_factor = seq(from=0, to=1.5, by = 0.6)
 )
-
-parameters.list$background_reject_factor
-```
-
-If tou have my `utiles` package, this may be useful too:
-
-```{r}
-parameters.list <- rcell2.cellid::parameters_default()
-
-parameters.list$background_reject_factor <-
-  utiles::value.to.range(
-    parameters.list$background_reject_factor,
-    width = 0.75, by = 0.1)
 
 parameters.list$background_reject_factor
 ```
@@ -218,7 +219,7 @@ parameters.df
 
 > Note: You might want to select some rows from that table, in that case, simply filter it.
 
-> Note: `utiles::value.to.range` just converts a number to a vector centered on its value (see `base::seq`).
+<!-- > Note: `utiles::value.to.range` just converts a number to a vector centered on its value (see `base::seq`). -->
 
 Define working paths for parameter testing:
 
@@ -483,20 +484,22 @@ rcell2.cellid::cell2(arguments = cellid.args,
 
 ## Load CellID data
 
+> These examples require the `rcell2` package (and optionally `rcell2.cellid`).
+
 Esto se hace con la función `load_cell_data`:
 
 ```{r}
 cell.data <- rcell2::load_cell_data(path = path)
 ```
 
-Si esa no funciona, pueden intentar con `cell.load.alt`:
+También pueden intentar con `cell.load.alt`:
 
 ```{r}
 cell.data <- rcell2.cellid::cell.load.alt(path = path,
                                           fluorescence.pattern = "^([GCYRT]FP)_Position\\d+.tif$")
 ```
 
-Obs: su `fluorescence.pattern` regex puede variar.
+Obs: su `fluorescence.pattern` regex puede variar, vean `?cell.load.alt`.
 
 ### CellID variables help
 
@@ -560,6 +563,8 @@ tags %>% arrange(pos) %>%
 
 ### Shiny-Magick framework
 
+> These examples require the `rcell2.magick` package.
+
 Inputs importantes:
 
 ```{r}
@@ -606,7 +611,7 @@ Ver ejemplos (un poco viejos) en:
 
 ## Datos de máscaras
 
-Hay dos formas de cargar los datos de las mascaras, segun las opciones con las que corriste `cell2`.
+Hay dos formas de cargar los datos de las mascaras, según las opciones con las que corriste `cell2`.
 
 ### TIFF pixel ID
 
