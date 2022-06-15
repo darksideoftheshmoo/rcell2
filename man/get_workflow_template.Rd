@@ -4,13 +4,15 @@
 \alias{get_workflow_template}
 \title{A function to donwload the latest worflow tempalte in Rmarkdown}
 \usage{
-get_workflow_template(file_name = "rcell2_workflow_template.Rmd")
+get_workflow_template(
+  file_name = "rcell2.dev_workflow_template.Rmd",
+  open.template = T
+)
 }
 \arguments{
-\item{file_name}{File name for the wokflow template.}
-}
-\value{
+\item{file_name}{File name for the downloaded wokflow template.}
 
+\item{open.template}{Try using file.edit to open the file in RStudio after getting it.}
 }
 \description{
 Will donwload the .Rmd file to the current working directory.
