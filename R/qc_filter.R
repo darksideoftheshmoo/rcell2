@@ -18,7 +18,6 @@
 #' @return cell.data object
 #' @export
 #'
-#' @examples
 qc_filter <- function(X, filter, subset=NULL){
 
     filter = substitute(filter)
@@ -97,7 +96,6 @@ qc_filter <- function(X, filter, subset=NULL){
 #' @return cell.data
 #' @export
 #'
-#' @examples
 qc_undo <- function(X){
     #browser()
     if(is.null(X$data$qc) || length(X$qc.history) == 0) stop("No qc variable\n")
@@ -137,7 +135,6 @@ qc_undo <- function(X){
 #' @return cell.data object
 #' @export
 #'
-#' @examples
 qc_reset <- function(X){
 
     qc.reseted=c()
@@ -178,7 +175,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("qc"))
 #' @return cell.data
 #' @export
 #'
-#' @examples
 qc_execute <- function(X){
     qc.attr=attributes(X$data$qc)
     qc.attr.names=names(qc.attr)

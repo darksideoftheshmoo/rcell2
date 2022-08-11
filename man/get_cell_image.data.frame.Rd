@@ -17,9 +17,6 @@
 
 \item{...}{further arguments for methods}
 }
-\value{
-
-}
 \description{
 get_cell_image.data.frame
 }

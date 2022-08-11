@@ -119,7 +119,6 @@ if(getRversion() >= "2.15.1") {
 #' @return a cell.data object
 #' @export
 #'
-#' @examples
 load_cell_data <-
     function(path = getwd(),
              pattern = ".*Position(\\d+)$",
@@ -727,7 +726,6 @@ load_cell_data <-
 #'
 #' @return a data.frame containing the bf.fl.mapping of a single position
 #' @keywords internal
-#' @examples
 .mk_flag_table <- function(bf.fl.mapping, pos = NULL){
 
     flag.name = vector(mode = "character", length = 0)
@@ -803,7 +801,6 @@ load_cell_data <-
 #'
 #' @return character vector containing variable names
 #' @keywords internal
-#' @examples
 .parse_load_vars <- function(load.vars, vars.all = NULL){
 
     if(length(load.vars) != 1) stop(".parse_load_vars argument should be of length 1\n")
@@ -1067,7 +1064,6 @@ load_cell_data <-
 #'
 #' @export
 #'
-#' @examples
 write.delim <- function(x,
                         file = "",
                         quote = FALSE,
@@ -1095,7 +1091,6 @@ write.delim <- function(x,
 #' @return string of shortened sequence
 #' @export
 #' @keywords internal
-#' @examples
 .format.sequence <- function(pos) {
     if(length(pos) < 2) return(as.character(pos))
     else{
@@ -1127,7 +1122,6 @@ write.delim <- function(x,
 #' @return boolean indicating if X is a cell.data object
 #' @export
 #'
-#' @examples
 is.cell.data <- function(X) {
     inherits(X, "cell.data")
 }

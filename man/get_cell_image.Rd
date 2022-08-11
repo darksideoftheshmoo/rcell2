@@ -11,9 +11,6 @@ get_cell_image(X, ...)
 
 \item{...}{further arguments for methods}
 }
-\value{
-
-}
 \description{
 Retrieves the images from single cells in an cell.data or cell.image (dataframe) object
 }
