@@ -1,7 +1,6 @@
 ---
-title: "Rcell2 Workflow Template"
+title: "rcell2: Workflow Template"
 author: "Nicolás Méndez"
-date: "30/09/2021"
 output:
   html_document:
     df_print: paged
@@ -26,11 +25,13 @@ bibliography: references.bib
 <!-- Download a copy of this file with rcell2::get_workflow_template() -->
 
 ```{r setup, include=FALSE}
+# Knitr options:
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir=here::here())
 
 library(rcell2)  # this package you are checking out :)
-library(rcell2.cellid)  # Advanced functionality: run CellID entirely in R.
-library(rcell2.magick)  # Advanced functionality: filter data using Shiny and preview images with Magick.
+# library(rcell2.cellid)  # Advanced functionality: run CellID entirely in R.
+# library(rcell2.magick)  # Advanced functionality: filter data using Shiny and preview images with Magick.
 
 # library(magick)  # if you need it
 # library(utiles)  # if you need it, get this from: https://gitlab.com/naikymen/r_utils
@@ -52,15 +53,16 @@ Otherwise you may omit `parameters = parameters.txt` in the `rcell2::arguments()
 or set your own using `rcell2::parameters_default()` and `rcell2::parameters_write()`.
 
 ```{r}
-data.dir <- "data/image_samples/"
+data.dir <- system.file("extdata/image_samples/", package = "rcell2.cellid")
 
 cellid.args <- rcell2.cellid::arguments(path = data.dir,
                                  parameters = parameters.txt,  # optional
                                  file.pattern = "^(BF|TFP)_Position(\\d+)().tif$")
 cell2.out <-
   rcell2.cellid::cell2(arguments = cellid.args,
-                output_coords_to_tsv = T,  # Optional
-                cell.command = "~/Software/cellID-linux/cell")
+                       # cell.command = "~/Software/cellID-linux/cell"  # Optional
+                       # output_coords_to_tsv = T,  # Optional, works only with CellID version >= 1.5
+                       )
 
 cell.data <- rcell2.cellid::cell.load.alt(path = data.dir,
                                    fluorescence.pattern = "^([GCYRT]FP|[GCYRT]\\d+)_Position\\d+.tif$")
