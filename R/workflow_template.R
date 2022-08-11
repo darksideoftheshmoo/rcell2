@@ -12,15 +12,14 @@ get_workflow_template <- function(
   
   if(file.exists(file_name)) stop("get_workflow_template error: file", file_name, "exists.")
   
-  workflow.file <- system.file(
-    "rcell2.dev_workflow_template.Rmd",
-    package = "rcell2.cellid"
-  )
+  workflow.file <- system.file("rmarkdown/templates/rmd_template.dev/skeleton/skeleton.Rmd", 
+                               package = "rcell2")
   
   if(file.exists(workflow.file)){
     file.copy(from = workflow.file, to = file_name)
   } else {
-    download.file(url = "https://raw.githubusercontent.com/darksideoftheshmoo/rcell2/rcell2.dev/inst/rcell2.dev_workflow_template.Rmd", 
+    download.file(url = paste0("https://raw.githubusercontent.com/darksideoftheshmoo/rcell2/rcell2.dev/", 
+                               "inst/rmarkdown/templates/rmd_template.dev/skeleton/skeleton.Rmd"), 
                   destfile = file_name)
   }
   

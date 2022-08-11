@@ -1,0 +1,5 @@
+name: Rcell2 CellID Notebook
+description: >
+   Workflow examples for the rcell2.cellid package.
+create_dir: FALSE
+
