@@ -39,18 +39,21 @@ With Rcell2, you can load an analize the CellID results freely, using standard R
 
 Most of the dependencies are listed in the `DESCRIPTION` file, and should install automatically.
 
-We suggest installing the [```tidyverse```][1] meta-package (and use it, you'll not regret it) and [```devtools```][2].
+We suggest installing the [```tidyverse```][1] meta-package (and use it, you'll not regret it) and [```devtools```][2]:
+
+```r
+install.packages(c("tidyverse", "devtools"))
+```
 
 In addition, install [```EBImage```][3] package (required to look at cells) by copying and running the following script:
 
 ```r
-install.packages(c("tidyverse", "devtools"))
-
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("EBImage")
 ```
+
 <!-- DEPRECATED SECTION: magick was moved to its own package.
 
 Also install `imagemagick` on your system; this is required by R's `magick` package. All the major operating systems are supported by ImageMagick: https://imagemagick.org/script/download.php
