@@ -66,10 +66,10 @@ read_description <- function(x){
 #' @export
 read_tiff_tags <- function(path,frames=1){
   # Check dependency  
-  if(!requireNamespace("ijtiff")){
-    stop("read_tiff_tags requires the 'ijtiff' package.")
+  if(!"ijtiff" %in% rownames(installed.packages())){
+    stop("read_tiff_tags requires the 'ijtiff' package, which is not installed by default. Please install it to use this function :)")
   }
-  lapply(ijtiff::read_tags(path,frames),read_description)
+  lapply(ijtiff::read_tags(path,frames), read_description)
   # stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
 }
 
