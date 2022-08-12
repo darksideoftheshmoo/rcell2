@@ -39,7 +39,9 @@ With Rcell2, you can load an analize the CellID results freely, using standard R
 
 Most of the dependencies are listed in the `DESCRIPTION` file, and should install automatically.
 
-Install the [```tidyverse```][1] meta-package (and use it, you'll not regret it) and [```devtools```][2]. In addition, install [```EBImage```][3] package (required to look at cells) by copying and running the following script. 
+We suggest installing the [```tidyverse```][1] meta-package (and use it, you'll not regret it) and [```devtools```][2].
+
+In addition, install [```EBImage```][3] package (required to look at cells) by copying and running the following script:
 
 ```r
 install.packages(c("tidyverse", "devtools"))
