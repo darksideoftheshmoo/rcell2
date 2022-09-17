@@ -29,9 +29,9 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = T,
                       message = F, 
                       # https://yihui.org/knitr/options/#chunk-options
-                      out.width = "100%",
+                      out.width = "100%")
                       # https://stackoverflow.com/a/66753995
-                      tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+                      # tidy.opts = list(width.cutoff = 60), tidy = TRUE)
 knitr::opts_knit$set(root.dir = here::here())  #, base.dir = here::here())
 
 library(rcell2)  # this package you are checking out :)
