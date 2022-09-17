@@ -44,3 +44,4 @@ data/time_series_image_samples/
 
 testings/workflow_template/test_parameters_videos/
 .Rd2pdf*/*
+*.directory
