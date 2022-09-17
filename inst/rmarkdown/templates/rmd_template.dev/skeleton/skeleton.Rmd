@@ -12,6 +12,7 @@ output:
     smooth_scroll: false
     code_folding: hide
   pdf_document:
+    latex_engine: xelatex
     toc: true
     toc_depth: 4
     number_sections: true
