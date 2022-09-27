@@ -12,6 +12,7 @@ output:
     smooth_scroll: false
     code_folding: hide
   pdf_document:
+    latex_engine: xelatex
     toc: true
     toc_depth: 4
     number_sections: true
@@ -25,9 +26,13 @@ bibliography: references.bib
 <!-- Download a copy of this file with rcell2::get_workflow_template() -->
 
 ```{r setup, include=FALSE}
-# Knitr options:
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir=here::here())
+knitr::opts_chunk$set(echo = T,
+                      message = F, 
+                      # https://yihui.org/knitr/options/#chunk-options
+                      out.width = "100%")
+                      # https://stackoverflow.com/a/66753995
+                      # tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_knit$set(root.dir = here::here())  #, base.dir = here::here())
 
 library(rcell2)  # this package you are checking out :)
 # library(rcell2.cellid)  # Advanced functionality: run CellID entirely in R.
