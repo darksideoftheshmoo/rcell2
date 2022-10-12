@@ -1,19 +1,25 @@
 # rcell2
 
-Functions to analyze [Cell-ID](https://github.com/darksideoftheshmoo/cellID-linux)'s single-cell cytometry data in R, using a tidy framework.
+Functions to analyze [Cell-ID](https://github.com/darksideoftheshmoo/cellID-linux)'s single-cell cytometry data in R, using a tidy and shiny framework.
 
-rcell2's functionality is split into four packages:
+`rcell2`'s functionality is split into four packages:
 
-* The main rcell2 package offers functions to load Cell-ID's output to data.frames, and image manipulation based on EBImage. A development version of this package is available in the [`rcell.dev`](https://github.com/darksideoftheshmoo/rcell2/tree/rcell2.dev) branch.
-* Cell-ID, the image segmentation software, has been wrapped in the [`rcell.cellid`](https://github.com/darksideoftheshmoo/rcell2/tree/rcell2.cellid) package. It offers functions to run CellID from R, and an rmarkdown template showcasing advanced functionality.
-* The cell tiling and graphic filtering apps, built on R-Shiny and [magick](https://github.com/ropensci/magick), are available in the [`rcell.magick`](https://github.com/darksideoftheshmoo/rcell2/tree/rcell2.magick) package.
-* The [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples) package contains notebooks on general usage, and on several classification and analysis methods.
+* The main `rcell2` package offers functions to load Cell-ID's output to data.frames, and image manipulation based on EBImage. <!-- A development version of this package is available in the [`rcell2.dev`](https://github.com/darksideoftheshmoo/rcell2/tree/rcell2.dev) branch. -->
+* Cell-ID, the image segmentation software, has been wrapped in the [`rcell2.cellid`](https://github.com/darksideoftheshmoo/rcell2-cellid) package. It offers functions to run CellID from R, and an rmarkdown template showcasing advanced functionality.
+* Advanced cytometry tools built on R-Shiny and [magick](https://github.com/ropensci/magick). The [`rcell2.magick`](https://github.com/darksideoftheshmoo/rcell2-magick) package provides tools for single-cell image tiling, and graphic filtering apps. It also includes an rmarkdown template with examples and tutorials.
+* The [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples) package contains example images (used by the notebook templates in other packages) and notebooks where we've tested several analyis and classification methods.
 
 This package is very well tested in baker's yeast data, and R version 4+.
 
 ## Preview
 
-Provide a _defocused_ brightfield image to CellID, and _voila_:
+The typical pipeline:
+
+1. Use [`rcell2.cellid`](https://github.com/darksideoftheshmoo/rcell2-cellid) to segment images.
+2. Use this package to load the output, and manipulate it using base R or the tidyverse.
+3. Use [`rcell2.magick`](https://github.com/darksideoftheshmoo/rcell2-magick) to filter cells graphically with Shiny apps, make single-cell image strips, and advanced plots.
+
+The concept is straightforward: provide a _defocused_ brightfield image to Cell-ID, and _voila_:
 
 <img src="doc/TFP.png" width="350"> <img src="doc/TFP.out.png" width="350">
 
@@ -32,6 +38,14 @@ With Rcell2, you can load an analize the CellID results freely, using standard R
 > Background corrected fluorescent signal concentration VS time, plotted with ggplot2.
 
 # Installation
+
+These installation instructions correspond to the `rcell2` package.
+
+To get the full functionality of the rcell2 suite, also install:
+
+* [`rcell2.cellid`](https://github.com/darksideoftheshmoo/rcell2-cellid)
+* [`rcell2.magick`](https://github.com/darksideoftheshmoo/rcell2-magick)
+* [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples)
 
 ## R Dependencies
 
@@ -85,17 +99,20 @@ Visit the CellID repository to get installation instructions.
 
 ## Installing the package
 
-Install using `remotes`, directly from github repo:
+Install the packages using `remotes`, directly from the github repos:
 
 ```
-# rcell2 package (dev branch)
-remotes::install_github("darksideoftheshmoo/rcell2", ref = "rcell2.dev")
+# rcell2 package
+remotes::install_github("darksideoftheshmoo/rcell2")
 
 # cellid package
 remotes::install_github("darksideoftheshmoo/rcell2-cellid")
 
 # shiny-magick package
 remotes::install_github("darksideoftheshmoo/rcell2-magick")
+
+# rcell2 package
+remotes::install_github("darksideoftheshmoo/rcell2")
 ```
 
 Example data and analysis notebooks can be found in the examples package: [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples/tree/main).
@@ -104,7 +121,7 @@ Example data and analysis notebooks can be found in the examples package: [`rcel
 
 ## CellID bundled in R
 
-> This feature is available in the new "rcell2.cellid" package.
+This feature is available in the new [`rcell2.cellid`](https://github.com/darksideoftheshmoo/rcell2-cellid) package.
 
 * This package bundles, compiles and wraps our improved Cell-ID binary.
 * Save, load and manipulate cell masks and boundaries within R.
@@ -113,12 +130,22 @@ Example data and analysis notebooks can be found in the examples package: [`rcel
 
 ## R-Shiny tools for cytometry data
 
-> This feature is available in the new "shiny-magick" package.
+This feature is available in the new [`rcell2.magick`](https://github.com/darksideoftheshmoo/rcell2-magick) package.
+
+
+
+* R-Shiny apps will help users filter data graphically, with live image previews.
+* Single-cell visualization and image plotting tools, based on [magick](https://github.com/ropensci/magick):
+  * Read single cells images of any channels into `magick` objects.
+  * You may use any of `magick`'s functions to manipulate these images.
+  * Create 1D-tiles and 2D-mosaics of single cells, time courses, of one or many imaging/fluorescence channels.
+  * Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage). Implemented in functions: cellSpread, cellSpreadPlot, and "Pics" type plot in shinyCell.
+
+The graphical filter in this app is general purpose (i.e. useful in standard cell cytometry), and the image-manipulation feature is tailored for data from fluorescence microscopy experiments.
 
 <!-- DEPRECATED SECTION: magick was moved to its own package.
 
-An R-Shiny app will help users filter data graphically, with live image previews.
-While the image part may be tailored for data from fluorescence microscopy experiments, the graphical filter in this app is general purpose (i.e. useful in standard cell cytometry).
+* Several image-manipulation functions, , can generate single-cell tiles and 2D-binned scatter plots, with sample images of single cells on each bin.
 
 There is also another small app to "tag" single cells in the dataset with user defined options.
 
@@ -135,19 +162,11 @@ See:
 
 -->
 
-Single-cell visualization and image plotting tools:
-
-* Reads single cells images of all channels into `magick` objects.
-* Use any of `magick`'s functions to manipulate your images.
-* Creates tiles and mosaics of single cells, time courses, of one or many imaging/fluorescence channels.
-* Plot of a 2D grid of "representative" single cell images in a scatterplot (similar to EBImage). Implemented in functions: cellSpread, cellSpreadPlot, and "Pics" type plot in shinyCell.
-
-
 ## Hu Moment functions for raw cell segmentation data
 
 We implemented the `Hu moments` descriptors in R, and use them on masks generated by CellID. Note that the masks must be generated by the the CellID [`mask_mod` branch](https://github.com/darksideoftheshmoo/cellID-linux/tree/mask_mod) either by TSV output or by encoding CellIDs in the pixel intensities of boundary and/or interior points.
 
-We recommend using the [`rcell.cellid`](https://github.com/darksideoftheshmoo/rcell2/tree/rcell2.cellid) package to generate the required input.
+Use the [`rcell.cellid`](https://github.com/darksideoftheshmoo/rcell2-cellid) package to generate the required input.
 
 
 ## K-means filtering functions
