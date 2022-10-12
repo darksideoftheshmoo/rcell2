@@ -6,10 +6,8 @@
 #' @param X cell.data object
 #' @param ... arguments for \code{\link{cimage.cell.image}} and \code{\link{cimage.cell.data}}
 #'
-#' @return
 #' @export
 #'
-#' @examples
 cimage <- function(X,...) {
     UseMethod("cimage")
     }
@@ -41,10 +39,8 @@ cimage <- function(X,...) {
 #' @param ... further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
 #'  so all the arguments of this function are available.
 #'
-#' @return
 #' @export
 #'
-#' @examples
 cimage.cell.data <- function(X,
                              formula = NULL,
                              facets = NULL,
@@ -248,10 +244,8 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("img.index",
 #' @param ... further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
 #'  so all the arguments of this function are available.
 #'
-#' @return
 #' @export
 #'
-#' @examples
 cimage.cell.image <- function(X,
                               formula = NULL,
                               subset = NULL,
@@ -822,15 +816,13 @@ cimage.default <- function(X, ...){
 #*************************************************************************#
 #generic
 #returns a cell.image object
-#' Title
+#' Retrieves the images from single cells in an cell.data or cell.image (dataframe) object
 #'
 #' @param X cell.data object or data.frame that specifies the images
 #' @param ... further arguments for methods
 #'
-#' @return
 #' @export
 #'
-#' @examples
 get_cell_image <- function(X,...) {
     UseMethod("get_cell_image")
     }
@@ -858,10 +850,8 @@ get_cell_image <- function(X,...) {
 #' @param box.size size in pixels of the image containing the cells. This specifies the 'radius', i.e. the image will be a square of length 2*box.size+1
 #' @param ... further arguments for methods
 #'
-#' @return
 #' @export
 #'
-#' @examples
 get_cell_image.cell.data <- function(X,
                                      subset = NULL,
                                      channel.subset = NULL,
@@ -1004,10 +994,8 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("qc",
 #' @param bg.col color to be used for the background of the images
 #' @param ... further arguments for methods
 #'
-#' @return
 #' @export
 #'
-#' @examples
 get_cell_image.data.frame <- function(X,
                                       box.size = 20,
                                       contained.box = FALSE,

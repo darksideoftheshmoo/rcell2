@@ -63,9 +63,6 @@
 \item{...}{further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
 so all the arguments of this function are available.}
 }
-\value{
-
-}
 \description{
 returns cropped cell images arranged in some way
 }

@@ -21,3 +21,4 @@ Possible values for load.vars are 'all', 'fl' or 'fluorescence', 'bg' or 'backgr
 The group of variables can be specified in either a positive form (i.e. '+fl+bg+morph')
 or in a negative form (i.e. '-nucl-vac'). Combination of positive and negative form is not allowed.
 }
+\keyword{internal}

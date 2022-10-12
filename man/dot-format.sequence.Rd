@@ -15,3 +15,4 @@ string of shortened sequence
 \description{
 formats sequence of numbers in an short expresion  eg: 1-10, 12-15
 }
+\keyword{internal}

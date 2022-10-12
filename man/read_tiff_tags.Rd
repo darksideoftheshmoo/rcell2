@@ -19,7 +19,7 @@ A list of lists.
 \description{
 TIFF files contain metadata about images in their \emph{TIFF tags}. This function
 is for reading this information without reading the actual image. It extends
-on the \code{read_tags} function from the \code{ijtiff} package, and extracts
+on the \code{\link[ijtiff]{read_tags}} function from the \link{ijtiff} package, and extracts
 additional information nested within the \code{description} attribute of some TIFF
 images.
 }

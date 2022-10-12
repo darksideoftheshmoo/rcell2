@@ -17,3 +17,4 @@ a reduced cell.data data.frame with selected clustering variables only
 \description{
 Extract specific variables relevant for clustering
 }
+\keyword{internal}

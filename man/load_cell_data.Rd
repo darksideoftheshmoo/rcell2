@@ -6,7 +6,7 @@
 \usage{
 load_cell_data(
   path = getwd(),
-  pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
+  pattern = ".*Position(\\\\d+)$",
   basename = "out",
   select = NULL,
   exclude = NULL,

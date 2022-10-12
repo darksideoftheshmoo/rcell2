@@ -19,3 +19,4 @@ Generates a table mapping a channel name (3 first characters of the image file)
 to a flag number for a given bf.fl.mapping data.frame (read from an
 output_bf_fl_mapping file)
 }
+\keyword{internal}

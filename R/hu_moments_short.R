@@ -66,31 +66,14 @@ hu.moments <- function(xy){
            hum_8 = I8))
 }
 
-#' Generate a dataframe with boundary coordinates from mask tiff file
-pic_df_from_tiff <- function(tiff_path, image_bits, cell_id_offset = -1){
-  # Read masks tiff
-  pic <- tiff::readTIFF(tiff_path)
-  # Convert intensity value to 16-bit integers
-  pic <- pic * (2^image_bits - 1)
-  # Replace zeros with NA
-  pic[pic == 0] <- NA
-  
-  # Convert pic matrix to dataframe of coordinates per mask/value
-  pic_df <- data.frame(y=rep(1:nrow(pic), ncol(pic)), 
-                       x=rep(1:ncol(pic), each = nrow(pic)),
-                       pix_value=c(pic))
-  # Clear NA rows
-  pic_df <- pic_df[!is.na(pic_df[["pix_value"]]),]
-  # Convert integer intensity value to CellID
-  pic_df$cellID <- factor((2^image_bits -1) - pic_df[["pix_value"]] + cell_id_offset)
-  
-  return(pic_df)
-}
-
 #' Generate Hu moments from XY coordinates dataframe
-#' 
-#' This function requires a CellID column to split the coordinates by.
-#' 
+#'
+#' This function requires a CellID column to split the coordinates by (uses "cellID" by default).  Can be provided by \code{read_coords_tsv}.
+#'
+#' See \code{hues_from_xy2} for a parallelized version.
+#'
+#' @param pic_df A data frame with XY coordinates, containing columns "x", "y", and the grouping column; named by the \code{split_col} parameter.
+#' @param split_col A string matching the name of the colum used to split the dataframe into individual shapes.
 hues_from_xy <-  function(pic_df, split_col = "cellID"){
   # Split the dataframe by cellID
   pic_df_split <- split(pic_df, pic_df[[split_col]])
@@ -113,13 +96,15 @@ hues_from_xy <-  function(pic_df, split_col = "cellID"){
   return(bind_rows(hues))
 }
 
-#' Generate Hu moments from XY coordinates dataframe
+#' Generate Hu moments from XY coordinates in parallel
 #' 
-#' This function requires a CellID column to split the coordinates by. Optional cell-wise parallelization.
+#' This function requires a CellID column to split the coordinates by (uses "cellID" by default).
+#'
+#' See \code{hues_from_xy2} for a serial (non-parallel) version.
+#'
 #' 
-#' @param coords_df A data frame with XY coordinates, containing columns "x", "y", and the column named by the \code{split_col} parameter.
+#' @param coords_df A data frame with XY coordinates, containing columns "x", "y", and the grouping column; named by the \code{split_col} parameter. Can be provided by \code{read_coords_tsv}.
 #' @param split_col A string matching the name of the colum used to split the dataframe into individual shapes.
-#' 
 #' @return A data frame with Hu moments for each split of the input, identified by \code{split_col}.
 #' @importFrom data.table rbindlist
 #' @rawNamespace import(foreach, except = c("when", "accumulate"))
@@ -163,27 +148,6 @@ hues_from_xy2 <-  function(coords_df, split_col = "cellID"){
   return(hues_bound)  
 }
 
-#' Read TSV file with mask coords
-#' 
-#' @inheritParams hues_from_tsv2
-#' 
-read_coords_tsv <- function(masks_tsv_path, shape_pixtype = "b", shape_flagtype = 0){
-  masks_coords <-readr::read_tsv(masks_tsv_path, progress = TRUE,
-                                 col_types = cols(cellID = readr::col_integer(),
-                                                  t.frame = readr::col_integer(),
-                                                  flag = readr::col_integer(),
-                                                  x = readr::col_integer(),
-                                                  y = readr::col_integer(),
-                                                  pixtype = readr::col_factor(levels = c("b", "i"))
-                                                  )
-                                 ) %>% 
-    {if(!is.null(shape_pixtype)) filter(., pixtype %in% shape_pixtype) else .} %>% 
-    {if(!is.null(shape_flagtype)) filter(., flag %in% shape_flagtype) else .} %>% 
-    mutate(id = factor(paste(cellID, t.frame, flag, pixtype, sep = "_")))
-  
-  return(masks_coords)
-}
-
 #' Generate Hu moments from XY coordinates TSV file
 #' 
 #' Cells in the dataframe are split by cellID, t.frame, flag, and pixtype by default.
@@ -191,11 +155,11 @@ read_coords_tsv <- function(masks_tsv_path, shape_pixtype = "b", shape_flagtype 
 #' Optional filtering by shape type (boundary or interior) and CellID flag number.
 #' 
 #' Optional cell-wise parallelization.
+#'
+#' To process many TSV files at once, use \code{hues_from_tsv_files2}.
 #' 
-#' @param masks_tsv_path A path to the TSV file holding XY coordinates, from CellID's output with "-t" option.
+#' @inheritParams read_coords_tsv
 #' @param .parallel Enable cell-wise parallelization using parallel::parLapply
-#' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
-#' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.
 #' @param cdata_subset Subset of cdata with unique rows, and only pos, t.frame and cellID columns.
 #' @param position Microscope position number (int) that corresponds to current TSV file, used for filtering if \code{cdata_subset} is not NULL.
 #' @import readr
@@ -214,7 +178,7 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
     
   # Compute Hu moments
   if(!.parallel) {
-    hues_df <- hues_from_xy(masks_coords, split_col="id")
+    hues_df <- hues_from_xy(pic_df = masks_coords, split_col="id")
   } else {
     hues_df <- hues_from_xy2(coords_df = masks_coords, split_col="id")
   }
@@ -227,32 +191,6 @@ hues_from_tsv2 <- function(masks_tsv_path, .parallel = F,
   cat(paste("Message from hues_from_tsv2: done!\n"))
   
   return(hues_by_cell)  # to hues_from_tsv_files2()
-}
-
-#' Generate data.frame with paths to coordinate TSV files
-#' 
-#' @param arguments As produced by \code{rcell2::cellArgs2}.
-#' @param position_pattern A regex pattern with one group for the integer position number, extracted from the directory name holding the TSV file.
-#' @param tsv_pattern A regex pattern matching the name of the TSV file.
-#' @export
-tsv_paths_from_args <- function(arguments,
-                                position_pattern = ".*Position(\\d+)$",
-                                tsv_pattern = "^out_all_masks.tsv$"){
-  
-  tsv_paths <- dir(unique(arguments$output), 
-                   pattern = tsv_pattern, 
-                   full.names = T)
-  
-  if(length(tsv_paths) != length(unique(arguments$output))) 
-    stop("tsv_paths_from_args error: the number of TSVs found does not match the arguments length")
-  
-  tsv_files_df <- 
-    data.frame(
-      pos = as.integer(sub(position_pattern, "\\1", dirname(tsv_paths))),
-      path = tsv_paths
-    )
-  
-  return(tsv_files_df)
 }
 
 #' Generate Hu moments data frame from one or more TSV files
@@ -305,15 +243,12 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
 }
 
 
-#' Add Hu moments data.frame to a cell_data object
+#' Generate Hu moments from CellID's mask TSV files
 #' 
 #' The required TSV are generated by the mask_mod branch of the CellID program found at: https://github.com/darksideoftheshmoo/cellID-linux/tree/mask_mod
-#' 
-#' To play with the XY coordinates of the TIFF masks you may want to set \code{return_points = T}.
-#' 
-#' @param tsv_files_df A data.frame with paths to the TSV files with the cells' XY coordinates, generated by CellID mask_mod's "-t" option. Use \code{tsv_paths_from_args()} for convenience.
-#' @param cell_data NULL list by default. You may pass a cell.data list object from rcell2::load_cell_data, for convenience, or just the cdata dataframe as \code{list(data = cdata)}.
-#' @param return_points if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.
+#'
+#' @param tsv_files_df A data.frame with paths to the TSV files with the cells' XY coordinates (requires "path" and "pos" columns). Use \code{tsv_paths_from_args()} for convenience.
+#' @param cell_data Either NULL, a list, or cell.data object from rcell2::load_cell_data. If not NULL, the result is added to the list.
 #' @param parralellize Enable cell-wise parallelization using parallel::parLapply
 #' @param shape_pixtype Default "b" for Hu moments based on boundary points. A character vector containing any of c("b", "i").
 #' @param shape_flagtype Default 0 for Hu moments based on flag value 0. Can be any of the integer flag values present in the \code{out_bf_fl_mapping} CellID files.
@@ -324,15 +259,12 @@ hues_from_tsv_files2 <- function(tsv_files_df, return_points = F, parralellize =
 #' 
 append_hues2 <- function(tsv_files_df, 
                          cell_data = NULL, 
-                         return_points = F,
                          parralellize = T,
                          shape_pixtype = "b",
                          shape_flagtype = 0,
                          overwrite = F
                          ){
   
-  if(return_points) 
-    stop("return_points option not implemented yet :/")
   if("Hu_moments" %in% names(cell_data) && !overwrite) 
     stop("cell_data already has a Hu_moments element, use 'overwrite=TRUE' to force it.")
   
@@ -349,31 +281,25 @@ append_hues2 <- function(tsv_files_df,
                                   cdata_subset = cdata_subset)
   
   # Append Hu moment data to cell_data object
-  if(is.null(cell_data)) list(Hu_moments = hues_df) 
+  if(is.null(cell_data)) return(hues_df)
   else cell_data[["Hu_moments"]] <- hues_df
-
-  # if(return_points){
-  #   masks_df <- bind_rows(
-  #     lapply(pic.and.hues.dfs, FUN = function(l) l[["pic_df"]])
-  #   )
-  # 
-  #   cell_data[["masks"]] <- masks_df
-  # }
 
   return(cell_data)
 }
 
-#' Append Hu moments columns to data on a cell_data object
+#' Add Hu moments from TIFF files to cell.data
+#'
+#' Generate Hu moments columns from TIFF files and append them to "data" on a cell_data object.
 #' 
-#' It is imperative that the TIFF images contain only cell boundaries, with pixel intensity values such that "CellID = (2^image_bits -1) - pixel_value"
+#' It is imperative that the TIFF images contain only cell boundaries, with pixel intensity values such that \code{CellID = (2^image_bits -1) - pixel_value}.
 #' 
-#' This is automatically generated by the mask_mod branch of the CellID program found at: https://github.com/darksideoftheshmoo/cellID-linux/tree/mask_mod
+#' Such TIFF images are automatically generated by the mask_mod branch of the CellID program found at: https://github.com/darksideoftheshmoo/cellID-linux/tree/mask_mod
 #' 
 #' To play with the XY coordinates of the TIFF masks you may want to set \code{return_points = T}.
-#' Or if you want to skip calculation of the Hu moments, checkout \code{rcell2:::pic_df_from_tiff}.
+#' Or if you want to skip calculation of the Hu moments, checkout \code{rcell2:::mask_df_from_tiff}.
 #' 
 #' @param cell_data a cell_data object as loaded by rcell2::load_cell_data
-#' @param image_bits an integer indicating the bit-depth on the TIFF images, such that maximum intensity is \code{image_bits^2 -1} and minimum is zero.
+#' @param image_bits an integer indicating the bit-depth on the TIFF images, such that maximum intensity is \code{image_bits^2 -1} and minimum is zero. Tipically 8 or 16.
 #' @param cell_id_offset the offset respect to maximum pixel intensity, such that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.
 #' @param return_points if TRUE it will add a "masks" dataframe to the cell_data object, containing the mask coordinates.
 #' @export
@@ -393,7 +319,7 @@ append_hues <- function(cell_data, image_bits, cell_id_offset = -1, return_point
   
   pic.and.hues.dfs <- apply(paths, MARGIN = 1, FUN = function(pic_metadata){
     # Extract xy coordinates list from the BF.out mask tiff and derive cellID from the intensities
-    pic_df <- pic_df_from_tiff(tiff_path = pic_metadata["file"], 
+    pic_df <- mask_df_from_tiff(tiff_path = pic_metadata["file"],
                                image_bits = image_bits, 
                                cell_id_offset = cell_id_offset)
     
@@ -430,94 +356,4 @@ append_hues <- function(cell_data, image_bits, cell_id_offset = -1, return_point
   }
   
   return(cell_data)
-}
-
-#' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
-check_tiff_mask <- function(cell_data){
-  
-  options(dplyr.summarise.inform = FALSE)
-  
-  masks_df_summary <- cell_data$masks %>% 
-    group_by(cellID, t.frame, pos) %>% 
-    summarise(cellID = first(cellID),
-              t.frame = first(t.frame),
-              pos = first(pos),
-              n_values = n(),
-              # xspan = paste(min(x), max(x), sep = "-"),
-              # yspan = paste(min(y), max(y), sep = "-"),
-              xspan = min(x) - max(x),
-              yspan = min(y) - max(y),
-              mean_xpos = round(mean(x)),
-              mean_ypos = round(mean(y))
-    )
-  
-  cdata_compare <- left_join(mutate(cell_data$data, cellID = as.factor(cellID)),
-                             select(masks_df_summary, 
-                                    cellID, t.frame, pos, mean_xpos, mean_ypos), 
-                             by = c("cellID", "t.frame", "pos"))
-  p1 <- cdata_compare %>% 
-    ggplot() +
-    geom_point(aes(x = xpos, y = mean_xpos, color = factor(xpos - mean_xpos))) +
-    facet_grid(pos~t.frame) +
-    xlab("cellid xpos") +
-    ylab("rounded mean mask xpos")
-  
-  p2 <- cdata_compare %>% 
-    ggplot() +
-    geom_point(aes(x = ypos, y = mean_ypos, color = factor(ypos - mean_ypos))) +
-    facet_grid(pos~t.frame) +
-    xlab("cellid ypos") +
-    ylab("rounded mean mask ypos")
-  
-  print(p1)
-  print(p2)
-  
-  options(dplyr.summarise.inform = TRUE)
-  
-  return(invisible(NULL))
-}
-
-#' Make plots to examine correspondence between mean mask xpos/ypos and CellID xpos/ypos for each cell.
-check_tiff_mask2 <- function(cell_data){
-  
-  options(dplyr.summarise.inform = FALSE)
-  
-  masks_df_summary <- cell_data$masks %>% 
-    group_by(cellID, t.frame, pos) %>% 
-    summarise(cellID = first(cellID),
-              t.frame = first(t.frame),
-              pos = first(pos),
-              n_values = n(),
-              # xspan = paste(min(x), max(x), sep = "-"),
-              # yspan = paste(min(y), max(y), sep = "-"),
-              xspan = min(x) - max(x),
-              yspan = min(y) - max(y),
-              mean_xpos = round(mean(x)),
-              mean_ypos = round(mean(y))
-    )
-  
-  cdata_compare <- left_join(mutate(cell_data$data, cellID = as.factor(cellID)),
-                             select(masks_df_summary, 
-                                    cellID, t.frame, pos, mean_xpos, mean_ypos), 
-                             by = c("cellID", "t.frame", "pos"))
-  p1 <- cdata_compare %>% 
-    ggplot() +
-    geom_point(aes(x = xpos, y = mean_xpos, color = factor(xpos - mean_xpos))) +
-    facet_grid(pos~t.frame) +
-    xlab("cellid xpos") +
-    ylab("rounded mean mask xpos")
-  
-  p2 <- cdata_compare %>% 
-    ggplot() +
-    geom_point(aes(x = ypos, y = mean_ypos, color = factor(ypos - mean_ypos))) +
-    facet_grid(pos~t.frame) +
-    xlab("cellid ypos") +
-    ylab("rounded mean mask ypos")
-  
-  print(p1)
-  print(p2)
-  
-  options(dplyr.summarise.inform = TRUE)
-  
-  return(invisible(NULL))
 }

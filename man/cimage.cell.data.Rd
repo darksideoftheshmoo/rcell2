@@ -50,9 +50,6 @@ all cells are selected.}
 \item{...}{further arguments for methods. \code{cimage} calls \code{\link{get_cell_image}},
 so all the arguments of this function are available.}
 }
-\value{
-
-}
 \description{
 calls cimage.cell.image
 }

@@ -47,9 +47,6 @@
 
 \item{...}{further arguments for methods}
 }
-\value{
-
-}
 \description{
 Retrieves the images from single cells in an cell.image object
 }

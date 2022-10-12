@@ -1,0 +1,113 @@
+## Sample parameters.txt file.
+## Any line beginning with a # sign is ignored
+## (do not, however, put pound signs in the middle of a line)
+
+## For every combination of two pixels on the boundary, Cell-ID calculates
+## the distance along the boundary path divided by the Euclidean distance
+## between them. The maximum value of this ratio was larger for cells with
+## a “figure-eight” shape that were pinched in some part than for circular cells.
+## If the maximum value was above a user-defined threshold (which defaulted to 6), 
+## then we split the cell into two cells at the location of the pinch
+## However, if the Euclidean distance divided by the length of the minor axis was
+## greater than a user-defined value (which defaulted to 0.5), for either of the
+## new cells, then the two cells were re-grouped as a single cell. Thus, we 
+## required that the two new cells had a generally circular shape and were 
+## not too elongated, as would be the case if the previous split was not over
+## two cell, but over a cell and its mating projection.
+ max_split_over_minor 0.5
+ max_dist_over_waist 8
+
+## Area limits per cell
+ max_pixels_per_cell 3000
+ min_pixels_per_cell 70
+
+## The code makes an initial decision about the graylevels of the
+## boundary pixels. To do this it takes the mean position of all the
+## graylevels in the images and subtracts Z standard deviations. It then
+## starts by considering all gray levels below this value as being
+## parts of the cell borders. This value Z is the parameter
+## background_reject_factor. Brightfield images taken slightly out of
+## focus may do better with with higher values (ie, higher values will
+## better avoid spurious cells), but if the cell boundaries in the image
+## are too narrow, a smaller value may be necessary--which might increase
+## the level of background.
+ background_reject_factor 1.5
+
+
+## Calculate all the fluorescence images variables on the bright field
+## image as if it were a fluorescence image. This is potentially a good
+## idea since it allows a good way to reject spurious cells. For example,
+## the average value of the boundary pixels in good cells will be lower
+## than the background level, but not so for spurious cells, etc.
+# treat_brightfield_as_fluorescence_also
+
+
+## Image type of the image that is used to find the cells
+image_type brightfield
+
+## "bf_fl_mapping" option description (by guesswork, mask_mod branch).
+## The mapping between brightfield and fluorescence images can be made
+## by acquisition time, or derived from the order in the list of paths
+## passed as command line options "-b" and "-f" to cell.
+## If the order is by "list", then the paths must be grouped and ordered
+## first by t.frame (ascending) and then by channel.
+## If the order is by "time", cell derives the BF-FL mapping from the
+## acquisition time in the TIFF metadata.
+## bf_fl_mapping time
+bf_fl_mapping list 
+
+## If we have a "fret" image or not (a "fret" image here means that
+## the image is split into an upper and lower half, each with its own
+## excitation filter in front of it).
+## The three arguments (bf_top_only, bf_bottom_only, bf_bottom_and_top)
+## indicate where in the bright field image to look for the cells--since
+## it's assumed that the bright field image also had its output sent
+## throught the two excitation filters.
+# fret bf_top_only
+# fret bf_bottom_only
+# fret bf_bottom_and_top
+
+## More for the fret images. One of the fluorescence images will be
+## used to identify the nucleus. Should it be the top or bottom image.
+# fret nuclear_top
+# fret nuclear_bottom
+
+## If there is a third image type included, then this describes how
+## to use it (nuclear_label means its a fluorescence tagged nucleus
+## channel, vacuole_label means vacuole label)
+# third_image vacuole_label
+# third_image nuclear_label
+
+
+## "do_recombination" to try to connect cells using cuts on fluorescence
+## "recombination_fl_per_a_nucleus F CUT" is cut below which we consider the
+## cell has no nucleus. "F" is the "flag" given to the fluorescence type we're
+## going to use for the cut.
+## "recombination_is_a_cell_fl_per_a F CUT" is minimum fluorescence/area to
+## consider the cell a real cell (a way to get rid of junk). This is only
+## used for recombining cells. Ie, for recombining cells we only consider
+## cells above CUT but we don't throw away those that fail. "F" is the flag
+## for the fluorescence type to use.
+# do_recombination
+# recombination_fl_per_a_nucleus 1 2500.0
+# recombination_is_a_cell_fl_per_a 3 500.0
+
+## allow wiggling between the brightfield and fluorescence images
+ align_individual_cells
+
+
+# append_output means that when we write out the output files
+# we're going to _add_ to the end of the files instead of making
+# new ones.
+# the argument is the offset to add to the id numbers
+# append_output 1000
+
+# Check whether to align the fluorescence images to the brightfield image
+# Will align first FL files to brightfield.
+# Overrides by "align_fl_to_first"
+ align_fl_to_bf
+
+# Check whether we want to use the first fluorescence image to
+# align all the others. Will align all FL files to first FL file.
+# Overriden by "align_fl_to_bf"
+ align_fl_to_first

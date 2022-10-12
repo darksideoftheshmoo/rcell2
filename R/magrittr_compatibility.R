@@ -25,7 +25,6 @@
 #' @return a tibble
 #' @export
 #'
-#' @examples
 d <- function(cell.data) {
     cell.data[['data']]
 }

@@ -7,31 +7,38 @@
 \description{
 It is a rewrite and revamp of the previously awesome Rcell package, by Dr. Alan Bush.
 Plotting functions from that package have been excluded in the name of minimalism.
-Thoughfully, \link{ggplot2} definitions for all those "cplots" are available in our vignettes (happy copy-pasting!).
+Thoughfully, \code{\link[ggplot2]{ggplot2}} definitions for all those "cplots" are available in our vignettes (happy copy-pasting!).
 }
 \details{
-The cellMagick package provides three categories of important functions:
-cellMagick, tidyCell and shinyCell.
+The full \code{rcell2} functionality is split into three main packages:
+rcell2, \code{\link[rcell2.cellid]{rcell2.cellid}}, and \code{\link[rcell2.magick]{rcell2.magick}}.
 }
-\section{tidyCell functions}{
+\section{rcell2 (tidyCell) functions}{
 
-The tidyCell functions run CellID and/or manage it's output.
+The tidyCell functions manage CellID's output.
+It includes functions to load individual cell masks from CellID's identified masks, from generated TSV and/or TIFF files (\link{ijtiff} is required for the latter).
 Also useful to turn custom data into compatible dataframes for the other functions in this package.
 }
 
-\section{cellMagick functions}{
+\section{rcell2.magick functions}{
 
-Renders images from individual cells, based on original images, user defined filters and data from cells.
-It should not be required that the data comes from images processed by CellID.
-Requirement of the imagemagick library might bother some, so this awesome feature is optional.
+\code{\link[rcell2.magick]{magickCell}} renders images from individual cells, based on original images, user defined filters and data from cells.
+It requires appropriate data frames for observation data (cdata) and for image metadata (paths). It should not be required that the data comes from images processed by CellID. 
+It relies heavily on the \link{magick} package, so the equirement of the \code{imagemagick} system library might be inconvenient. That is why this awesome feature is optional.
+
+\code{\link[rcell2.magick]{shinyCell}} is an R-Shiny based graphical interface, meant to filter, inspect and annotate cells relying on 2D plots of arbitrary variables.
+It should not be required that the data comes from images processed by CellID, just as \code{\link[rcell2.magick]{magickCell}}.
+It relies heavily on the \link{magick} package, so the equirement of the \code{imagemagick} system library might be inconvenient. That is why this awesome feature is optional.
+Also included are two apps: \code{\link[rcell2.magick]{tagCell}} for annotation, and \code{\link[rcell2.magick]{plotApp}} for plotting and subsetting.
 }
 
-\section{shinyCell functions}{
+\section{rcell2.cellid functions}{
 
-R-Shiny based graphical interface to filter cells by arbitrary variables, and inspect and annotate cells.
-It should not be required that the data comes from images processed by CellID.
+This package includes CellID's source code (written in C). During installation, it compiles a binary executable for Linux, Windows, and Mac systems.
+The executable is then wrapped seamlessly by the \code{\link[rcell2.cellid]{cell2}} function, such that CellID can now be used programatically within R.
+If you already have CellID in your system, you are welcome to use it instead of the bundled executable.
 }
 
 \seealso{
-\link{magick}
+\link{ijtiff} \link{magick} \link{shiny}
 }
