@@ -18,7 +18,7 @@ get_workflow_template <- function(
   if(file.exists(workflow.file)){
     file.copy(from = workflow.file, to = file_name)
   } else {
-    download.file(url = paste0("https://raw.githubusercontent.com/darksideoftheshmoo/rcell2/rcell2.dev/", 
+    download.file(url = paste0("https://raw.githubusercontent.com/darksideoftheshmoo/rcell2/master/", 
                                "inst/rmarkdown/templates/rmd_template.dev/skeleton/skeleton.Rmd"), 
                   destfile = file_name)
   }
