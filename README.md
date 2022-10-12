@@ -115,7 +115,7 @@ remotes::install_github("darksideoftheshmoo/rcell2-magick")
 remotes::install_github("darksideoftheshmoo/rcell2")
 ```
 
-Example data and analysis notebooks can be found in the examples package: [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples/tree/main).
+Example data and analysis notebooks can be found in the examples package: [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples/).
 
 # New tools
 
@@ -123,7 +123,7 @@ Example data and analysis notebooks can be found in the examples package: [`rcel
 
 This feature is available in the new [`rcell2.cellid`](https://github.com/darksideoftheshmoo/rcell2-cellid) package.
 
-* This package bundles, compiles and wraps our improved Cell-ID binary.
+* The package bundles, compiles and wraps our improved [Cell-ID binary](https://github.com/darksideoftheshmoo/cellID-linux/tree/mask_mod).
 * Save, load and manipulate cell masks and boundaries within R.
 * Run it in parallel automagically, backed by R's `foreach`.
 * Automate scanning parameter ranges, by running Cell-ID programatically.
