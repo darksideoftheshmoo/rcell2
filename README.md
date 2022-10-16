@@ -97,11 +97,14 @@ Visit the CellID repository to get installation instructions.
 -->
 
 
-## Installing the package
+## Installing the packages
 
-Install the packages using `remotes`, directly from the github repos:
+Install the packages using `remotes`, directly from the GitHub repos:
 
 ```
+# Install the remotes package if absent:
+if(!require(remotes)) install.packages("remotes")
+
 # rcell2 package
 remotes::install_github("darksideoftheshmoo/rcell2")
 
@@ -110,9 +113,6 @@ remotes::install_github("darksideoftheshmoo/rcell2-cellid")
 
 # shiny-magick package
 remotes::install_github("darksideoftheshmoo/rcell2-magick")
-
-# rcell2 package
-remotes::install_github("darksideoftheshmoo/rcell2")
 ```
 
 Example data and analysis notebooks can be found in the examples package: [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples/).
