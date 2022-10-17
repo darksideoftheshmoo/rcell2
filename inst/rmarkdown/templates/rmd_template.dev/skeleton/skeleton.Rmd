@@ -85,11 +85,16 @@ cell.boundaries <-
 
 Images are assumed to be in a single directory, and have names with identifiers for:
 
-* Imaging channel (birghtfield, transmission, fluorescence, z-level, etc.).
+* Imaging channel (birghtfield, transmission, fluorescence, z-slice, etc.).
 * Microscope position (*pos*).
-* Time (optional).
+* Time (*t.frame*, optional).
 
-For example, expected file names have this appearance:
+Cell-ID uses the first 3 letters of the file name to group imaging channels.
+**This is mandatory**. If your image set does not conform initially, it can be
+renamed (or symlinked) using rcell2's `rename_mda`, with custom arguments.
+
+For example, file names for a 2-position time course experiment
+are expected to have the following appearance:
 
 ```
 BF_Position001_time01.tif
@@ -106,15 +111,15 @@ YFP_Position002_time01.tif
 YFP_Position002_time02.tif
 ```
 
-Later on, the file list has to be recognized by a specific regular expression (regex).
-A regex matching these files can be `^(BF|TFP)_Position(\\d+)_time(\\d+).tif$`,
-and it might be used by one of the image loading functions in this package.
+The `rcell2` packages rely on regular expressions to gather images and extract 
+metadata from their file names (i.e. channel, position, and time frame.)
 
-Always read the help page of each function for details, for example:
+The file list will be recognized by a specific regular expression (regex).
+A regex matching these files can be `^(BF|TFP)_Position(\\d+)_time(\\d+).tif$`;
+note that it has **3 capturing groups** (suff between parentheses).
+The regex as a whole is used to select images from a directory (filtering out
+other files) and the capturing groups are used to extract the metadata.
 
-```{r}
-?rename_mda
-```
 
 ### Renaming Metamorph MDA images
 
