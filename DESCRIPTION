@@ -29,6 +29,7 @@ Imports:
     foreach,
     ggplot2,
     grDevices,
+    ijtiff,
     parallel,
     plyr,
     purrr,
