@@ -43,6 +43,7 @@ Imports:
     tiff,
     xml2
 Suggests: 
+    covr,
     skimr,
     testthat (>= 3.0.0),
     tidyverse
