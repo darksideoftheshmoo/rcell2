@@ -538,7 +538,7 @@ independently of CellID.
 ```{r}
 tags <- images %>% filter(t.frame==0, channel=="BF") %>% 
   {split(.$file, .$pos)} %>% 
-  lapply(rcel2::read_tiff_tags)
+  lapply(rcell2::read_tiff_tags)
 
 # any(is.null(names(tags$`1`$frame1)))  # Chekc if any names are missing
 # select.list(tags$`1`$frame1, discard = "description")
