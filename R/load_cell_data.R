@@ -51,19 +51,6 @@ if(getRversion() >= "2.15.1") {
 #       - .append.identifier
 
 #*************************************************************************#
-## DEPENDENCIES
-#*************************************************************************#
-
-# do not load plyr after dplyr! namespace conflicts; we prefer dplyr.
-#library(plyr)
-#library(tibble)
-#library(dplyr)
-#library(readr)
-
-# g: I want to use skimr as summary for cell.data objects
-# library(skimr)
-
-#*************************************************************************#
 ## FUNCTIONS
 #*************************************************************************#
 
