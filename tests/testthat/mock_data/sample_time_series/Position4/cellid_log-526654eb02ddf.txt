@@ -1,0 +1,170 @@
+
+
+*** Cell_ID Version 1.5.0 ***** 2022 redistribution. Now with awesome identified masks, and tailored to rcell2's workflow. **
+
+Parsing getopt options
+ - brightfield: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/Position4/bf_rcell2-5266533546d23.txt
+Parsing getopt options
+ - fluorescence: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/Position4/fl_rcell2-526652ba11816.txt
+Parsing getopt options
+ - output_prefix: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/Position4/out
+Parsing getopt options
+ - parameters: /tmp/Rtmp2z7KgK/parameters_516166a9dc3eb.txt
+Parsing getopt options
+ - Output cell boundary and interior coords to TSV file.
+Reading /tmp/Rtmp2z7KgK/parameters_516166a9dc3eb.txt
+Using nucleus radii 2 3 4 5 6 7 px.
+Searching brightfield image for cells.
+
+Configuration for this run:
+Using parameters:
+    max_dist_over_minor_axis=5.000000e-01
+    max_dist_over_waist=8.000000e+00
+    background_reject_factor=7.500000e-01
+    max_pixels_per_cell=2000
+    min_pixels_per_cell=75
+    I_over_U_for_match (tracking_comparison parameter)=2.000000e-01
+
+End checking of arguments.
+
+Read in the names of the phase and fluorescence files.
+dark.txt not found. No dark-field corrections.
+flat.txt not found. No flattening-image corrections.
+File /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time10.tif is given flag number 0
+File /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time10.tif is given flag number 1
+File /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time20.tif is given flag number 0
+File /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time20.tif is given flag number 1
+File /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time30.tif is given flag number 0
+File /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time30.tif is given flag number 1
+----------------------------------------------------
+New Fluorescence image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time10.tif.
+----------------------------------------------------
+Current fluor file exposure time: 40.000000
+No suitable flattening correction files found, not doing any flattening correction.
+Doing new cell search.
+----------------------------------------------------
+New brightfield image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time10.tif.
+----------------------------------------------------
+Doing linear-correction to flatten image.
+mean, sig and scale (before scaling): 4.034580e+10, 1.178601e+15, 1.443855e+06
+mean, sig and scale (after scaling): 2.794311e+04, 8.162875e+08, 1.443855e+06
+variance and stdev: 3.547002e+07, 8.162875e+08
+In Pixel units: mu=2.794311e+04, sig=5.955671e+03.
+BF-cut-low=2.347636e+04, BF-cut-high=3.240987e+04
+Cut-max=0.000000e+00, Cut-min=6.948214e-310
+-----> After comparison: Total lower=0 and total upper=289
+
+Total this time=289.
+Initializing nuclear centers array.
+Internal structure using fluorescence image.
+Background in non-cells at time t=0 is 9.327576e+03 (bin_width=2.300000e+01).
+Number found: 289
+Comparing new cells to known cells.
+Offset from previous image: (0,0).
+Currently found total of 289 separate cells.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time10.tif.out.tif.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time10.tif.out.tif.
+----------------------------------------------------
+New Fluorescence image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time10.tif.
+----------------------------------------------------
+Current fluor file exposure time: 2000.000000
+No suitable flattening correction files found, not doing any flattening correction.
+Internal structure using fluorescence image.
+Background in non-cells at time t=1 is 2.974933e+02 (bin_width=1.000000e+00).
+offset=(1,-2)
+Number found: 289
+Currently found total of 289 separate cells.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time10.tif.out.tif.
+----------------------------------------------------
+New Fluorescence image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time20.tif.
+----------------------------------------------------
+Current fluor file exposure time: 40.000000
+No suitable flattening correction files found, not doing any flattening correction.
+Doing new cell search.
+----------------------------------------------------
+New brightfield image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time20.tif.
+----------------------------------------------------
+Doing linear-correction to flatten image.
+mean, sig and scale (before scaling): 3.976443e+10, 1.152291e+15, 1.444089e+06
+mean, sig and scale (after scaling): 2.753599e+04, 7.979365e+08, 1.444089e+06
+variance and stdev: 3.970554e+07, 7.979365e+08
+In Pixel units: mu=2.753599e+04, sig=6.301233e+03.
+BF-cut-low=2.281007e+04, BF-cut-high=3.226192e+04
+Cut-max=0.000000e+00, Cut-min=6.948214e-310
+-----> After comparison: Total lower=0 and total upper=295
+
+Total this time=295.
+Internal structure using fluorescence image.
+Background in non-cells at time t=2 is 8.985531e+03 (bin_width=1.900000e+01).
+offset=(-2,0)
+Number found: 295
+Comparing new cells to known cells.
+Offset from previous image: (-4,2).
+Currently found total of 301 separate cells.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time20.tif.out.tif.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time20.tif.out.tif.
+----------------------------------------------------
+New Fluorescence image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time20.tif.
+----------------------------------------------------
+Current fluor file exposure time: 2000.000000
+No suitable flattening correction files found, not doing any flattening correction.
+Internal structure using fluorescence image.
+Background in non-cells at time t=3 is 2.950180e+02 (bin_width=2.000000e+00).
+offset=(0,-1)
+Number found: 295
+Currently found total of 301 separate cells.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time20.tif.out.tif.
+----------------------------------------------------
+New Fluorescence image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time30.tif.
+----------------------------------------------------
+Current fluor file exposure time: 40.000000
+No suitable flattening correction files found, not doing any flattening correction.
+Doing new cell search.
+----------------------------------------------------
+New brightfield image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time30.tif.
+----------------------------------------------------
+Doing linear-correction to flatten image.
+mean, sig and scale (before scaling): 4.297806e+10, 1.334609e+15, 1.444162e+06
+mean, sig and scale (after scaling): 2.975986e+04, 9.241405e+08, 1.444162e+06
+variance and stdev: 3.849126e+07, 9.241405e+08
+In Pixel units: mu=2.975986e+04, sig=6.204133e+03.
+BF-cut-low=2.510676e+04, BF-cut-high=3.441296e+04
+Cut-max=0.000000e+00, Cut-min=6.948214e-310
+-----> After comparison: Total lower=0 and total upper=322
+
+Total this time=322.
+Internal structure using fluorescence image.
+Background in non-cells at time t=4 is 8.911028e+03 (bin_width=1.400000e+01).
+offset=(-2,2)
+Number found: 322
+Comparing new cells to known cells.
+Offset from previous image: (-1,0).
+Currently found total of 332 separate cells.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position4_time30.tif.out.tif.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time30.tif.out.tif.
+----------------------------------------------------
+New Fluorescence image: /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time30.tif.
+----------------------------------------------------
+Current fluor file exposure time: 2000.000000
+No suitable flattening correction files found, not doing any flattening correction.
+Internal structure using fluorescence image.
+Background in non-cells at time t=5 is 2.974780e+02 (bin_width=3.000000e+00).
+offset=(1,-2)
+Number found: 322
+Currently found total of 332 separate cells.
+Writing found cells and data to output file /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position4_time30.tif.out.tif.
+Writing output to files to directory /home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/Position4/out.
+Output file in R format.
+
+output_cells_single_file: initializing...
+mask_mod: defining char gzFile for compressed output
+mask_mod: defining char mask_file_z for compressed output
+mask_mod: defining variables for TSV output
+output_cells_single_file: initialization done!
+mask_mod: setting up compressed TSV file name
+mask_mod: opening compressed TSV file and writing header
+output_cells_single_file: done writing! closing file...
+mask_mod: done writing compressed TSV, closing fpz
+
+
+******** CellID is done! enjoy your single cell datasets :) ********

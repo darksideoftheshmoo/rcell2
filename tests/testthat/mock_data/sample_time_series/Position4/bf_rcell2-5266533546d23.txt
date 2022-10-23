@@ -1,0 +1,6 @@
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time10.tif
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time10.tif
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time20.tif
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time20.tif
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time30.tif
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position4_time30.tif

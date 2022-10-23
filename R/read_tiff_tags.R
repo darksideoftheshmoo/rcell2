@@ -151,8 +151,6 @@ get_tiff_time_from_file <- function(tiff.paths, frames=1,
 #' @param tiff.path A path to the tiff file, passed to \code{\link[ijtiff]{read_tags}}.
 #' @param frames The frame number to process, passed to \code{\link[ijtiff]{read_tags}}.
 #' 
-#' @importFrom xml2 read_xml as_list
-# @importFrom ijtiff read_tags
 #' 
 get_tiff_description <- function(tiff.path, frames=1){
   

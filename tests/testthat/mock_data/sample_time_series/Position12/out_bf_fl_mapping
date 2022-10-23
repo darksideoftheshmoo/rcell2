@@ -1,0 +1,7 @@
+fluor	flag	t.frame	bright	bf.as.fl
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position12_time10.tif	0	0	/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position12_time10.tif	0
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position12_time10.tif	1	0	/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position12_time10.tif	0
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position12_time20.tif	0	1	/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position12_time20.tif	0
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position12_time20.tif	1	1	/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position12_time20.tif	0
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/TFP_Position12_time30.tif	0	2	/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position12_time30.tif	0
+/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/YFP_Position12_time30.tif	1	2	/home/nicomic/R/rcell2.examples/inst/extdata/sample_datasets/sample_time_series/BF_Position12_time30.tif	0
