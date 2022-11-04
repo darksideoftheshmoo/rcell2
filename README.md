@@ -1,5 +1,9 @@
 # rcell2
 
+<!-- badges: start -->
+[![Codecov test coverage](https://codecov.io/gh/darksideoftheshmoo/rcell2/branch/master/graph/badge.svg)](https://app.codecov.io/gh/darksideoftheshmoo/rcell2?branch=master)
+<!-- badges: end -->
+
 Functions to analyze [Cell-ID](https://github.com/darksideoftheshmoo/cellID-linux)'s single-cell cytometry data in R, using a tidy and shiny framework.
 
 `rcell2`'s functionality is split into four packages:

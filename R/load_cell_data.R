@@ -51,19 +51,6 @@ if(getRversion() >= "2.15.1") {
 #       - .append.identifier
 
 #*************************************************************************#
-## DEPENDENCIES
-#*************************************************************************#
-
-# do not load plyr after dplyr! namespace conflicts; we prefer dplyr.
-#library(plyr)
-#library(tibble)
-#library(dplyr)
-#library(readr)
-
-# g: I want to use skimr as summary for cell.data objects
-# library(skimr)
-
-#*************************************************************************#
 ## FUNCTIONS
 #*************************************************************************#
 
@@ -122,7 +109,6 @@ if(getRversion() >= "2.15.1") {
 load_cell_data <-
     function(path = getwd(),
              pattern = ".*Position(\\d+)$",
-#            pattern = "^[Pp]{1}os[:alpha:]*[:digit:]*",
              basename = "out",
              select = NULL,
              exclude = NULL,
@@ -144,7 +130,7 @@ load_cell_data <-
         # HERE IS THE POSTA
         # Searching for folders that match arg. 'pattern'
         # this makes a char vector with the names of all the position folders
-        posdir = dir(pattern = pattern, path = path)
+        posdir <- stringr::str_sort(dir(pattern = pattern, path = path), numeric = T)
         print(posdir)
 
 
@@ -188,8 +174,9 @@ load_cell_data <-
         cat("reading positions...\n")
 
         for(i in 1:length(posdir)) {
+          pos_number <- as.integer(regmatches(posdir[i], regexpr("[0-9]+", posdir[i])))
 
-            curr_dir = paste(path, "/", posdir[i], "/", sep = "")
+            curr_dir <- paste(path, "/", posdir[i], "/", sep = "")
 
 
             ######## ASSERT
@@ -247,7 +234,7 @@ load_cell_data <-
             ########
 
             # updates contents of positions loaded.
-            loaded.pos <- c(loaded.pos, i)
+            loaded.pos <- c(loaded.pos, pos_number)
             loaded.pos.dir[[i]] <- posdir[i]
 
             #reading output_bf_fl_mapping
@@ -259,7 +246,7 @@ load_cell_data <-
 
                 if (nrow(bf.fl.mapping[[i]]) > 0) {
                     #creating flag table
-                    pos.flag <- .mk_flag_table(bf.fl.mapping[[i]], pos = i)
+                    pos.flag <- .mk_flag_table(bf.fl.mapping[[i]], pos = pos_number)
                     flag.table <- dplyr::bind_rows(pos.flag, flag.table)
                 }
 
@@ -279,10 +266,10 @@ load_cell_data <-
 
         cat("\ncreating variables...\n")
 
-        for (ipos in loaded.pos) {
+        for (ipos in seq_along(loaded.pos)) {
             pos.data[[ipos]] <- dplyr::mutate(pos.data[[ipos]],
-                                              pos = ipos,
-                                              ucid = ipos * 1e6 + cellID,
+                                              pos = loaded.pos[ipos],
+                                              ucid = loaded.pos[ipos] * 1e6 + cellID,
                                               qc = T)
         }
 
@@ -337,7 +324,7 @@ load_cell_data <-
         if(length(load.vars) == 1){
             # Rcell::.parse_load_vars
             load.vars <- .parse_load_vars(load.vars,
-                                          vars.all = names(pos.data[[loaded.pos[1]]]))
+                                          vars.all = names(pos.data[[1]]))
 
         } else {
             cat("loading variables ", toString(load.vars))
@@ -407,19 +394,19 @@ load_cell_data <-
 
         icount <- 0
 
-        for (ipos in loaded.pos) { #loopingin through positions
+        for (ipos in seq_along(loaded.pos)) { #loopingin through positions
             posout <- c() #output for this position
             icount <- icount + 1
 
-            cat(formatC(ipos, width = 3), " ")
+            cat(formatC(loaded.pos[ipos], width = 3), " ")
 
             if(icount %% 10 == 0) cat("\n")
 
             #getting flag for each channel in this position
-            ch.flag <- subset(flag.table, pos == ipos)$flag
+            ch.flag <- subset(flag.table, pos == loaded.pos[ipos])$flag
 
             #using the channel with more t.frames as main channel
-            main.flag.index <- which.max(subset(flag.table,pos==ipos)$frame.n)
+            main.flag.index <- which.max(subset(flag.table, pos == loaded.pos[ipos])$frame.n)
 
             curr.pos.data <- subset(pos.data[[ipos]],
                                     flag == ch.flag[main.flag.index],
@@ -428,7 +415,7 @@ load_cell_data <-
             #for(ich in 1:length(ch.flag)){
             for(ich in ch.levels) {
                 curr.ch.pos.data <- subset(pos.data[[ipos]],
-                                           flag == with(flag.table, flag[channel == ich & pos == ipos]),
+                                           flag == with(flag.table, flag[channel == ich & pos == loaded.pos[ipos]]),
                                            select = c(.CELLID_ID_VARS, old.ch.header))
 
                 names(curr.ch.pos.data) <- c(.CELLID_ID_VARS, ch.header[[ich]])
@@ -561,18 +548,18 @@ load_cell_data <-
 
         # g: agrego data de imagenes. paths  y eso.
 
-        for(ipos in loaded.pos){
-            bf.fl.mapping[[ipos]] <- transform(bf.fl.mapping[[ipos]], pos = ipos)
+        for(ipos in seq_along(loaded.pos)){
+            bf.fl.mapping[[ipos]] <- transform(bf.fl.mapping[[ipos]], pos = loaded.pos[ipos])
         }
 
         # preparing "hard" image information
         image.info = NULL
-        for(i.pos in loaded.pos){
+        for(i.pos in seq_along(loaded.pos)){
 
 
             # in original it was plyr::join
             pii = dplyr::left_join(bf.fl.mapping[[i.pos]],
-                                   flag.table[flag.table$pos == i.pos, c("flag", "channel")],
+                                   flag.table[flag.table$pos == loaded.pos[i.pos], c("flag", "channel")],
                                    by = "flag")
 
             pii = transform(pii,
@@ -585,7 +572,7 @@ load_cell_data <-
 
             #bf as fluor, aca habria que cambiar algo
             # original was data.frame
-            piibf = tibble::tibble(pos = i.pos,
+            piibf = tibble::tibble(pos = loaded.pos[i.pos],
                                    t.frame = pii[pii$flag == 0, "t.frame"],
                                    channel = "BF",
                                    image = basename(pii[pii$flag == 0, "bright"]),

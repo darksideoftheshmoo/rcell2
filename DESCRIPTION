@@ -1,54 +1,55 @@
 Package: rcell2
 Title: CellID Data Analysis Inside the Tidyverse
 Version: 0.0.3
-Authors@R: 
-    c(person(given = "German",
-           family = "Beldorati Stark",
-           role = c("aut", "cre"),
-           email = "gerbeldo@gmail.com"),
-      person(given = "Nicolás",
-           family = "Agustín Méndez",
-           role = c("aut"),
-           email = "nmendez.ar@gmail.com"),
-      person(given = "Andreas",
-           family = "Constantinou",
-           role = c("aut"),
-           email = "indie_heights@hotmail.com"),
-      person(given = "Alan",
-           family = "Bush",
-           role = c("aut"),
-           email = "email@example.com"))
-Description: Analyse cellID data in the tidyverse framework. This package also has utility functions to generate, filter and preview data from fluorescence microscopy experiments (and maybe general cell cytometry).
-    Included are the tools to process CellID output (from tidyCell). Also, rcell2 interfaces directly with two other packages. The rcell2.cellid package bundles the CellID program source, and wraps it in a single R function. The rcell2.magick package offers R-Shiny apps and magick-based functions to help users preview cell images and filter data graphically.
-    This group of packages is meant to succeed the older RCell package.
+Authors@R: c(
+    person("German", "Beldorati Stark", , "gerbeldo@gmail.com", role = c("aut", "cre")),
+    person("Nicolás", "Agustín Méndez", , "nmendez.ar@gmail.com", role = "aut"),
+    person("Andreas", "Constantinou", , "indie_heights@hotmail.com", role = "aut"),
+    person("Alan", "Bush", , "email@example.com", role = "aut")
+  )
+Description: Analyse cellID data in the tidyverse framework. This package
+    also has utility functions to generate, filter and preview data from
+    fluorescence microscopy experiments (and maybe general cell
+    cytometry).  Included are the tools to process CellID output (from
+    tidyCell). Also, rcell2 interfaces directly with two other packages.
+    The rcell2.cellid package bundles the CellID program source, and wraps
+    it in a single R function. The rcell2.magick package offers R-Shiny
+    apps and magick-based functions to help users preview cell images and
+    filter data graphically.  This group of packages is meant to succeed
+    the older RCell package.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.1.2
 Depends:
     R (>= 3.6)
-biocViews:
 Imports:
-    reshape,
+    data.table,
     digest,
-    plyr,
-    readr,
-    tibble,
+    doParallel,
     dplyr,
     EBImage,
-    sp,
-    tidyr,
-    ggplot2,
     foreach,
-    parallel,
-    doParallel,
+    ggplot2,
     grDevices,
-    stringr,
+    ijtiff,
+    parallel,
+    plyr,
     purrr,
     readr,
+    reshape,
     rlang,
-    data.table
+    sp,
+    stringr,
+    tibble,
+    tidyr,
+    tiff,
+    xml2
 Suggests: 
-    tidyverse,
+    covr,
+    ijtiff,
     skimr,
-    ijtiff
+    testthat (>= 3.0.0),
+    tidyverse
+biocViews:
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.1
+Config/testthat/edition: 3
