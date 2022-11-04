@@ -66,11 +66,10 @@ read_description <- function(x){
 #' @export
 read_tiff_tags <- function(path,frames=1){
   # Check dependency  
-  if(!"ijtiff" %in% rownames(installed.packages())){
+  if(!requireNamespace("ijtiff")){
     stop("read_tiff_tags requires the 'ijtiff' package, which is not installed by default. Please install it to use this function :)")
   }
   lapply(ijtiff::read_tags(path,frames), read_description)
-  # stop("read_tiff_tags: the dependency ijtiff::read_tags was removed due to compilation errors.")
 }
 
 #' Get stage XY coordinates from tiff file's description tag
@@ -156,7 +155,7 @@ get_tiff_description <- function(tiff.path, frames=1){
   
   # Check dependency  
   if(!requireNamespace("ijtiff")){
-    stop("get_tiff_description requires the 'ijtiff' package.")
+    stop("get_tiff_description requires the 'ijtiff' package, which is not installed by default. Please install it to use this function :)")
   }
   
   description <- tiff.path %>% 

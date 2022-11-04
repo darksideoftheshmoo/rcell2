@@ -47,7 +47,7 @@ read_tiff_masks <- function(path, cell_id_offset = -1, interior_offset = NULL, b
   
   # Check dependency  
   if(!requireNamespace("ijtiff")){
-    stop("read_tiff_masks requires the 'ijtiff' package.")
+    stop("read_tiff_masks requires the 'ijtiff' package, which is not installed by default. Please install it to use this function :)")
   }
   
   # Read TIFF image
@@ -332,10 +332,16 @@ load_tiff_masks <- function(images, image_bits, cell_id_offset = -1, return_poin
 #' 
 #' This function is alternative to Andy's much smarter \code{read_tiff_masks} function.
 #' 
-#' @importFrom tiff readTIFF
+# @importFrom tiff readTIFF
 #' @keywords internal
 #' 
 mask_df_from_tiff <- function(tiff_path, image_bits, cell_id_offset = -1){
+  
+  # Check dependency
+  if(!requireNamespace("tiff")){
+    stop("mask_df_from_tiff: requires functions from the 'tiff' package, which is not installed by default.")
+  }
+  
   # Read masks tiff
   pic <- tiff::readTIFF(tiff_path)
   

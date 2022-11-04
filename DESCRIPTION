@@ -29,7 +29,6 @@ Imports:
     foreach,
     ggplot2,
     grDevices,
-    ijtiff,
     parallel,
     plyr,
     purrr,
@@ -40,11 +39,11 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    tiff,
     xml2
 Suggests: 
     covr,
     ijtiff,
+    tiff,
     skimr,
     testthat (>= 3.0.0),
     tidyverse
