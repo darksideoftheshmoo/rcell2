@@ -48,13 +48,21 @@ library(tidyverse)  # import numpy as np (?)
 - **Read the help page** of functions before using them. Open help pages with R's `?` (e.g. `?load_cell_data`).
 - **Read the README**.md at rcell2's [GitHub repo](https://github.com/darksideoftheshmoo/rcell2/).
 
-## Quick example
+## Quick segmentation example
 
 This code runs Cell-ID on an example image dataset, using the default parameters,
 and loads the output into R (including cell boundaries).
 
 A full explanation and walkthroug of this process is available
 in the notebook template of the `rcell2.cellid` package.
+
+Execute the following to install the package and open the template:
+
+```{r}
+if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
+rcell2.cellid::get_workflow_template_cellid()
+```
+
 
 ```{r, eval=F}
 if(!requireNamespace("remotes")) install.packages("remotes")
@@ -63,10 +71,11 @@ data.dir <- system.file("extdata/sample_datasets/sample_time_series/", package =
 
 cellid.args <- rcell2.cellid::arguments(path = data.dir)
 
-cell2.out <-
-  rcell2.cellid::cell2(arguments = cellid.args, 
-                       output_coords_to_tsv = T, 
-                       check_fail = T)
+# Cell-ID has already been run.
+# cell2.out <-
+#   rcell2.cellid::cell2(arguments = cellid.args,
+#                        output_coords_to_tsv = T,
+#                        check_fail = T)
 
 cell.data <- rcell2.cellid::cell.load.alt(path = data.dir)
 
@@ -128,6 +137,9 @@ It is provided in the `rcell2.cellid` package. A full example on how to use it i
 available in the packages notebook template.
 
 ## Load Cell-ID output
+
+Cell-ID's output consists of segmented images, and data files in plain text format.
+These must be loaded into R for further analyses.
 
 This is done with the `load_cell_data` function:
 
@@ -236,7 +248,7 @@ ggplot(plane_info_df) +
   geom_point(aes(stage.position.x, stage.position.y))
 ```
 
-#### Check position indexes
+#### Check position indexes and overlap
 
 The following code match the images' _position_ (Pos) to their microscope stage _physical_ XY coordinates,
 which are stored in the TIFF tags of the original images.
@@ -277,38 +289,20 @@ plane_info_df %>%
 
 ### Shiny-Magick framework
 
-> These examples require the `rcell2.magick` package.
+Extra tools for graphical filtering and annotation/tagging are available in 
+the `rcell2.magick` package.
 
-Inputs importantes:
+That package also includes functions for generating and manipulating
+images of single cells, and preparing strips, tiles, and plots.
 
-```{r}
-cdata <- cell.data$data
-images <- cell.data$images  # puede tener otro nombre el data.frame con info de las fotos
-pdata <- read.csv("data/pdata.csv")
-```
+To learn more, install the `rcell2.magick` package and open it's template notebook.
 
-Uso mínimo:
+Execute the following to install the package and open the template:
 
 ```{r}
-shiny.filter <- rcell2.magick::shinyCell(cdata, pdata, images)
+if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
+rcell2.magick::get_workflow_template_magick()
 ```
-
-Si hay muchas celulas, conviene iniciar con `plotType = "Hex"` u otro plot aglomerativo.
-
-Para ver las regiones filtradas, hay una función que grafica los filtros:
-
-```{r}
-rcell2.magick::plot_filters(shiny.filter, print_plots = F)
-```
-
-Ver ejemplos (un poco viejos) en:
-
-* `testings/examples_celll_and_shiny.Rmd`
-* `testings/test_magickCell.Rmd`
-* `testings/test_shinyCell.Rmd`
-* `testings/test_tagCell.Rmd`
-
-- [ ] TODO: documentar esto bien.
 
 ### Supervised classification
 
