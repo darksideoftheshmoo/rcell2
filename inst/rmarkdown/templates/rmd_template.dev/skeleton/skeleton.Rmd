@@ -170,115 +170,16 @@ It may be a good idea to double check that the physical coordinates of your imag
 match your expectations (i.e. the column/row pairs of each well in a microscopy plate).
 This information is stored in TIFF's metadata.
 
-It requires the `ijtiff` and `XML` packages:
+With this information it is also possible to check whether the fields of view of
+different positions overlap, inadvertently.
 
-> The xml2 package does not convert the attributes automatically,
-> so I stuck to the XML package. See tiff_plane_info's help and source for details.
+Code for this check iis available in the template notebook of the  `rcell2.magick` package.
 
-#### Load TIFF metadata
-
-Get paths to the images:
+Execute the following to install the package and open the template:
 
 ```{r}
-# Choose your own path!
-metamorph_pics_dir <- "/path/to/your/data"
-
-# Or use the example images (requires "rcell2.examples", see first example above).
-metamorph_pics_dir <- system.file("extdata/sample_datasets/sample_images/",
-                                  package = "rcell2.examples")
-
-# List files
-dir(metamorph_pics_dir)
-```
-
-Get the path to an example image:
-
-```{r}
-# Path to a sample image
-image_list <- rcell2.cellid::arguments(metamorph_pics_dir, 
-                                       file.pattern = "^(BF|[A-Z]FP)_Position(\\d+)().tif$")
-metamorph_pics <- paste0(image_list$path, "/", image_list$image)
-metamorph_pic <- metamorph_pics[2]
-```
-
-List plane info for the image:
-
-```{r}
-# Get the image plane metadata
-pic_plane_info <- rcell2.cellid::tiff_plane_info(path = metamorph_pic)
-
-pic_plane_info
-```
-
-> If the required metadata is not found in the TIFF, a warning will be emitted.
-> This can happen if the original images were modified or exported from ImageJ or 
-> other sofware. Continue if there are no warnings, or else skip this section.
-
-```{r}
-# Show the stage-position properties
-subset(pic_plane_info, grepl("stage-position", id))
-```
-
-> Our motorized stage works in negative coordinate space, as most CNC machines do.
-> Take this into account when plotting.
-
-Get the metadata of all images:
-
-```{r}
-plane_info_df <- setNames(metamorph_pics, basename(metamorph_pics)) %>% 
-  # Get metadata
-  lapply(rcell2.cellid::tiff_plane_info) %>% 
-  bind_rows(.id="image") %>% 
-  # Fix variable names and types
-  mutate(variable = make.names(id)) %>% 
-  filter(grepl("stage.position", variable)) %>% 
-  mutate(value = as.numeric(value)) %>% 
-  # Make it wider
-  pivot_wider(id_cols = "image", names_from = "variable", values_from = "value")
-
-plane_info_df
-```
-
-Plot XY stage positions:
-
-> This is specially useful when tracing a path for positions in a many-well time-course experiment.
-
-```{r}
-ggplot(plane_info_df) +
-  geom_point(aes(stage.position.x, stage.position.y))
-```
-
-#### Check position indexes and overlap
-
-The following code match the images' _position_ (Pos) to their microscope stage _physical_ XY coordinates,
-which are stored in the TIFF tags of the original images.
-
-It requires the `images` dataframe in `cell.data` to get the file names,
-_but_ you could also use `dir` to get the files by pattern, and `sub` to get the position IDs,
-independently of CellID.
-
-```{r}
-images <- rcell2.cellid::arguments_to_images(arguments = image_list)
-```
-
-Add image metadata and replot the stage's "path":
-
-```{r}
-plane_info_df %>% 
-  left_join(select(images, image, pos, t.frame, channel)) %>% 
-  arrange(pos) %>% 
-  ggplot(aes(stage.position.x, stage.position.y, label = pos)) +
-  geom_path(aes(group = t.frame)) +
-  geom_rect(aes(xmin=stage.position.x-1000, 
-                xmax=stage.position.x+1000, 
-                ymin=stage.position.y-1000, 
-                ymax=stage.position.y+1000,
-                group = pos, fill = factor(pos)), alpha =.5)+
-  geom_text(size=10) +
-  facet_grid(t.frame~channel) + guides(fill = "none") +
-  scale_x_reverse() + #coord_fixed()+
-  ggtitle("Physical stage coordinates v.s. Position index",
-          "Compare the index numbers with the expected physical distrubution in the well plate.\nThe shaded areas around index numbers shuould not overlap with each other.")
+if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
+rcell2.magick::get_workflow_template_magick()
 ```
 
 ## Analizar datos
