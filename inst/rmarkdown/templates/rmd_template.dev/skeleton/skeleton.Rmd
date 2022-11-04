@@ -178,8 +178,8 @@ Code for this check iis available in the template notebook of the  `rcell2.magic
 Execute the following to install the package and open the template:
 
 ```{r}
-if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
-rcell2.magick::get_workflow_template_magick()
+if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
+rcell2.cellid::get_workflow_template_cellid()
 ```
 
 ## Analizar datos
