@@ -182,7 +182,18 @@ if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshm
 rcell2.cellid::get_workflow_template_cellid()
 ```
 
-## Analizar datos
+## Data anlysis
+
+The cell.data object is a list. The main dataset is stored in the `data` item, and
+the paths to image files are in the `images` item.
+
+We usually assign these to their own objects, for easier manipulation:
+
+```{r}
+cdata <- cell.data$data
+images <- cell.data$images
+```
+
 
 ### Tidy framework
 

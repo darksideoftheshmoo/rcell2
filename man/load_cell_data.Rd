@@ -11,7 +11,8 @@ load_cell_data(
   select = NULL,
   exclude = NULL,
   load.vars = "all",
-  split.image = FALSE
+  split.image = FALSE,
+  ...
 )
 }
 \arguments{
@@ -30,6 +31,13 @@ out_all file should be loaded.}
 
 \item{split.image}{boolean, indicates if the images are split and upper cells should be matched
 to lower cells. Set to TRUE if analyzing a FRET split image experiment.}
+
+\item{...}{
+  Arguments passed on to \code{\link[=load_cell_data_checkid]{load_cell_data_checkid}}
+  \describe{
+    \item{\code{cdata}}{The "data" item of the list produced by \code{load_cell_data} or \code{cell.load.alt}.}
+    \item{\code{id_cols}}{Character vector with the column names of cdata that must identify rows uniquely. Defaults to the usual ucid-t.frame combination.}
+  }}
 }
 \value{
 a cell.data object

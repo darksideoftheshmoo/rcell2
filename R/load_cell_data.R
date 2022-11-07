@@ -55,6 +55,32 @@ if(getRversion() >= "2.15.1") {
 #*************************************************************************#
 
 
+#' Check UCID-T.FRAME unicity
+#' 
+#' The ucid-t.frame combination should be unique. Else there might be a problem (e.g. redundant matches in pdata).
+#' 
+#' @param cdata The "data" item of the list produced by \code{load_cell_data} or \code{cell.load.alt}.
+#' @param id_cols Character vector with the column names of cdata that must identify rows uniquely. Defaults to the usual ucid-t.frame combination.
+#' @return Invisibly returns a named list with the test result ("all_unique": boolean) and the summarized dataframe ("cdata_summary": data.frame) used for checking. Any value of n_rows > 1 is problematic.
+load_cell_data_checkid <- function(cdata, id_cols = c("ucid", "t.frame")){
+    d <- dplyr::group_by_at(cdata, id_cols)
+    d <- dplyr::summarise(d, n_rows = dplyr::n(), .groups = "drop")
+    
+    all_unique <- all(d$n_rows == 1)
+    
+    if(!all_unique) warning(paste0(
+        "load_cell_data_checkid: the column comination '",
+        paste0(id_cols, collapse = " + "),
+        "' does not form a unique identifier for rows in cdata.",
+        " There might be a problem with the ID columns, with the pdata table (if it was joined), or Cell-ID's output files."
+    ))
+    
+    return(invisible(
+        list(cdata_summary = d,
+             all_unique=all_unique)
+    ))
+}
+
 #' Load cellID data
 #'
 #' \code{load_cell_data} searches a specified directory (the working directory by default)
@@ -104,6 +130,7 @@ if(getRversion() >= "2.15.1") {
 #' and keywords (e.g. 'all', 'id.vars', 'YFP', etc.) can be used as components of these arguments.
 #'
 #' @return a cell.data object
+#' @inheritDotParams load_cell_data_checkid
 #' @export
 #'
 load_cell_data <-
@@ -113,7 +140,8 @@ load_cell_data <-
              select = NULL,
              exclude = NULL,
              load.vars = "all",
-             split.image = FALSE) {
+             split.image = FALSE,
+             ...) {
 
         on.exit(gc())
 
@@ -650,6 +678,7 @@ load_cell_data <-
                                                       value = TRUE)
 
 
+        load_cell_data_checkid(cdata = pos.data, ...)
         cell.data=
             list(data = pos.data,
                  qc.history = list(),
