@@ -51,7 +51,7 @@ if(getRversion() >= "2.15.1") {
 #       - .append.identifier
 
 #*************************************************************************#
-## FUNCTIONS
+## FUNCTIONS                                                           ####
 #*************************************************************************#
 
 
@@ -162,9 +162,9 @@ load_cell_data <-
         print(posdir)
 
 
-        #######################
-        ## initialize variables
-        #######################
+        ############################# #
+        ## initialize variables    ####
+        ############################# #
 
         # vector with the loaded positions, for output
         loaded.pos = c()
@@ -197,7 +197,7 @@ load_cell_data <-
         if(length(posdir) == 0) {
             stop("No Pos folder found in specified path or working directory.")
         }
-        ########
+        ####### #
 
         cat("reading positions...\n")
 
@@ -210,7 +210,7 @@ load_cell_data <-
             ######## ASSERT
             # check that current path is a folder, and assign cellID out filenames
             if(!file.info(curr_dir)$isdir) {stop("curr_dir is not a directory")}
-            ########
+            ####### #
 
 
             # paths for out_* files defined
@@ -222,16 +222,16 @@ load_cell_data <-
             # check that file exists
             if(!file.exists(out_all)) {
                 stop(paste("Missing file:", out_all, "\n Position not loaded\n"))}
-            ########
+            ####### #
 
 
             # rcell had a check for folders with no number, and assigned an ordinal if there
             # wasn't one. I found no use for it, so I removed it
 
 
-            ####################
-            ## reading data
-            ####################
+            ######################### #
+            ## reading data        ####
+            ######################### #
 
             # print position being processed
             cat(gsub("[a-zA-Z_]", "", posdir[i])," ")
@@ -259,7 +259,7 @@ load_cell_data <-
                     stop(out_all," has different column names than previous positions\n")
                 }
             }
-            ########
+            ####### #
 
             # updates contents of positions loaded.
             loaded.pos <- c(loaded.pos, pos_number)
@@ -282,9 +282,9 @@ load_cell_data <-
         }
 
 
-        ####################
-        # creating variables
-        ####################
+        ######################### #
+        # creating variables   ####
+        ######################### #
 
         # creates the variables:
         #    - pos: position number associated to all cells in a position df.
@@ -305,9 +305,9 @@ load_cell_data <-
 
         ch.names <- .select_channel_names(flag.table)
 
-        ######################
-        #Restructuring the data
-        ######################
+        ############################ #
+        #Restructuring the data   ####
+        ############################ #
 
 
         #ToDo: add selected / removed variables in a tidy way
@@ -338,7 +338,7 @@ load_cell_data <-
 
             ch.names <- ch.levels
         }
-        #########
+        ######## #
 
         ######### ASSERT #########
         #Asserting load.vars
@@ -346,7 +346,7 @@ load_cell_data <-
             warning("Loading all variables")
             load.vars <- "all"
         }
-        #########
+        ######## #
 
         #Selecting variables to load
         if(length(load.vars) == 1){
@@ -466,7 +466,7 @@ load_cell_data <-
             print(data.frame(variables = colNum.pos.data))
             stop("Positions have different number of variables after reshaping.")
         }
-        #########
+        ######## #
 
 
         # pos.data is a list with a data frame corresponding to each position
@@ -474,9 +474,9 @@ load_cell_data <-
         pos.data <- dplyr::bind_rows(pos.data)
 
 
-        #################################################################
-        # adding variables
-        #################################################################
+        ###################################################################### #
+        # adding variables                                                  ####
+        ###################################################################### #
 
         # geometric variables
 
@@ -533,9 +533,9 @@ load_cell_data <-
 
 
 
-        #################################################################
-        # Removing duplicates
-        #################################################################
+        ###################################################################### #
+        # Removing duplicates                                               ####
+        ###################################################################### #
         # TODO: check and correct in timecourses. readr changes names differently for some reason
         #if (identical(pos.data$con.vol, pos.data$con.vol_1)) {
         #    cat("\nremoving duplicate con.vol\n")
@@ -543,9 +543,9 @@ load_cell_data <-
         #}
 
 
-        #################################################################
-        # g: read pdata if it exists
-        #################################################################
+        ###################################################################### #
+        # g: read pdata if it exists                                        ####
+        ###################################################################### #
 
         pdata_file <- list.files(path = path, pattern = ".*pdata.csv$")
 
@@ -569,9 +569,9 @@ load_cell_data <-
         }
 
 
-        #################################################################
-        # g: hasta aca tengo el DF con los datos crudos: pos.data
-        #################################################################
+        ###################################################################### #
+        # g: hasta aca tengo el DF con los datos crudos: pos.data           ####
+        ###################################################################### #
 
 
         # g: agrego data de imagenes. paths  y eso.
@@ -676,9 +676,11 @@ load_cell_data <-
                                                                     sep = "")),
                                                       names(pos.data),
                                                       value = TRUE)
-
-
+        #################### #
+        # Check unicity   ####
+        #################### #
         load_cell_data_checkid(cdata = pos.data, ...)
+        
         cell.data=
             list(data = pos.data,
                  qc.history = list(),
@@ -707,9 +709,10 @@ load_cell_data <-
         #}
 
         # print(summary(cell.data))
+        
+        
+        # RETURN ####
         return(cell.data)
-
-
     }
 
 
@@ -727,7 +730,7 @@ load_cell_data <-
 
 
 #*************************************************************************#
-# PRIVATE Functions
+# PRIVATE Functions                                                    ####
 #*************************************************************************#
 #private
 
@@ -1060,6 +1063,8 @@ load_cell_data <-
     }
 }
 
+#*************************************************************************#
+# PUBLIC Functions                                                    ####
 #*************************************************************************#
 #public
 #
