@@ -303,7 +303,7 @@ cimage.cell.image <- function(X,
 
             if (display) {
                 # g: EBImage::display exists
-                EBImage::display(outimg)
+                print(EBImage::display(outimg))
             }
 
             img.desc(outimg) <- imgdf
@@ -799,11 +799,10 @@ cimage.cell.image <- function(X,
     attr(outimg2, "img.desc") <- imgdf
 
     if (display) {
-        EBImage::display(outimg2, title = "cimage")
+        print(EBImage::display(outimg2, title = "cimage"))
     }
 
-    EBImage::display(outimg2, title = "cimage")
-    #return(invisible(outimg2))
+    return(invisible(outimg2))
     }
 
 #*************************************************************************#
@@ -1293,8 +1292,8 @@ print.summary.cell.image <- function(x, ...) {
 print.cell.image <- function(x, nx = ceiling(sqrt(length(x))), ...) {
     xtitle <- paste("cell.image from", toString(unique(img.desc(x)$path)))
     class(x) <- "list"
-    EBImage::display(EBImage::tile(EBImage::normalize(EBImage::combine(x)), nx = nx),
-                     title = xtitle)
+    print(EBImage::display(EBImage::tile(EBImage::normalize(EBImage::combine(x)), nx = nx),
+                     title = xtitle))
 }
 
 #*************************************************************************#
@@ -1432,7 +1431,7 @@ show_img <- function(X,
     SHOW_IMAGE <- EBImage::combine(img.list)
 
     if (display) {
-        EBImage::display(SHOW_IMAGE, title = "show_image")
+      print(EBImage::display(SHOW_IMAGE))
     }
 
     return(invisible(SHOW_IMAGE))
@@ -1825,7 +1824,7 @@ drawText <- function(img,
         if(!is.null(open.dev)) on.exit(par(op))
 
         #plot current img in device
-        EBImage::display(img,method = "raster")
+        print(EBImage::display(img,method = "raster"))
 
         #add text to img
         text(x / img.width,
