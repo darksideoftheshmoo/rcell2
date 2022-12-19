@@ -48,44 +48,6 @@ library(tidyverse)  # import numpy as np (?)
 - **Read the help page** of functions before using them. Open help pages with R's `?` (e.g. `?load_cell_data`).
 - **Read the README**.md at rcell2's [GitHub repo](https://github.com/darksideoftheshmoo/rcell2/).
 
-## Quick segmentation example
-
-This code runs Cell-ID on an example image dataset, using the default parameters,
-and loads the output into R (including cell boundaries).
-
-A full explanation and walkthroug of this process is available
-in the notebook template of the `rcell2.cellid` package.
-
-Execute the following to install the package and open the template:
-
-```{r}
-if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
-rcell2.cellid::get_workflow_template_cellid()
-```
-
-
-```{r, eval=F}
-if(!requireNamespace("remotes")) install.packages("remotes")
-if(!requireNamespace("rcell2.examples")) remotes::install_github("darksideoftheshmoo/rcell2.examples")
-data.dir <- system.file("extdata/sample_datasets/sample_time_series/", package = "rcell2.examples")
-
-cellid.args <- rcell2.cellid::arguments(path = data.dir)
-
-# Cell-ID has already been run.
-# cell2.out <-
-#   rcell2.cellid::cell2(arguments = cellid.args,
-#                        output_coords_to_tsv = T,
-#                        check_fail = T)
-
-cell.data <- rcell2.cellid::cell.load.alt(path = data.dir)
-
-cell.boundaries <- 
-  rcell2::cell.load.boundaries(data.source = "masks.tsv",
-                               arguments = cellid.args,
-                               pixel.type = "b"
-                               )
-```
-
 ## Preamble
 
 ### Image file names
@@ -127,14 +89,55 @@ note that it has **3 capturing groups** (suff between parentheses).
 The regex as a whole is used to select images from a directory (filtering out
 other files) and the capturing groups are used to extract the metadata.
 
-### Renaming Metamorph MDA images
+### Renaming images
 
-Using Metamorph's _Multi-dimensional acquisition_ (MDA for short), may use file names different from the usual style (i.e `YFP_Position01_time1.tif`, and so on).
+Your imaging software may use file names different from the usual style
+(i.e `YFP_Position01_time1.tif`, and so on).
 
-`rename_mda` will help you renaming those weird file names into something more useful.
+`rename_mda`, provided by the `rcell2.cellid` package, will help you rename
+those weird file names into something more compatible with `rcell2`'s 
+defailts.
 
-It is provided in the `rcell2.cellid` package. A full example on how to use it is 
-available in the packages notebook template.
+### Check XY stage coordinates
+
+It may be a good idea to check that the physical coordinates of your images
+match your expectations (i.e. the column/row pairs of each well in a microscopy plate).
+This information is stored in TIFF's metadata.
+
+With this information it is also possible to check whether the fields of view of
+different positions overlap, inadvertently.
+
+Code for this check is available in the template notebook of the `rcell2.magick` package.
+
+Execute the following to install the package and open the template:
+
+```{r}
+if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
+rcell2.cellid::get_workflow_template_cellid()
+```
+
+
+## Data sources
+
+A full explanation and walkthrough of the image segmentation process is available
+in the notebook template of the `rcell2.cellid` package.
+
+Execute the following to install the package and open the template:
+
+```{r}
+if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
+rcell2.cellid::get_workflow_template_cellid()
+```
+
+Execute the following to install the examples package and set the data directory:
+
+```{r, eval=F}
+if(!requireNamespace("remotes")) install.packages("remotes")
+if(!requireNamespace("rcell2.examples")) remotes::install_github("darksideoftheshmoo/rcell2.examples")
+data_dir <- system.file("extdata/sample_datasets/sample_time_series/", package = "rcell2.examples")
+```
+
+The example data has already been process with `rcell2.cellid`.
 
 ## Load Cell-ID output
 
@@ -144,42 +147,32 @@ These must be loaded into R for further analyses.
 This is done with the `load_cell_data` function:
 
 ```{r}
-cell.data <- rcell2::load_cell_data(path = path)
+cell.data <- rcell2::load_cell_data(path = data_dir)
 ```
 
 Alternativley, there is also the `cell.load.alt` function from the `rcell2.cellid` package:
 
 ```{r}
-cell.data <- rcell2.cellid::cell.load.alt(path = path,
-                                          fluorescence.pattern = "^([GCYRT]FP)_Position\\d+.tif$")
+cell.data <- rcell2.cellid::cell.load.alt(path = data_dir)
 ```
 
 > Obs: your `fluorescence.pattern` regex may vary, see `?cell.load.alt`.
 
-### CellID variables help
+If Cell-ID was configured to output the segmentation mask, either to a TSV
+or masked TIFF file, the information can be loaded with the `cell.load.boundaries`
+function:
+
+```{r}
+cell.load.boundaries(data.source = "masks.tsv")
+```
+
+
+### Cell-ID variables
 
 Descriptions of the variables in `cdata` are available in the `rcell2.cellid` package:
 
 ```{r eval=F}
 rcell2.cellid::cellid_output_descriptions(F)
-```
-
-### Check XY stage coordinates
-
-It may be a good idea to double check that the physical coordinates of your images
-match your expectations (i.e. the column/row pairs of each well in a microscopy plate).
-This information is stored in TIFF's metadata.
-
-With this information it is also possible to check whether the fields of view of
-different positions overlap, inadvertently.
-
-Code for this check iis available in the template notebook of the  `rcell2.magick` package.
-
-Execute the following to install the package and open the template:
-
-```{r}
-if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
-rcell2.cellid::get_workflow_template_cellid()
 ```
 
 ## Data anlysis
