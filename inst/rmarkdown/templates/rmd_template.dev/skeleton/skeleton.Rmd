@@ -209,6 +209,377 @@ if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshm
 rcell2.magick::get_workflow_template_magick()
 ```
 
+### Cell-tagging using ImageJ/FIJI
+
+No analysis package exists (yet) that can replace a researcher's general visual assesment.
+
+The `tagCell` function can provide a randomized experimental context 
+for tagging (i.e. a _pseudo_ double-blind experiment).
+
+If bias during tagging is not a concern, the "multi-point" tool in ImageJ can
+be used to mark cells with different "counters", by simply clicking on them.
+
+These marks can be exported and mapped back to ucids in R, and then
+used for analysis.
+
+#### Hyperstack ImageJ macro
+
+This section helps you open your images with FIJI-ImageJ before you begin.
+
+A simple Macro can be run in ImageJ to load virtual hyperstacks of any experiment.
+
+> Note: this macro uses a "file" pattern that only matches input images (and not ".out")
+> in a tipically-named set of images. Customize the pattern to your need.
+
+Steps:
+
+1. Run the following code, copy its output to the clipboard.
+2. Open ImageJ/FIJI, and open a new "Macro" window by clicking on "Plugins -> New -> Macro".
+3. Paste the macro into the macro editor, and click on "Run". A new hyperstack window will open.
+4. Browse the images using the sliders.
+
+```{r}
+# Make an ImageJ macro to browse the images before segmentation
+n_axis1 <- images %>% filter(!is.out) %>% with(unique(t.frame)) %>% length()
+n_axis2 <- images %>% filter(!is.out) %>% with(unique(pos)) %>% length()
+n_axis3 <- images %>% filter(!is.out) %>% with(unique(channel)) %>% length()
+
+# Check
+stopifnot((n_axis1 * n_axis2 * n_axis3) ==  nrow(unique(filter(images, !is.out))))
+
+macro <- glue::glue(
+  '// Macro',
+  # 'run("Image Sequence...", "open={data_dir} file=(.*\\\\d.tif$) sort use");',
+  'run("Image Sequence...", "open={data_dir} file=(.*out.tif$) sort use");',
+  'run("Stack to Hyperstack...", "order=xyczt(default) channels={n_axis1} slices={n_axis2} frames={n_axis3} display=Grayscale");',
+  .sep = "\n"
+)
+
+cat(macro)
+```
+
+> Note: the dimensions names may be mismatched between R and the macro. This is because 
+virtual stacks must be in `xyczt` order (time is likely to end up as the "channels" dimension), 
+but the order in which the "Image Sequence..." is loaded depends on how their files are named.
+
+The only restriction of this approach is that only "3" dimensions are available for
+browsing: `frame`, `plane`, and `channel`. This is relevant if you wish to browse
+segmentation results (which adds another dimension to the set: original vs "out").
+A fourth dimension would be needed, but Hyperstacks only provide 3. Alternatively, 
+open another virtual hyperstack for the output images, and browse them in-sync.
+
+<!-- Si alguien sabe como reordenar fotos en un stack, que avise. Creo que se puede ¿reslice? ¿algo asi? -->
+
+#### Filtering multipoints
+
+Steps (continued): read these steps before tagging.
+
+5. Use the multi-point tool to mark individual cells with one or more "counters".
+  - It is critical that you remember the which values of the "Ch" (channel), 
+    "Slice", and "Frame" ImageJ measurements map to `t.frame`s, `pos`, and `ch`
+    in Cell-IDs output.
+  - Note that ImageJ's indexes begin at 1, but Cell-ID's begin at 0. This is
+    specially relevant for `t.frame`s.
+6. After tagging the positions make measurements (press Ctrl+M) and save
+   the output to a `.csv` file.
+7. Prepare a `data.frame` with tag names mapped to _Counter_ indices.
+  - Note that ImageJ's Multi-point counters begin at 0.
+
+Each "Counter" has an associated "tag", corresponding to the event or class
+marked in the images.
+
+```{r}
+tag_descriptions <- c("Ok", "Budding", "Dead", "Spurious")
+
+counter.desc.df <- data.frame(Counter = 0:3,
+                              tag_description = tag_descriptions)
+
+counter.desc.df
+```
+
+8. Prepare a `data.frame` relating _Slice_ indices to stage position indices.
+  - Note that ImageJ's _Slices_ begin at 1.
+
+```{r}
+slice.pos.df <- data.frame(
+  Slice = 1:2,
+  pos = c(4,12)
+)
+
+slice.pos.df
+```
+
+9. Prepare a `data.frame` relating _Ch_ indices to `t.frame` position indices.
+  - Note that ImageJ's _Ch_ begin at 1, and Cell-ID's `t.frame`s begin at 0.
+
+```{r}
+ch.frame.df <- data.frame(
+  Ch = 1:3,
+  t.frame = 0:2
+)
+
+ch.frame.df
+```
+
+9. Load the Multi-point tags.
+
+We usually prepare one CSV file per position, and extract the position index
+from the file name when loading the measurements into R.
+For example, we CSV files saved as `pos01_filter.csv` (for position 1).
+
+List CSV files:
+
+```{r}
+mp.filters.files <- dir(path = results.dir, 
+                        pattern = "pos\\d+_filter.csv", 
+                        full.names = T)
+
+mp.filters.files
+```
+
+Load the tags, and extract the position index from the file's names:
+
+```{r}
+mp.filters <- 
+  # Load CSV files
+  mp.filters.files %>% 
+  {lapply(setNames(., basename(.)), read_csv)} %>% 
+  # Bind rows
+  bind_rows(.id = "file") %>% 
+  # Get position info
+  extract(file, "pos(\\d+)_", into = "pos", convert = T) %>% 
+  # Cleanup
+  select(pos, X, Y, Ch, Slice, Frame) %>% 
+  # Add an ID to each tag
+  mutate(mpid = 1:n())
+
+mp.filters
+```
+
+10. Reindex the time frame column to match Cell-ID's.
+
+```{r}
+mp.filters <- 
+  # Re-index t.frame
+  mutate(t.frame = t.frame - 1)
+```
+
+11. Examine the result.
+
+```{r}
+mp.filters
+```
+
+> Reminder: this is needed because virtual hyperstacks can only load images in "xyczt" order.
+
+Here is an example `mp.filters` `data.frame`. In this case the position 
+is encoded in the _Slice_ variable.
+
+```{r}
+mp.filters.file <- system.file("extdata/sample_datasets/sample_time_series/imagej_mp_tags/results_pos4_12.csv",
+                               package = "rcell2.examples", mustWork = T)
+
+multipoints <- 
+  # Load CSV files
+  mp.filters.file %>% read_csv() %>% 
+  # Cleanup
+  select(X, Y, Ch, Slice, Frame, Counter) %>% 
+  # Add an ID to each tag
+  mutate(mpid = 1:n())
+
+mp.filters <- multipoints %>% 
+  left_join(slice.pos.df) %>% 
+  left_join(ch.frame.df) %>% 
+  left_join(counter.desc.df)
+
+mp.filters
+```
+
+
+#### Mapping to cdata
+
+This procedure must be repeated for each _Counter_ type, only one example is shown below.
+Happy copy-pasting.
+
+Keep the first markers only:
+
+```{r}
+mp.filter <- mp.filters %>% filter(Counter == 0) %>% 
+  select(mpid, X, Y, pos, tag_description, Counter, Slice)
+
+mp.filter
+```
+
+Calculate distance to closest multipoint and save it's ID:
+
+* Consider only multipoints in bounding box.
+* Use counters for rtcc (0) and cycling (1).
+
+```{r}
+# Make a copy of cdata
+cdata.mp <- cdata %>%
+  filter(t.frame == min(t.frame)) %>% 
+  select(ucid, pos, t.frame, xpos, ypos)
+
+# Add the columns
+cdata.mp[, c("closest.mp", "closest.mp.id")] <-
+  apply(cdata.mp, 1, function(x){
+    mp.pos <- filter(mp.filter, pos == x["pos"])
+    
+    if(nrow(mp.pos) == 0){
+      return(c(closest.mp.drop=NA,
+               closest.mp.drop.id=NA))
+    }
+    
+    dists <- sqrt(( (x["xpos"]-mp.pos$X)^2) + ((x["ypos"]-mp.pos$Y)^2) )
+    
+    if(length(dists) == 0){
+      return(c(closest.mp.drop=NA,
+               closest.mp.drop.id=NA))
+    }
+    
+    min.id <- mp.pos$mpid[which.min(dists)]
+    
+    c( min(dists), min.id)
+  }) %>% t()
+```
+
+Set a threshold distance, and save the filter:
+
+```{r}
+cdata.mp$has.close.mp <- cdata.mp$closest.mp < 7.5
+```
+
+Plot result:
+
+```{r}
+p <- ggplot() + 
+  geom_point(aes(xpos, ypos, 
+                 color="CellID",
+                 text=paste("ucid:", ucid, ", closest dist:", closest.mp)),
+             data=cdata.mp) +
+  
+  geom_point(aes(X, Y, color="ImageJ"), 
+             data = mp.filter, 
+             size = 3) +
+  
+  geom_point(aes(xpos, ypos, color="matched"),
+             data=cdata.mp %>% filter(has.close.mp)) +
+  
+  facet_wrap(~pos) + coord_equal() +
+  ggtitle("Examine MP ilter result", 
+          "black: imagej points, gray: all Cell-ID cells, red: Cell-ID cells matched to a point.") + 
+  
+  scale_color_manual(values=c(ImageJ="black", matched="red", CellID="grey")) +
+  scale_y_reverse()
+
+plotly::ggplotly(p)
+```
+
+#### Check for duplicated IDs
+
+Generate indicator column:
+
+```{r}
+cdata.mp$n_dupes <- apply(X = cdata.mp, MARGIN = 1, function(cell){
+  sum( (cell["closest.mp.id"] == cdata.mp$closest.mp.id) & cdata.mp$has.close.mp )
+})
+
+cdata.mp$dupes <- cdata.mp$n_dupes > 1
+
+any(cdata.mp$dupes) # Should be false
+unique(cdata.mp$n_dupes) # Should be only 1's
+```
+
+> `n_dupes` is 1 if the `ucid` was assigned to 1 mpid. If greater than 1,
+> the `ucid` shares the mpid with at least anoher `ucid` (and this should
+> not happen).
+
+Check graphically:
+
+```{r}
+plt.dupes <- ggplot() + 
+  
+  geom_point(aes(X, Y), color = "gray",
+             data = mp.filter %>% filter(Counter == 0), 
+             size =3) +
+  
+  geom_point(aes(xpos, ypos), color = "black", data = cdata.mp) +
+
+  geom_point(aes(xpos, ypos, color=as.factor(n_dupes)),
+             data = cdata.mp %>% filter(has.close.mp)) + 
+    
+  geom_line(aes(xpos, ypos, group=closest.mp.id), color = "black",
+            data = cdata.mp %>% filter(has.close.mp)) + 
+  
+  ggtitle("Graphical check of unique matches",
+          "The points from cdata sharing a close multipoint are joined by lines") +
+  
+  facet_wrap(~pos)
+
+plotly::ggplotly(plt.dupes)
+```
+
+Tabular check:f for each `closest.mp.drop.id` there should be only one row.
+
+```{r}
+chequeo.df <- cdata.mp %>% 
+  group_by(closest.mp.id) %>% 
+  filter(has.close.mp) %>% 
+  summarise(row.count = n()) %>% 
+  arrange(-row.count)
+
+all(chequeo.df$row.count == 1)
+```
+
+```{r}
+chequeo.df
+```
+
+#### Filter cdata
+
+Use the ImageJ points to select cells in cdata.
+
+Generate a mapping `data.frame`:
+
+```{r}
+mapping <- cdata.mp %>% filter(has.close.mp) %>% 
+  select(ucid, closest.mp.id)
+```
+
+Last check for unicity:
+
+```{r}
+stopifnot(nrow(mapping) == nrow(unique(mapping)))
+```
+
+Examine:
+
+```{r}
+mapping
+```
+
+You can use this information to filter `cdata`, for example by `ucid`:
+
+```{r}
+cdata.filtered <- cdata %>% 
+  filter(ucid %in% mapping$ucid)
+```
+
+Done! `cdata.filtered` now contains only cells that were matched to a `0` _Counter_
+in ImageJ. Other uses for this include tagging events, or phenotypes of interest.
+
+Optionally use `rcell2.magick` to display some images:
+
+```{r}
+cdata.filtered %>% 
+  rcell2.magick::magickCell(images) %>% 
+  rcell2.magick::magickForKnitr()
+```
+
+
+Repeat these steps for the other Multi-point _Counters_.
+
 ### Hu Moments
 
 The Hu Moments can be computed from the masked TIFF files, generated by Cell-ID with 
