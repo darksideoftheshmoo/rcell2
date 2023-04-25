@@ -51,9 +51,19 @@ To get the full functionality of the rcell2 suite, also install:
 * [`rcell2.magick`](https://github.com/darksideoftheshmoo/rcell2-magick)
 * [`rcell2.examples`](https://github.com/darksideoftheshmoo/rcell2.examples)
 
-## R Dependencies
+## Dependencies
 
-Most of the dependencies are listed in the `DESCRIPTION` file, and should install automatically.
+### System libraries
+
+Linux systems might require additional development libraries to install rcell2. Use your package manager to install them:
+
+```bash
+sudo apt install libfftw3-dev libxml2-dev libtiff5-dev
+```
+
+### R packages
+
+Most of the R dependencies are listed in the `DESCRIPTION` file, and should install automatically.
 
 We suggest installing the [```tidyverse```][1] meta-package (and use it, you'll not regret it) and [```devtools```][2]:
 
