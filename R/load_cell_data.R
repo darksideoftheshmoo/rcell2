@@ -59,7 +59,7 @@ if(getRversion() >= "2.15.1") {
 #' 
 #' The ucid-t.frame combination should be unique. Else there might be a problem (e.g. redundant matches in pdata).
 #' 
-#' @param cdata The "data" item of the list produced by \code{load_cell_data} or \code{cell.load.alt}.
+#' @param cdata The "data" item of the list produced by \code{load_cell_data} or \code{get_cell_data}.
 #' @param id_cols Character vector with the column names of cdata that must identify rows uniquely. Defaults to the usual ucid-t.frame combination.
 #' @return Invisibly returns a named list with the test result ("all_unique": boolean) and the summarized dataframe ("cdata_summary": data.frame) used for checking. Any value of n_rows > 1 is problematic.
 load_cell_data_checkid <- function(cdata, id_cols = c("ucid", "t.frame")){
@@ -93,7 +93,7 @@ load_cell_data_checkid <- function(cdata, id_cols = c("ucid", "t.frame")){
 #' information for the analysis. All the functions included in the package
 #' operate over this object, and its components should not be modified directly,
 #' but through the provided functions. Remember to assign the returned value to a
-#' variable (e.g. X<-load.cellID.data() )
+#' variable (e.g. cell_data <- load_cell_data() )
 #'
 #' @param path string, path to folder containing PositionXXX folders.
 #' @param pattern string, Regex specifying 'PositionXXX' name format.
@@ -108,6 +108,8 @@ load_cell_data_checkid <- function(cdata, id_cols = c("ucid", "t.frame")){
 #' @details
 #' Reads Cell ID output files (basename)_all in folders that match pattern
 #' in path and loads them into a cell.data object.
+#' 
+#' This function is no longer maintained, and will be deprecated in favor of \code{get_cell_data} provided by the \code{rcell2.cellid} package. Consider switching from \code{load_cell_data} to the newer function.
 #'
 #' It searches for the output_all files in folders of the form specified by
 #' pattern (regular expression). If the folder has a numeric value in its name
@@ -144,7 +146,7 @@ load_cell_data <-
              ...) {
 
         on.exit(gc())
-
+        message("This function is no longer maintained, and will be deprecated in favor of 'get_cell_data' provided by the 'rcell2.cellid' package. Consider switching from 'load_cell_data' to the newer function.")
 
         # some variable definitions.
         .conflicts.OK = TRUE

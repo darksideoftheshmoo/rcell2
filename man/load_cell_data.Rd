@@ -35,7 +35,7 @@ to lower cells. Set to TRUE if analyzing a FRET split image experiment.}
 \item{...}{
   Arguments passed on to \code{\link[=load_cell_data_checkid]{load_cell_data_checkid}}
   \describe{
-    \item{\code{cdata}}{The "data" item of the list produced by \code{load_cell_data} or \code{cell.load.alt}.}
+    \item{\code{cdata}}{The "data" item of the list produced by \code{load_cell_data} or \code{get_cell_data}.}
     \item{\code{id_cols}}{Character vector with the column names of cdata that must identify rows uniquely. Defaults to the usual ucid-t.frame combination.}
   }}
 }
@@ -53,11 +53,13 @@ returns a cell.data object that contains all the required
 information for the analysis. All the functions included in the package
 operate over this object, and its components should not be modified directly,
 but through the provided functions. Remember to assign the returned value to a
-variable (e.g. X<-load.cellID.data() )
+variable (e.g. cell_data <- load_cell_data() )
 }
 \details{
 Reads Cell ID output files (basename)_all in folders that match pattern
 in path and loads them into a cell.data object.
+
+This function is no longer maintained, and will be deprecated in favor of \code{get_cell_data} provided by the \code{rcell2.cellid} package. Consider switching from \code{load_cell_data} to the newer function.
 
 It searches for the output_all files in folders of the form specified by
 pattern (regular expression). If the folder has a numeric value in its name

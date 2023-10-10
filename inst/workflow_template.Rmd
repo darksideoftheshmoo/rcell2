@@ -269,11 +269,11 @@ rcell2::cell2(arguments = arguments,
 Esto se hace con la función `load_cell_data`:
 
 ```{r}
-# cell.data <- rcell2::cell.load.alt(path =  path)
+# cell.data <- rcell2::get_cell_data(path =  path)
 cell_data <- rcell2::load_cell_data(path = path)
 ```
 
-Si esa no funciona, pueden intentar con `cell.load.alt`, aunque esta función no está tan probada.
+Si esa no funciona, pueden intentar con `get_cell_data`, aunque esta función no está tan probada.
 
 # Datos de máscaras
 

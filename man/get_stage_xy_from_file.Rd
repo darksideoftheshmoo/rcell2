@@ -20,7 +20,7 @@ The description is in the tiff file's metadata, tipically written by Metamorph.
 \examples{
 
 # Get the "images" data.frame from CellID
-cell.data <- cell.load.alt("path/to/output/")
+cell.data <- get_cell_data("path/to/output/")
 images <- cell.data$images
 
 # Generate a list with file paths split and named by "pos"
