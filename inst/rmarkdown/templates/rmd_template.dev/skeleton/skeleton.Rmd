@@ -107,33 +107,41 @@ This information is stored in TIFF's metadata.
 With this information it is also possible to check whether the fields of view of
 different positions overlap, inadvertently.
 
-Code for this check is available in the template notebook of the `rcell2.magick` package.
+Code for this check is available in the template notebook of the `rcell2.cellid` package.
 
-Execute the following to install the package and open the template:
+Uncomment and execute the following to install the package and open the template:
 
-```{r}
-if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
-rcell2.cellid::get_workflow_template_cellid()
+```{r, eval=F}
+# if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
+
+# rcell2.cellid::get_workflow_template_cellid()
 ```
 
-
 ## Data sources
+
+Set the `data_dir` variable to the path of your segmentation output:
+
+```{r}
+data_dir <- "/.../path/to/your/segmeted/images"
+```
 
 A full explanation and walkthrough of the image segmentation process is available
 in the notebook template of the `rcell2.cellid` package.
 
-Execute the following to install the package and open the template:
-
-```{r}
-if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
-rcell2.cellid::get_workflow_template_cellid()
-```
-
-Execute the following to install the examples package and set the data directory:
+Uncomment and execute the following to install the package and open the template:
 
 ```{r, eval=F}
-if(!requireNamespace("remotes")) install.packages("remotes")
-if(!requireNamespace("rcell2.examples")) remotes::install_github("darksideoftheshmoo/rcell2.examples")
+# if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
+
+# rcell2.cellid::get_workflow_template_cellid()
+```
+
+Uncomment and execute the following to install the examples package and set the data directory:
+
+```{r, eval=F}
+# if(!requireNamespace("remotes")) install.packages("remotes")
+# if(!requireNamespace("rcell2.examples")) remotes::install_github("darksideoftheshmoo/rcell2.examples")
+
 data_dir <- system.file("extdata/sample_datasets/sample_time_series/", package = "rcell2.examples")
 ```
 
@@ -166,7 +174,6 @@ function:
 cell.load.boundaries(data.source = "masks.tsv")
 ```
 
-
 ### Cell-ID variables
 
 Descriptions of the variables in `cdata` are available in the `rcell2.cellid` package:
@@ -187,10 +194,36 @@ cdata <- cell.data$data
 images <- cell.data$images
 ```
 
+### Add stage position metadata
 
-### Tidy framework
+> **Warning**: `load_cell_data` does the following automatically if a pdata.csv file is 
+found next to the images.
+> If it were the case, you musnt't run the join again.
 
-- [ ] TODO: ¿donde puso los ejemplos/viñetas Ger para su tidy framework?
+Load "pdata":
+
+```{r}
+# Set the path to the file (modify accodringly).
+pdata_path <- "/.../somewhere/over/the/pdata.csv"
+
+# It is a "metadata" dataframe we usually join to cdata by "position" and/or "t.frame",
+# which contains other experimental variables: simuli concentrations, notes, etc.
+pdata <- readr::read_csv(pdata_path)
+
+pdata
+```
+
+> Note: the "p" in "pdata" stands for microscope _position_ data.
+
+This table is usually joined to cdata by position (and time frame if available).
+
+```{r eval=F}
+cdata <- left_join(cdata, pdata)
+```
+
+<!-- ### Tidy framework -->
+
+<!-- - [ ] TO-DO -->
 
 ### Shiny-Magick framework
 
@@ -202,11 +235,12 @@ images of single cells, and preparing strips, tiles, and plots.
 
 To learn more, install the `rcell2.magick` package and open it's template notebook.
 
-Execute the following to install the package and open the template:
+Uncomment and execute the following to install the package and open the template:
 
 ```{r}
-if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
-rcell2.magick::get_workflow_template_magick()
+# if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
+
+# rcell2.magick::get_workflow_template_magick()
 ```
 
 ### Cell-tagging using ImageJ/FIJI
@@ -239,26 +273,11 @@ Steps:
 4. Browse the images using the sliders.
 
 ```{r}
-# Make an ImageJ macro to browse the images before segmentation
-n_axis1 <- images %>% filter(!is.out) %>% with(unique(t.frame)) %>% length()
-n_axis2 <- images %>% filter(!is.out) %>% with(unique(pos)) %>% length()
-n_axis3 <- images %>% filter(!is.out) %>% with(unique(channel)) %>% length()
-
-# Check
-stopifnot((n_axis1 * n_axis2 * n_axis3) ==  nrow(unique(filter(images, !is.out))))
-
-macro <- glue::glue(
-  '// Macro',
-  # 'run("Image Sequence...", "open={data_dir} file=(.*\\\\d.tif$) sort use");',
-  'run("Image Sequence...", "open={data_dir} file=(.*out.tif$) sort use");',
-  'run("Stack to Hyperstack...", "order=xyczt(default) channels={n_axis1} slices={n_axis2} frames={n_axis3} display=Grayscale");',
-  .sep = "\n"
-)
-
-cat(macro)
+rcell2.cellid::ijm_open_hyperstack(images)
 ```
 
-> Note: the dimensions names may be mismatched between R and the macro. This is because 
+> Note: the files are symlinked with new names to a temporary directory. Otherwise, 
+the names of the ImageJ dimensions may be mismatched between R and the macro. This is because 
 virtual stacks must be in `xyczt` order (time is likely to end up as the "channels" dimension), 
 but the order in which the "Image Sequence..." is loaded depends on how their files are named.
 
@@ -267,8 +286,6 @@ browsing: `frame`, `plane`, and `channel`. This is relevant if you wish to brows
 segmentation results (which adds another dimension to the set: original vs "out").
 A fourth dimension would be needed, but Hyperstacks only provide 3. Alternatively, 
 open another virtual hyperstack for the output images, and browse them in-sync.
-
-<!-- Si alguien sabe como reordenar fotos en un stack, que avise. Creo que se puede ¿reslice? ¿algo asi? -->
 
 #### Filtering multipoints
 
@@ -291,8 +308,10 @@ marked in the images.
 ```{r}
 tag_descriptions <- c("Ok", "Budding", "Dead", "Spurious")
 
-counter.desc.df <- data.frame(Counter = 0:3,
-                              tag_description = tag_descriptions)
+counter.desc.df <- data.frame(
+  Counter = 0:3,
+  tag_description = tag_descriptions
+)
 
 counter.desc.df
 ```
