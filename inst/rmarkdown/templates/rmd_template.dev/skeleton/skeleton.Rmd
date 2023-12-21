@@ -414,17 +414,14 @@ mp.filters <- multipoints %>%
 mp.filters
 ```
 
+#### Mapping points
 
-#### Mapping to cdata
-
-This procedure must be repeated for each _Counter_ type, only one example is shown below.
-Happy copy-pasting.
-
-Keep the first markers only:
+Keep the relevant set of markers:
 
 ```{r}
-mp.filter <- mp.filters %>% filter(Counter == 0) %>% 
-  select(mpid, X, Y, pos, tag_description, Counter, Slice)
+mp.filter <- mp.filters |>
+  filter(Counter == 0) |>  # Here you may choose which markers to map.
+  select(mpid, X, Y, pos, t.frame)
 
 mp.filter
 ```
@@ -437,46 +434,64 @@ Calculate distance to closest multipoint and save it's ID:
 ```{r}
 # Make a copy of cdata
 cdata.mp <- cdata %>%
-  filter(t.frame == min(t.frame)) %>% 
+  # filter(t.frame == min(t.frame)) %>% 
   select(ucid, pos, t.frame, xpos, ypos)
 
+# Make a copy of the points
+mp.mapped <- mp.filter
+
 # Add the columns
-cdata.mp[, c("closest.mp", "closest.mp.id")] <-
-  apply(cdata.mp, 1, function(x){
-    mp.pos <- filter(mp.filter, pos == x["pos"])
+mp.mapped[, c("ucid", "closest.dist")] <-
+  apply(mp.filter, 1, function(x){
+    cells <- filter(cdata.mp, pos == x["pos"] & t.frame == x["t.frame"])
     
-    if(nrow(mp.pos) == 0){
-      return(c(closest.mp.drop=NA,
-               closest.mp.drop.id=NA))
-    }
+    if(nrow(cells) == 0) return(c(NA, NA))
     
-    dists <- sqrt(( (x["xpos"]-mp.pos$X)^2) + ((x["ypos"]-mp.pos$Y)^2) )
+    dists <- sqrt(( (x["X"]-cells$xpos)^2) + ((x["Y"]-cells$ypos)^2) )
     
-    if(length(dists) == 0){
-      return(c(closest.mp.drop=NA,
-               closest.mp.drop.id=NA))
-    }
+    if(length(dists) == 0) return(c(NA, NA))
     
-    min.id <- mp.pos$mpid[which.min(dists)]
+    min.id <- cells$ucid[which.min(dists)]
     
-    c( min(dists), min.id)
+    c( min.id, min(dists))
   }) %>% t()
+
+mp.mapped
+```
+
+Fix mis-assgnments manually:
+
+> If you spot any mis-assignments further on, you can fix them here mannualy and then re-inspect.
+
+```{r}
+# mp.mapped[mp.mapped$ucid==110047,"ucid"] <- 110754
+# 
+# mp.mapped
 ```
 
 Set a threshold distance, and save the filter:
 
 ```{r}
-cdata.mp$has.close.mp <- cdata.mp$closest.mp < 7.5
+mp.mapped.minimal <- mp.mapped |> select(mpid, ucid, t.frame, closest.dist)
+
+cdata.mp <- inner_join(cdata.mp,
+                       mp.mapped.minimal)
+
+cdata.mp$has.close.mp <- cdata.mp$closest.dist < 10
 ```
 
 Plot result:
+
+> You may find "ggplotly" useful to render this plot in interactive form.
 
 ```{r}
 p <- ggplot() + 
   geom_point(aes(xpos, ypos, 
                  color="CellID",
-                 text=paste("ucid:", ucid, ", closest dist:", closest.mp)),
+             text=paste("ucid:", ucid, ", closest dist:", closest.dist)),
              data=cdata.mp) +
+             #     text=paste("ucid:", ucid)),
+             # data=cdata |> filter(ucid %in% c(110047, 110754), t.frame==12)) +
   
   geom_point(aes(X, Y, color="ImageJ"), 
              data = mp.filter, 
@@ -492,7 +507,16 @@ p <- ggplot() +
   scale_color_manual(values=c(ImageJ="black", matched="red", CellID="grey")) +
   scale_y_reverse()
 
-plotly::ggplotly(p)
+# plotly::ggplotly(p)
+p
+```
+
+Examine images of the tagged cells: 
+
+```{r}
+cdata.mp %>% filter(has.close.mp) |> 
+  rcell2.magick::magickCell(images) |> 
+  rcell2.magick::magickForKnitr()
 ```
 
 #### Check for duplicated IDs
