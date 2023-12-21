@@ -158,13 +158,13 @@ This is done with the `load_cell_data` function:
 cell.data <- rcell2::load_cell_data(path = data_dir)
 ```
 
-Alternativley, there is also the `cell.load.alt` function from the `rcell2.cellid` package:
+Alternativley, there is also the `get_cell_data` function from the `rcell2.cellid` package:
 
 ```{r}
-cell.data <- rcell2.cellid::cell.load.alt(path = data_dir)
+cell.data <- rcell2.cellid::get_cell_data(path = data_dir)
 ```
 
-> Obs: your `fluorescence.pattern` regex may vary, see `?cell.load.alt`.
+> Obs: your `fluorescence.pattern` regex may vary, see `?get_cell_data`.
 
 If Cell-ID was configured to output the segmentation mask, either to a TSV
 or masked TIFF file, the information can be loaded with the `cell.load.boundaries`

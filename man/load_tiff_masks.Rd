@@ -7,9 +7,9 @@
 load_tiff_masks(images, image_bits, cell_id_offset = -1, return_points = F)
 }
 \arguments{
-\item{images}{An images dataframe, from  \code{rcell2::load_cell_data} or \code{rcell2.cellid::cell.load.alt}.}
+\item{images}{An images dataframe, from  \code{rcell2::load_cell_data} or \code{rcell2.cellid::get_cell_data}.}
 
-\item{image_bits}{an integer indicating the bit-depth on the TIFF images, such that maximum intensity is \code{image_bits^2 -1} and minimum is zero. Tipically 8 or 16.}
+\item{image_bits}{an integer indicating the bit-depth on the TIFF images, such that maximum intensity is \code{image_bits^2 -1} and minimum is zero. Typically 8 or 16.}
 
 \item{cell_id_offset}{the offset respect to maximum pixel intensity, such that \code{cellID = maximum_intensity - boundary_intensity + cell_id_offset}.}
 

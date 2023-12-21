@@ -7,7 +7,7 @@
 load_cell_data_checkid(cdata, id_cols = c("ucid", "t.frame"))
 }
 \arguments{
-\item{cdata}{The "data" item of the list produced by \code{load_cell_data} or \code{cell.load.alt}.}
+\item{cdata}{The "data" item of the list produced by \code{load_cell_data} or \code{get_cell_data}.}
 
 \item{id_cols}{Character vector with the column names of cdata that must identify rows uniquely. Defaults to the usual ucid-t.frame combination.}
 }
