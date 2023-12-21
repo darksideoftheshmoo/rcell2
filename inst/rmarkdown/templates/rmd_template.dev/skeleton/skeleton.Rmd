@@ -439,7 +439,9 @@ cdata.mp <- cdata %>%
 
 # Make a copy of the points
 mp.mapped <- mp.filter
+```
 
+```{r}
 # Add the columns
 mp.mapped[, c("ucid", "closest.dist")] <-
   apply(mp.filter, 1, function(x){
@@ -469,20 +471,34 @@ Fix mis-assgnments manually:
 # mp.mapped
 ```
 
+Join the points to `cdata.mp`:
+
+```{r}
+mp.mapped.minimal <- mp.mapped |> 
+  select(mpid, ucid, t.frame, closest.dist, Counter)
+
+cdata.mp <- cdata.mp |> inner_join(mp.mapped.minimal) |> 
+  dplyr::rename(closest.mp.id=mpid)
+```
+
+Plot the point's distribution, this will help you choose an appropriate threshold.
+
+```{r}
+mp.mapped.minimal |> 
+  ggplot(aes(closest.dist)) + 
+  geom_histogram() +
+  facet_wrap(~Counter)
+```
+
 Set a threshold distance, and save the filter:
 
 ```{r}
-mp.mapped.minimal <- mp.mapped |> select(mpid, ucid, t.frame, closest.dist)
-
-cdata.mp <- inner_join(cdata.mp,
-                       mp.mapped.minimal)
-
 cdata.mp$has.close.mp <- cdata.mp$closest.dist < 10
 ```
 
 Plot result:
 
-> You may find "ggplotly" useful to render this plot in interactive form.
+> You may find `plotly::ggplotly` useful to render this plot in interactive form.
 
 ```{r}
 p <- ggplot() + 
@@ -490,8 +506,6 @@ p <- ggplot() +
                  color="CellID",
              text=paste("ucid:", ucid, ", closest dist:", closest.dist)),
              data=cdata.mp) +
-             #     text=paste("ucid:", ucid)),
-             # data=cdata |> filter(ucid %in% c(110047, 110754), t.frame==12)) +
   
   geom_point(aes(X, Y, color="ImageJ"), 
              data = mp.filter, 
@@ -502,7 +516,7 @@ p <- ggplot() +
   
   facet_wrap(~pos) + coord_equal() +
   ggtitle("Examine MP ilter result", 
-          "black: imagej points, gray: all Cell-ID cells, red: Cell-ID cells matched to a point.") + 
+          "Black: ImageJ points; Gray: all Cell-ID cells; Red: Cell-ID cells matched to a point.") + 
   
   scale_color_manual(values=c(ImageJ="black", matched="red", CellID="grey")) +
   scale_y_reverse()
@@ -531,7 +545,7 @@ cdata.mp$n_dupes <- apply(X = cdata.mp, MARGIN = 1, function(cell){
 cdata.mp$dupes <- cdata.mp$n_dupes > 1
 
 any(cdata.mp$dupes) # Should be false
-unique(cdata.mp$n_dupes) # Should be only 1's
+unique(cdata.mp$n_dupes) # Should be only 1's and 0's.
 ```
 
 > `n_dupes` is 1 if the `ucid` was assigned to 1 mpid. If greater than 1,
@@ -566,17 +580,19 @@ plotly::ggplotly(plt.dupes)
 Tabular check:f for each `closest.mp.drop.id` there should be only one row.
 
 ```{r}
-chequeo.df <- cdata.mp %>% 
+checks.df <- cdata.mp %>% 
   group_by(closest.mp.id) %>% 
   filter(has.close.mp) %>% 
   summarise(row.count = n()) %>% 
   arrange(-row.count)
 
-all(chequeo.df$row.count == 1)
+all(checks.df$row.count == 1)  # Should be TRUE
 ```
 
+Manual inspection:
+
 ```{r}
-chequeo.df
+checks.df
 ```
 
 #### Filter cdata
