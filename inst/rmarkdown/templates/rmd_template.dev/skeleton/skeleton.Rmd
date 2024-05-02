@@ -23,7 +23,33 @@ knit: (function(inputFile, encoding) {
 bibliography: references.bib
 ---
 
+
+## Installation
+
+The `rcell2` package has a bioconductor dependency, which must be installed first.
+
+Install the `EBImage` package (required to look at cells) by copying and running the following script:
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+if (!requireNamespace("EBImage", quietly = TRUE))
+  BiocManager::install("EBImage")
+```
+
 <!-- Download a copy of this file with rcell2::get_workflow_template() -->
+
+The `rcell2` package can be installed directly from its git repository by running the following:
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE))
+  install.packages("remotes")
+
+remotes::install_github("darksideoftheshmoo/rcell2")
+```
+
+## Notebook setup
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T,
