@@ -230,7 +230,7 @@ Load "pdata":
 
 ```{r}
 # Set the path to the file (modify accodringly).
-pdata_path <- "/.../somewhere/over/the/pdata.csv"
+pdata_path <- ".../somewhere/over/the/pdata.csv"
 
 # It is a "metadata" dataframe we usually join to cdata by "position" and/or "t.frame",
 # which contains other experimental variables: simuli concentrations, notes, etc.
@@ -250,24 +250,6 @@ cdata <- left_join(cdata, pdata)
 <!-- ### Tidy framework -->
 
 <!-- - [ ] TO-DO -->
-
-### Shiny-Magick framework
-
-Extra tools for graphical filtering and annotation/tagging are available in 
-the `rcell2.magick` package.
-
-That package also includes functions for generating and manipulating
-images of single cells, and preparing strips, tiles, and plots.
-
-To learn more, install the `rcell2.magick` package and open it's template notebook.
-
-Uncomment and execute the following to install the package and open the template:
-
-```{r}
-# if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
-
-# rcell2.magick::get_workflow_template_magick()
-```
 
 ### Cell-tagging using ImageJ/FIJI
 
@@ -325,58 +307,25 @@ Steps (continued): read these steps before tagging.
     specially relevant for `t.frame`s.
 6. After tagging the positions make measurements (press Ctrl+M) and save
    the output to a `.csv` file.
-7. Prepare a `data.frame` with tag names mapped to _Counter_ indices.
-  - Note that ImageJ's Multi-point counters begin at 0.
-
-Each "Counter" has an associated "tag", corresponding to the event or class
-marked in the images.
-
-```{r}
-tag_descriptions <- c("Ok", "Budding", "Dead", "Spurious")
-
-counter.desc.df <- data.frame(
-  Counter = 0:3,
-  tag_description = tag_descriptions
-)
-
-counter.desc.df
-```
-
-8. Prepare a `data.frame` relating _Slice_ indices to stage position indices.
-  - Note that ImageJ's _Slices_ begin at 1.
-
-```{r}
-slice.pos.df <- data.frame(
-  Slice = 1:2,
-  pos = c(4,12)
-)
-
-slice.pos.df
-```
-
-9. Prepare a `data.frame` relating _Ch_ indices to `t.frame` position indices.
-  - Note that ImageJ's _Ch_ begin at 1, and Cell-ID's `t.frame`s begin at 0.
-
-```{r}
-ch.frame.df <- data.frame(
-  Ch = 1:3,
-  t.frame = 0:2
-)
-
-ch.frame.df
-```
-
-9. Load the Multi-point tags.
+7. Load the Multi-point tags.
 
 We usually prepare one CSV file per position, and extract the position index
 from the file name when loading the measurements into R.
 For example, we CSV files saved as `pos01_filter.csv` (for position 1).
 
+This will require a regex with a single capturing group for the position index, such as:
+
+```{r}
+results.pattern <- "pos(\\d+)_filter.csv"
+```
+
 List CSV files:
 
 ```{r}
+results.dir <- ".../somewhere/over/the/results/"
+
 mp.filters.files <- dir(path = results.dir, 
-                        pattern = "pos\\d+_filter.csv", 
+                        pattern = results.pattern, 
                         full.names = T)
 
 mp.filters.files
@@ -392,7 +341,7 @@ mp.filters <-
   # Bind rows
   bind_rows(.id = "file") %>% 
   # Get position info
-  extract(file, "pos(\\d+)_", into = "pos", convert = T) %>% 
+  extract(file, results.pattern, into = "pos", convert = T) %>% 
   # Cleanup
   select(pos, X, Y, Ch, Slice, Frame) %>% 
   # Add an ID to each tag
@@ -401,21 +350,38 @@ mp.filters <-
 mp.filters
 ```
 
-10. Reindex the time frame column to match Cell-ID's.
+8. Re-index the time frame column to match Cell-ID's.
 
 ```{r}
 mp.filters <- 
   # Re-index t.frame
-  mutate(t.frame = t.frame - 1)
+  mutate(t.frame = Frame - 1)
 ```
 
-11. Examine the result.
+9. Examine the result.
 
 ```{r}
 mp.filters
 ```
 
-> Reminder: this is needed because virtual hyperstacks can only load images in "xyczt" order.
+10. _Optional_: Prepare a `data.frame` with tag names mapped to _Counter_ indices.
+  - Note that ImageJ's Multi-point counters begin at 0.
+  - Each "Counter" has an associated "tag", corresponding to the event or class marked in the images.
+  
+```{r}
+# For example:
+tag_counter <- 0:3
+tag_descriptions <- c("Ok", "Budding", "Dead", "Spurious")
+
+counter.desc.df <- data.frame(
+  Counter = tag_counter,
+  tag_description = tag_descriptions
+)
+
+counter.desc.df
+```
+
+##### Sample dataset
 
 Here is an example `mp.filters` `data.frame`. In this case the position 
 is encoded in the _Slice_ variable.
@@ -440,22 +406,21 @@ mp.filters <- multipoints %>%
 mp.filters
 ```
 
-#### Mapping points
+#### Map points to cells
 
-Keep the relevant set of markers:
+Keep the relevant set of counters (a.k.a. markers). This code will work with
+one marker at a time.
 
 ```{r}
 mp.filter <- mp.filters |>
-  filter(Counter == 0) |>  # Here you may choose which markers to map.
+  # Here you may choose which markers to map.
+  # filter(Counter == 0) |>
   select(mpid, X, Y, pos, t.frame)
 
 mp.filter
 ```
 
 Calculate distance to closest multipoint and save it's ID:
-
-* Consider only multipoints in bounding box.
-* Use counters for rtcc (0) and cycling (1).
 
 ```{r}
 # Make a copy of cdata
@@ -465,9 +430,7 @@ cdata.mp <- cdata %>%
 
 # Make a copy of the points
 mp.mapped <- mp.filter
-```
 
-```{r}
 # Add the columns
 mp.mapped[, c("ucid", "closest.dist")] <-
   apply(mp.filter, 1, function(x){
@@ -487,9 +450,9 @@ mp.mapped[, c("ucid", "closest.dist")] <-
 mp.mapped
 ```
 
-Fix mis-assgnments manually:
+Fix mis-assgnments manually here:
 
-> If you spot any mis-assignments further on, you can fix them here mannualy and then re-inspect.
+> If you spot any mis-assignments later, you can fix them here mannualy and then re-inspect.
 
 ```{r}
 # mp.mapped[mp.mapped$ucid==110047,"ucid"] <- 110754
@@ -516,10 +479,14 @@ mp.mapped.minimal |>
   facet_wrap(~Counter)
 ```
 
-Set a threshold distance, and save the filter:
+Set a threshold distance, and apply the filter:
+
+> This value will depend on you opticalmicroscopy setup, and the morphology of your cells.
 
 ```{r}
-cdata.mp$has.close.mp <- cdata.mp$closest.dist < 10
+threshold <- 11
+
+cdata.mp$has.close.mp <- cdata.mp$closest.dist < threshold
 ```
 
 Plot result:
@@ -541,11 +508,12 @@ p <- ggplot() +
              data=cdata.mp %>% filter(has.close.mp)) +
   
   facet_wrap(~pos) + coord_equal() +
-  ggtitle("Examine MP ilter result", 
+  ggtitle(paste0("Examine MP filter result", " (d<", threshold, ")"), 
           "Black: ImageJ points; Gray: all Cell-ID cells; Red: Cell-ID cells matched to a point.") + 
   
   scale_color_manual(values=c(ImageJ="black", matched="red", CellID="grey")) +
-  scale_y_reverse()
+  scale_y_reverse() +
+  theme_minimal()
 
 # plotly::ggplotly(p)
 p
@@ -559,7 +527,26 @@ cdata.mp %>% filter(has.close.mp) |>
   rcell2.magick::magickForKnitr()
 ```
 
-#### Check for duplicated IDs
+Examine images of the un-matched points: 
+
+```{r}
+# Make a cdata-like data frame for magickCell.
+unmatched.points <- mp.filters |> 
+  dplyr::rename(xpos=X,ypos=Y) |> 
+  inner_join(
+    mp.mapped.minimal |> 
+      filter(closest.dist >= threshold) |> 
+      select(-t.frame),
+    by = "mpid"
+  )
+
+# Display some images.
+unmatched.points |> 
+  rcell2.magick::magickCell(images) |> 
+  rcell2.magick::magickForKnitr()
+```
+
+#### Find duplicates
 
 Generate indicator column:
 
@@ -662,8 +649,25 @@ cdata.filtered %>%
   rcell2.magick::magickForKnitr()
 ```
 
-
 Repeat these steps for the other Multi-point _Counters_.
+
+### Shiny-Magick framework
+
+Extra tools for graphical filtering and annotation/tagging are available in 
+the `rcell2.magick` package.
+
+That package also includes functions for generating and manipulating
+images of single cells, and preparing strips, tiles, and plots.
+
+To learn more, install the `rcell2.magick` package and open it's template notebook.
+
+Uncomment and execute the following to install the package and open the template:
+
+```{r}
+# if(!requireNamespace("rcell2.magick")) remotes::install_github("darksideoftheshmoo/rcell2-magick")
+
+# rcell2.magick::get_workflow_template_magick()
+```
 
 ### Hu Moments
 
@@ -684,9 +688,8 @@ rcell2:::check_tiff_mask(cell_data)
 Alternatively, the Hu Moments can be computed from the TSV files (see `output_coords_to_tsv`
 at the help page of `rcell2.cellid::cell2`), by using the `append_hues2`.
 
-Read its help page for more information:
+Read its help page for more information and usage:
 
 ```{r}
 ?append_hues2
 ```
-
