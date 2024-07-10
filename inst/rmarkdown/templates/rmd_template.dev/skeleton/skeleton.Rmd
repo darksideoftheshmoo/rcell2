@@ -71,12 +71,14 @@ library(rcell2)  # this package you are checking out :)
 library(tidyverse)  # import numpy as np (?)
 ```
 
-## Friendly reminders
+
+## Preamble
+
+### Friendly reminders
 
 - **Read the help page** of functions before using them. Open help pages with R's `?` (e.g. `?load_cell_data`).
 - **Read the README**.md at rcell2's [GitHub repo](https://github.com/darksideoftheshmoo/rcell2/).
-
-## Preamble
+- Go through the previous notebook, included with the `rcell2.cellid` package. It contains several routine checks that should not be skipped.
 
 ### Image file names
 
@@ -90,7 +92,10 @@ Cell-ID uses the first 3 letters of the file name to group imaging channels.
 **This is mandatory**. If your image set does not conform initially, it can be
 renamed (or symlinked) using rcell2's `rename_mda`, with custom arguments.
 
-For example, file names for a 2-position time course experiment
+The `rcell2` packages rely on regular expressions to gather images and extract 
+metadata from their file names (i.e. channel, position, and time frame.)
+
+File names for a 2-position time course experiment
 are expected to have the following appearance:
 
 ```
@@ -108,42 +113,14 @@ YFP_Position002_time01.tif
 YFP_Position002_time02.tif
 ```
 
-The `rcell2` packages rely on regular expressions to gather images and extract 
-metadata from their file names (i.e. channel, position, and time frame.)
-
 The file list will be recognized by a specific regular expression (regex).
-A regex matching these files can be `^(BF|TFP)_Position(\\d+)_time(\\d+).tif$`;
-note that it has **3 capturing groups** (suff between parentheses).
+A regex matching these files can be `^(BF|TFP)_Position(\\d+)_time(\\d+).tif$`.
+
+Note that the regex has **3 capturing groups** (i.e. the patterns between parentheses).
 The regex as a whole is used to select images from a directory (filtering out
-other files) and the capturing groups are used to extract the metadata.
+other files), and the capturing groups are used to extract the metadata.
 
-### Renaming images
-
-Your imaging software may use file names different from the usual style
-(i.e `YFP_Position01_time1.tif`, and so on).
-
-`rename_mda`, provided by the `rcell2.cellid` package, will help you rename
-those weird file names into something more compatible with `rcell2`'s 
-defailts.
-
-### Check XY stage coordinates
-
-It may be a good idea to check that the physical coordinates of your images
-match your expectations (i.e. the column/row pairs of each well in a microscopy plate).
-This information is stored in TIFF's metadata.
-
-With this information it is also possible to check whether the fields of view of
-different positions overlap, inadvertently.
-
-Code for this check is available in the template notebook of the `rcell2.cellid` package.
-
-Uncomment and execute the following to install the package and open the template:
-
-```{r, eval=F}
-# if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
-
-# rcell2.cellid::get_workflow_template_cellid()
-```
+You may need to adjust these if your files are named differently.
 
 ## Data sources
 
@@ -153,10 +130,10 @@ Set the `data_dir` variable to the path of your segmentation output:
 data_dir <- "/.../path/to/your/segmeted/images"
 ```
 
-A full explanation and walkthrough of the image segmentation process is available
+A full explanation and step-by-step guide of the image segmentation process is available
 in the notebook template of the `rcell2.cellid` package.
 
-Uncomment and execute the following to install the package and open the template:
+Un-comment and execute the following to install the `rcell2.cellid` package and open the template:
 
 ```{r, eval=F}
 # if(!requireNamespace("rcell2.cellid")) remotes::install_github("darksideoftheshmoo/rcell2-cellid")
@@ -164,16 +141,16 @@ Uncomment and execute the following to install the package and open the template
 # rcell2.cellid::get_workflow_template_cellid()
 ```
 
-Uncomment and execute the following to install the examples package and set the data directory:
+Un-comment and execute the following to install the `rcell2.examples` package and set the data directory:
 
 ```{r, eval=F}
 # if(!requireNamespace("remotes")) install.packages("remotes")
 # if(!requireNamespace("rcell2.examples")) remotes::install_github("darksideoftheshmoo/rcell2.examples")
 
-data_dir <- system.file("extdata/sample_datasets/sample_time_series/", package = "rcell2.examples")
+# data_dir <- system.file("extdata/sample_datasets/sample_time_series/", package = "rcell2.examples")
 ```
 
-The example data has already been process with `rcell2.cellid`.
+The example data has already been processed with `rcell2.cellid`, and can be loaded with `rcell2`, as shown below.
 
 ## Load Cell-ID output
 
@@ -186,13 +163,13 @@ This is done with the `load_cell_data` function:
 cell.data <- rcell2::load_cell_data(path = data_dir)
 ```
 
-Alternativley, there is also the `get_cell_data` function from the `rcell2.cellid` package:
+Alternatively, there is also the `get_cell_data` function from the `rcell2.cellid` package:
 
 ```{r}
 cell.data <- rcell2.cellid::get_cell_data(path = data_dir)
 ```
 
-> Obs: your `fluorescence.pattern` regex may vary, see `?get_cell_data`.
+> Note: your `fluorescence.pattern` regex may vary, see `?get_cell_data`.
 
 If Cell-ID was configured to output the segmentation mask, either to a TSV
 or masked TIFF file, the information can be loaded with the `cell.load.boundaries`
@@ -232,7 +209,7 @@ Load "pdata":
 
 ```{r}
 # Set the path to the file (modify accodringly).
-pdata_path <- ".../somewhere/over/the/pdata.csv"
+pdata_path <- ".../somewhere/over/your/pdata.csv"
 
 # It is a "metadata" dataframe we usually join to cdata by "position" and/or "t.frame",
 # which contains other experimental variables: simuli concentrations, notes, etc.
@@ -257,16 +234,16 @@ cdata <- left_join(cdata, pdata)
 
 No analysis package exists (yet) that can replace a researcher's general visual assesment.
 
-The `tagCell` function can provide a randomized experimental context 
+The `tagCell` function from the `rcell2.magick`` can provide a randomized experimental context 
 for tagging (i.e. a _pseudo_ double-blind experiment).
 
 If bias during tagging is not a concern, the "multi-point" tool in ImageJ can
 be used to mark cells with different "counters", by simply clicking on them.
 
-These marks can be exported and mapped back to ucids in R, and then
+These marks can be exported and mapped back to `ucid`s in R, and then
 used for analysis.
 
-#### Hyperstack ImageJ macro
+#### ImageJ Hyperstack macro
 
 This section helps you open your images with FIJI-ImageJ before you begin.
 
@@ -278,8 +255,8 @@ A simple Macro can be run in ImageJ to load virtual hyperstacks of any experimen
 Steps:
 
 1. Run the following code, copy its output to the clipboard.
-2. Open ImageJ/FIJI, and open a new "Macro" window by clicking on "Plugins -> New -> Macro".
-3. Paste the macro into the macro editor, and click on "Run". A new hyperstack window will open.
+2. Open ImageJ/FIJI, and open a new "Macro" window, by clicking on "Plugins -> New -> Macro".
+3. Paste the macro into the macro editor, and click on "Run" below. A new hyperstack window will open.
 4. Browse the images using the sliders.
 
 ```{r}
@@ -292,40 +269,44 @@ virtual stacks must be in `xyczt` order (time is likely to end up as the "channe
 but the order in which the "Image Sequence..." is loaded depends on how their files are named.
 
 The only restriction of this approach is that only "3" dimensions are available for
-browsing: `frame`, `plane`, and `channel`. This is relevant if you wish to browse
+browsing: `frame`, `plane` (Slice), and `channel`. This is relevant if you wish to browse
 segmentation results (which adds another dimension to the set: original vs "out").
 A fourth dimension would be needed, but Hyperstacks only provide 3. Alternatively, 
 open another virtual hyperstack for the output images, and browse them in-sync.
 
 #### Filtering multipoints
 
-Steps (continued): read these steps before tagging.
+Steps (continued): follow these steps to tag cells in ImageJ.
 
 5. Use the multi-point tool to mark individual cells with one or more "counters".
-  - It is critical that you remember the which values of the "Ch" (channel), 
-    "Slice", and "Frame" ImageJ measurements map to `t.frame`s, `pos`, and `ch`
-    in Cell-IDs output.
-  - Note that ImageJ's indexes begin at 1, but Cell-ID's begin at 0. This is
-    specially relevant for `t.frame`s.
 6. After tagging the positions make measurements (press Ctrl+M) and save
    the output to a `.csv` file.
-7. Load the Multi-point tags.
+  - It is critical that you check that the values of the "Ch" (channel), 
+    "Slice", and "Frame" ImageJ measurements map correctly to `t.frame`s,
+    `pos`, and `ch` in Cell-IDs output.
+  - Note that ImageJ's indexes begin at 1, but Cell-ID's begin at 0. This is
+    specially relevant for `t.frame`s.
+7. Load the Multi-point tags using the code below.
 
-We usually prepare one CSV file per position, and extract the position index
-from the file name when loading the measurements into R.
-For example, we CSV files saved as `pos01_filter.csv` (for position 1).
-
-This will require a regex with a single capturing group for the position index, such as:
+Save the files to a single directory, and then save the path here:
 
 ```{r}
-results.pattern <- "pos(\\d+)_filter.csv"
+results.dir <- ".../somewhere/over/the/measurements/"
 ```
 
-List CSV files:
+We usually prepare several CSV files, and extract the position index
+from the file name or the `Slice` variable in them.
+
+For example, CSV files can be named `pos01.csv`. In this case, prepare a matching
+regex, that will find only the CSV files you want to use. For example:
 
 ```{r}
-results.dir <- ".../somewhere/over/the/results/"
+results.pattern <- "pos(\\d+).csv"
+```
 
+You can now list the CSV files:
+
+```{r}
 mp.filters.files <- dir(path = results.dir, 
                         pattern = results.pattern, 
                         full.names = T)
@@ -333,29 +314,34 @@ mp.filters.files <- dir(path = results.dir,
 mp.filters.files
 ```
 
-Load the tags, and extract the position index from the file's names:
+Check that these are the files you need.
+
+Now, load the measurements:
 
 ```{r}
 mp.filters <- 
   # Load CSV files
-  mp.filters.files %>% 
-  {lapply(setNames(., basename(.)), read_csv)} %>% 
+  mp.filters.files |> 
+  {lapply(setNames(., basename(.)), read_csv)} |> 
   # Bind rows
-  bind_rows(.id = "file") %>% 
-  # Get position info
-  extract(file, results.pattern, into = "pos", convert = T) %>% 
+  bind_rows(.id = "file") |> 
+  
+  # Get position info from the "Slice" index..
+  mutate(pos = Slice) |> 
+  
+  # Or, get position info from the file name, if applicable.
+  # extract(file, results.pattern, into = "pos", convert = T) |> 
+  
   # Cleanup
-  select(pos, X, Y, Ch, Slice, Frame) %>% 
+  select(pos, X, Y, Ch, Slice, Frame) |> 
   # Add an ID to each tag
   mutate(mpid = 1:n())
-
-mp.filters
 ```
 
 8. Re-index the time frame column to match Cell-ID's.
 
 ```{r}
-mp.filters <- 
+mp.filters <- mp.filters |> 
   # Re-index t.frame
   mutate(t.frame = Frame - 1)
 ```
@@ -394,15 +380,15 @@ mp.filters.file <- system.file("extdata/sample_datasets/sample_time_series/image
 
 multipoints <- 
   # Load CSV files
-  mp.filters.file %>% read_csv() %>% 
+  mp.filters.file |> read_csv() |> 
   # Cleanup
-  select(X, Y, Ch, Slice, Frame, Counter) %>% 
+  select(X, Y, Ch, Slice, Frame, Counter) |> 
   # Add an ID to each tag
   mutate(mpid = 1:n())
 
-mp.filters <- multipoints %>% 
-  left_join(slice.pos.df) %>% 
-  left_join(ch.frame.df) %>% 
+mp.filters <- multipoints |> 
+  left_join(slice.pos.df) |> 
+  left_join(ch.frame.df) |> 
   left_join(counter.desc.df)
 
 mp.filters
@@ -426,8 +412,8 @@ Calculate distance to closest multipoint and save it's ID:
 
 ```{r}
 # Make a copy of cdata
-cdata.mp <- cdata %>%
-  # filter(t.frame == min(t.frame)) %>% 
+cdata.mp <- cdata |>
+  # filter(t.frame == min(t.frame)) |> 
   select(ucid, pos, t.frame, xpos, ypos)
 
 # Make a copy of the points
@@ -447,7 +433,7 @@ mp.mapped[, c("ucid", "closest.dist")] <-
     min.id <- cells$ucid[which.min(dists)]
     
     c( min.id, min(dists))
-  }) %>% t()
+  }) |> t()
 
 mp.mapped
 ```
@@ -507,7 +493,7 @@ p <- ggplot() +
              size = 3) +
   
   geom_point(aes(xpos, ypos, color="matched"),
-             data=cdata.mp %>% filter(has.close.mp)) +
+             data=cdata.mp |> filter(has.close.mp)) +
   
   facet_wrap(~pos) + coord_equal() +
   ggtitle(paste0("Examine MP filter result", " (d<", threshold, ")"), 
@@ -524,7 +510,7 @@ p
 Examine images of the tagged cells: 
 
 ```{r}
-cdata.mp %>% filter(has.close.mp) |> 
+cdata.mp |> filter(has.close.mp) |> 
   rcell2.magick::magickCell(images) |> 
   rcell2.magick::magickForKnitr()
 ```
@@ -573,16 +559,16 @@ Check graphically:
 plt.dupes <- ggplot() + 
   
   geom_point(aes(X, Y), color = "gray",
-             data = mp.filter %>% filter(Counter == 0), 
+             data = mp.filter |> filter(Counter == 0), 
              size =3) +
   
   geom_point(aes(xpos, ypos), color = "black", data = cdata.mp) +
 
   geom_point(aes(xpos, ypos, color=as.factor(n_dupes)),
-             data = cdata.mp %>% filter(has.close.mp)) + 
+             data = cdata.mp |> filter(has.close.mp)) + 
     
   geom_line(aes(xpos, ypos, group=closest.mp.id), color = "black",
-            data = cdata.mp %>% filter(has.close.mp)) + 
+            data = cdata.mp |> filter(has.close.mp)) + 
   
   ggtitle("Graphical check of unique matches",
           "The points from cdata sharing a close multipoint are joined by lines") +
@@ -595,10 +581,10 @@ plotly::ggplotly(plt.dupes)
 Tabular check:f for each `closest.mp.drop.id` there should be only one row.
 
 ```{r}
-checks.df <- cdata.mp %>% 
-  group_by(closest.mp.id) %>% 
-  filter(has.close.mp) %>% 
-  summarise(row.count = n()) %>% 
+checks.df <- cdata.mp |> 
+  group_by(closest.mp.id) |> 
+  filter(has.close.mp) |> 
+  summarise(row.count = n()) |> 
   arrange(-row.count)
 
 all(checks.df$row.count == 1)  # Should be TRUE
@@ -617,7 +603,7 @@ Use the ImageJ points to select cells in cdata.
 Generate a mapping `data.frame`:
 
 ```{r}
-mapping <- cdata.mp %>% filter(has.close.mp) %>% 
+mapping <- cdata.mp |> filter(has.close.mp) |> 
   select(ucid, closest.mp.id)
 ```
 
@@ -636,7 +622,7 @@ mapping
 You can use this information to filter `cdata`, for example by `ucid`:
 
 ```{r}
-cdata.filtered <- cdata %>% 
+cdata.filtered <- cdata |> 
   filter(ucid %in% mapping$ucid)
 ```
 
@@ -646,8 +632,8 @@ in ImageJ. Other uses for this include tagging events, or phenotypes of interest
 Optionally use `rcell2.magick` to display some images:
 
 ```{r}
-cdata.filtered %>% 
-  rcell2.magick::magickCell(images) %>% 
+cdata.filtered |> 
+  rcell2.magick::magickCell(images) |> 
   rcell2.magick::magickForKnitr()
 ```
 
