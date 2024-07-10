@@ -38,7 +38,6 @@ if (!requireNamespace("EBImage", quietly = TRUE))
   BiocManager::install("EBImage")
 ```
 
-<!-- Download a copy of this file with rcell2::get_workflow_template() -->
 
 The `rcell2` package can be installed directly from its git repository by running the following:
 
@@ -46,8 +45,11 @@ The `rcell2` package can be installed directly from its git repository by runnin
 if (!requireNamespace("remotes", quietly = TRUE))
   install.packages("remotes")
 
-remotes::install_github("darksideoftheshmoo/rcell2")
+if (!requireNamespace("rcell2", quietly = TRUE))
+  remotes::install_github("darksideoftheshmoo/rcell2")
 ```
+
+You may download a fresh copy of this file with `rcell2::get_workflow_template()`.
 
 ## Notebook setup
 
