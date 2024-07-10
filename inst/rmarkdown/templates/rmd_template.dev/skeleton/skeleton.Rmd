@@ -321,15 +321,16 @@ Now, load the measurements:
 ```{r}
 mp.filters <- 
   # Load CSV files
-  mp.filters.files |> 
-  {lapply(setNames(., basename(.)), read_csv)} |> 
+  mp.filters.files |> lapply(read_csv) |> 
+  
   # Bind rows
-  bind_rows(.id = "file") |> 
+  bind_rows() |> 
   
   # Get position info from the "Slice" index..
   mutate(pos = Slice) |> 
   
   # Or, get position info from the file name, if applicable.
+  # mutate(file=mp.filters.files) |> 
   # extract(file, results.pattern, into = "pos", convert = T) |> 
   
   # Cleanup
