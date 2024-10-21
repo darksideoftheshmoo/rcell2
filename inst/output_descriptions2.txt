@@ -4,33 +4,33 @@ category	index	Variable Name	Description
 
 # Category: General measurements
 
-	1	pos	Position number (i.e., id of image field); same for a single cell through every set of images of a time course. This variable is created by Rcell when the dataset is loaded.
+	1	pos	Stage position number, identifying an image of a particular field of view. Cells in the same field of view will share the same position index. This variable is created by Rcell when the dataset is loaded.
 
-	2	cellID	Cell identification number. In FRET experiments the cells in the upper and lower part of the split image are differentiated by an offset of 1000 added to this value.
+	2	cellID	Identification number for a single cell in a particular field of view (i.e. of a particular position). This number only be unique within each position, but not across positions. In FRET experiments the cells in the upper and lower part of the split image are differentiated by an offset of 1000 added to this value.
 
-	3	ucid	Unique cell id. A variable that identifies cells across different positions; defined as pos*offset+cellID, where offset is 100000. This variable is created by Rcell when the dataset is loaded.
+	3	ucid	Unique cell identifier. This number uniquely identifies each cell, across all positions. It is defined as `pos*offset+cellID`, where offset is 100000. This variable is created by rcell2 when the dataset is loaded.
 
-	4	t.frame	Time frame of the cell (0 through n − 1 where n = number of points in the time course). Not every cell is necessarily found in every time point.
+	4	t.frame	Time frame index of the cell (0 through n − 1 where n is the number of points in the time course). Cell-ID attempts to track cells across time frames within each position, but it is not guaranteed that all cells will be detected in all frames. This is due to common defects in the images, which are often unavoidable (e.g. cell clumping over time, focus issues, etc.), and hard to correct.
 
-	5	time	Time of that time frame in seconds. The time unit is an absolute number of seconds from some time in the distance past, but the time elapsed between time frames is more meaningful (only meaningful if using Metamorph images).
+	5	time	Acquisition time in seconds. The time unit is an absolute number of seconds relative to "some time" in the past. This absolute number is only meaningful when segmenting TIFF files produced by Metamorph, but the time elapsed between time frames is always informative.
 
-	6	xpos	x coordinate of the centroid of the cell
+	6	xpos	X (horizontal) coordinate of the centroid of the cell, with origin at the left of the image.
 
-	7	ypos	y coordinate of the centroid of the cell
+	7	ypos	Y (vertical) coordinate of the centroid of the cell, with origin at the top of the image.
 
-	8	f.tot	Sum of the fluorescence image for all the pixels found in that cell
+	8	f.tot	Sum of the fluorescence signal in all pixels of the cell.
 
-	9	a.tot	Area of the cell in pixels
+	9	a.tot	Area of the cell in pixels.
 
-	10	fft.stat	Statistic derived from the one-dimensional fast-Fourier-transform (FFT) of the function: radius vs. angle, where the radius is the distance from the cell centroid to the boundary at a given angle. Its value is the root of the squared sum of the ratio FFT(ω)/FFT(0) over all ω>0; for a perfect circle FFT_stat is 0, and we interpret this statistic as a measure of non-circularity.
+	10	fft.stat	A numeric value related to the non-circularity of the cell's boundary. It is a statistic derived from the one-dimensional fast-Fourier-transform (FFT) of the function: radius vs. angle, where the radius is the distance from the cell centroid to the boundary at a given angle. Its value is the root of the squared sum of the ratio FFT(ω)/FFT(0) over all ω>0; for a perfect circle FFT_stat is 0, and we interpret this statistic as a measure of non-circularity.
 
 	11	perim	Circumference of the cell in pixel units
 
-	12	maj.axis	Length of the major axis in pixel units
+	12	maj.axis	Length of the major axis, in pixel units, resulting from modeling the cell's area as an ellipse.
 
-	13	min.axis	Length of the minor in pixel units
+	13	min.axis	Length of the minor in pixel units, resulting from modeling the cell's area as an ellipse.
 
-	14	flag	Indicates the image type. For example, for YFP and CFP images, all YFP images would be flag 0 and all CFP would be flag 1, assuming that the YFP image was taken earliest in time
+	14	flag	Indicates the image type. For example, for YFP and CFP images, all YFP images would be flag 0 and all CFP would be flag 1, assuming that the YFP image was taken earliest in time.
 
 	15	rot.vol	Volume of rotation of the cell around its major axis
 
